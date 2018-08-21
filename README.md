@@ -1,1 +1,1 @@
-# FYS3150
+# FYS3150 - Computational Physics
