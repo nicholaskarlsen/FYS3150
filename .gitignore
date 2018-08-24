@@ -1,0 +1,11 @@
+# Latex Files
+*.aux
+*.fls
+*.log
+*.out
+*.blg
+*.fdb_latexmk
+*.synctex.gz
+
+# Python stuff
+*.pyc
