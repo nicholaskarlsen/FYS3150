@@ -1,5 +1,5 @@
 import numpy as np
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 # Initial Conditions & parameters
 n = 1e3
@@ -8,6 +8,9 @@ u0 = 0  # u(0) = 0
 u1 = 0  # u(1) = 0
 x = np.linspace(0, 1, h)
 
+
+def analyticSolution(x):
+    return 1 - (1 - np.exp(-10)) * x - np.exp(-10*x)
 
 def tridiagonal(n, dNum=2, eNum=-1):
     """
@@ -22,36 +25,8 @@ def tridiagonal(n, dNum=2, eNum=-1):
 
     return [d, e]
 
+xvals = np.linspace(0, 1, 1e3)
 
-def multiply(A, v):
-    """
-    Performs the matrix multiplication Ab and returns the column vector b.
-    for tridiagonal [nxn] matrix A stored as vectors.
-    d = [d, e] where d: diagonal, e:next to diagonal
-    v = n-dim vector
-    """
-
-    if np.shape(A)[0] != len(v):
-        raise ValueError("Can not multiply due to dimensions.")
-
-    n = len(v)
-    m = np.shape(A)[1]
-
-    b = np.zeros(n)
-
-    for i in xrange(n):
-        for j in xrange(m):
-            b[i] += A[i][j] * v[i]
-
-    return b
-
-
-A = np.array([[1, 0, 0, 0],
-              [0, 1, 0, 0],
-              [0, 0, 1, 0],
-              [0, 0, 0, 1],
-              ])
-
-v = np.array([1, 2, 3, 4])
-
-print multiply(A, v)
+plt.plot(xvals, analyticSolution(xvals), label="Analytic Solution")
+plt.legend()
+plt.show()
