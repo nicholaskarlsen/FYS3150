@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from thomas_algorithm import *
 
 # Initial Conditions & parameters
 n = 1e3
@@ -10,23 +11,15 @@ x = np.linspace(0, 1, h)
 
 
 def analyticSolution(x):
-    return 1 - (1 - np.exp(-10)) * x - np.exp(-10*x)
+    return 1 - (1 - np.exp(-10)) * x - np.exp(-10 * x)
 
-def tridiagonal(n, dNum=2, eNum=-1):
-    """
-    Generates the diagonal elements of a tridiagonal [nxn] matrix
-    with identical elements along the diagonal as two vectors.
-    """
-    if n < 4:  # Matrix does not make sense for n>4
-        raise ValueError("n too small")
-
-    d = np.ones(n) * dNum
-    e = np.ones(n - 2) * eNum
-
-    return [d, e]
 
 xvals = np.linspace(0, 1, 1e3)
 
 plt.plot(xvals, analyticSolution(xvals), label="Analytic Solution")
+for num in [10, 100, 1000]:
+    plt.plot(thomas(num)[1], thomas(num)[0], "x-", label="Tridiagonal Solution (n=%i)" % num)
+plt.xlabel("x")
+plt.ylabel("u(x)")
 plt.legend()
 plt.show()
