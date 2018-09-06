@@ -1,6 +1,8 @@
+# By Nicholas Karlsen
+# Python 2.7.14 (Anaconda)
 from __future__ import division
-
 import numpy as np
+
 
 def f_func(x):
     """ Source term """
@@ -23,15 +25,15 @@ def gauss_general(n, sourceterm, aVal=-1, bVal=2, cVal=-1):
     _b = np.zeros(n)
     u = np.zeros(n)
 
-    _b[1] = b[1]
-    _f[1] = f[1]
+    _b[0] = b[0]
+    _f[0] = f[0]
 
     # Forward step
-    for i in range(1, n):
+    for i in range(2, n - 1):
         _b[i] = b[i] - (a[i] * c[i - 1]) / b[i - 1]
         _f[i] = f[i] - (a[i] * _f[i - 1]) / b[i - 1]
     # Backward Step
-    for i in range(n - 1, 0, -1):
+    for i in range(n - 1, 1, -1):
         u[i - 1] = (_f[i - 1] - c[i - 1] * u[i]) / _b[i - 1]
 
     u[-1] = _f[-1] / _b[-1]
@@ -40,9 +42,10 @@ def gauss_general(n, sourceterm, aVal=-1, bVal=2, cVal=-1):
 
     return x, u
 
+
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    x , u = gauss_general(10, f_func)
+    x, u = gauss_general(10, f_func)
 
-    plt.plot(x,u)
+    plt.plot(x, u)
     plt.show()

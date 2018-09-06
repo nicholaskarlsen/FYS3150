@@ -63,14 +63,20 @@ def thomas_alt(n):
 
     f_dash[1] = f_func(0)
 
-    for i in xrange(2, n):
+    for i in xrange(1, n):
         b[i] = b[i] - a[i] * c[i - 1] / b[i - 1]
         f_dash[i] = f[i] - a[i] * f_dash[i - 1] / b[i - 1]
 
     v[-1] = f_dash[-1] / b[-1]
 
-    for i in xrange(n - 1, 1, -1):
-        print i
+    for i in xrange(n - 2, 0, -1):
+        print(i)
         v[i] = (f_dash[i] - c[i] * v[i + 1]) / b[i]
 
     return v, xvals
+
+if __name__ == '__main__':
+    s = thomas_alt(100)
+
+    plt.plot(s[1], s[0])
+    plt.show()
