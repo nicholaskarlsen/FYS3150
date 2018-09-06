@@ -16,7 +16,7 @@ def f_func(x):
     return 100 * np.exp(-10 * x)
 
 
-def figsetup(title, xlab, ylab, fname, show = False):
+def figsetup(title, xlab, ylab, fname, show=False):
     """
     Sets up and saves figure for usage in report
     usage:
@@ -43,16 +43,12 @@ def analyticSolution(x):
     return 1 - (1 - np.exp(-10)) * x - np.exp(-10 * x)
 
 
-xvals = np.linspace(0, 1, 1e3)
+if __name__ == '__main__':
 
-plt.plot(xvals, analyticSolution(xvals), label="Analytic Solution")
-for num in [10, 100, 1000]:
-    plt.plot(gauss_general(num, f_func)[0], gauss_general(num, f_func)[
-             1], "x-", label="Tridiagonal Solution (n=%i)" % num)
-"""
-plt.xlabel("x")
-plt.ylabel("u(x)")
-plt.legend()
-"""
-# plt.savefig("../figs/" + "figname" + ".png")
-figsetup("test", "x", "y", "testfile")
+    xvals = np.linspace(0, 1, 1e3)
+
+    plt.plot(xvals, analyticSolution(xvals), label="Analytic Solution")
+    for num in [10, 100, 1000]:
+        plt.plot(gauss_general(num, f_func)[0], gauss_general(num, f_func)[
+                 1], "x-", label="Tridiagonal Solution (n=%i)" % num)
+    figsetup("test", "x", "y", "testfile")

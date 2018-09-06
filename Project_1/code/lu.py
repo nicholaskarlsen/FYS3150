@@ -4,6 +4,8 @@ import numpy as np
 
 
 def LU_benchmark(n):
+
+    n = int(n)  # Indices needs to be int
     h = 1.0 / float(n)
 
     a = np.ones(n) * (-1)
@@ -33,12 +35,15 @@ if __name__ == '__main__':
     import time
     import matplotlib.pyplot as plt
     times = []
-    nvals = [10, 100, 10000, 10000]
+    nvals = [1e1, 1e2, 1e3, 1e4]
     for n in nvals:
         t0 = time.time()
         LU_benchmark(n)
         t1 = time.time()
         times.append(t1 - t0)
 
-    plt.plot(nvals, times)
+    plt.plot(np.log10(nvals), times, "x--", label="Scipy")
+    plt.ylabel("Time [s]")
+    plt.xlabel("$log_{10}n$")
+    plt.legend()
     plt.show()
