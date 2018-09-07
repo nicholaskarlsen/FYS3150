@@ -1,6 +1,7 @@
 import scipy.sparse
 import scipy.linalg
 import numpy as np
+import main
 
 
 def LU_benchmark(n):
@@ -16,11 +17,7 @@ def LU_benchmark(n):
 
     xvals = np.linspace(0, 1, n)
 
-    def f_func(x):
-        """ Source term """
-        return 100 * np.exp(-10 * x)
-
-    f = f_func(xvals)
+    f = main.f_func(xvals)
 
     LU = scipy.linalg.lu_factor(A)
 
@@ -42,7 +39,7 @@ if __name__ == '__main__':
         t1 = time.time()
         times.append(t1 - t0)
 
-    plt.plot(np.log10(nvals), times, "x--", label="Scipy")
+    plt.plot(np.log10(nvals), times, "x--", label="Scipy LU-Decomposition")
     plt.ylabel("Time [s]")
     plt.xlabel("$log_{10}n$")
     plt.legend()
