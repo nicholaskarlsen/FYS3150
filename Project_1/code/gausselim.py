@@ -72,11 +72,13 @@ def gauss_specialized(n):
     _b[0] = 2
     _f[0] = f[0]
 
-    i_array = np.linspace(1, n-1, n)
+    "Tried to calculate _b outside of loop, resulted in lower performance"
+    #i_array = np.linspace(1, n-1, n)
+    #_b = (i_array + 1.0) / i_array
 
-    _b = (i_array + 1.0) / i_array
     # Forward
     for i in xrange(1, n):
+        _b[i] = (i + 1) / i  # Performing this outside of loop -> slower
         _f[i] = f[i] + ((i - 1.0) * _f[i - 1]) / i
 
     u[n - 1] = _f[n - 1] / _b[n - 1]
@@ -91,11 +93,18 @@ def gauss_specialized(n):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    num = int(1e7)
+    num = int(1e6)
     x, u = gauss_specialized(num)
     ana = analyticSolution(x)
 
-    plt.plot(x, u, label="Gauss elim")
+    a = np.ones(num) * -1      # Below diagonal
+    b = np.ones(num) * 2       # Diagonal entries
+    c = np.ones(num) * -1      # Above diagonal
+
+    x2, u2 = gauss_general(num, a, b, c)
+
+    plt.plot(x, u, label="Specialized")
+    plt.plot(x2, u2, label="General")
     plt.plot(x, ana, label="Analytic")
     plt.legend()
-    plt.close()
+    plt.show()

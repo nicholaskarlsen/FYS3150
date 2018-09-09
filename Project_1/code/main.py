@@ -88,24 +88,6 @@ def ex_d( showplots=False):
 
         print "\nStarting timing for N=%.1E" % N
 
-        """
-        # wrapping function calls for timeit.timeit to work.
-        def generalcall():
-            gauss_general(N, a, b, c)
-
-        def specialcall():
-            gauss_specialized(N)
-
-        print "Timing general algorithm"
-        gen = timeit.timeit(generalcall, number=ncalls)
-        general_times.append(gen)
-        print "N=%.1E -> %.3E s per call" % (N, gen)
-        print "Timing specialized algorithm"
-        spe = timeit.timeit(specialcall, number=ncalls)
-        special_times.append(spe)
-        print "N=%.1E -> %.3E s per call" % (N, spe)
-        """
-
         if N < 1E4:
             ncalls = 10000
         else:
@@ -143,7 +125,7 @@ def ex_d( showplots=False):
     plt.figure(figsize=(3.8, 3.8))
     plt.plot(log10N, percent_diff, "x--")
     figsetup(title="Percentage difference of execution time", xlab="$log_{10}N$",
-             ylab="Percentage difference [%]", fname="ex1d_timediff", show=True)
+             ylab="Percentage difference [%]", fname="ex1d_timediff2", show=True)
 
     return
 
