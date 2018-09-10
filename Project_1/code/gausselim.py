@@ -78,7 +78,7 @@ def specialized(n):
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    num = int(11)
+    num = int(1e7)
     #x, u = specialized(num)
 
     a = np.ones(num) * -1      # Below diagonal
@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     x, u = specialized(num)
     x2, u2 = general(num, a, b, c)
-
+    """
     print "general"
     print "x         numeric   exact"
     for i in xrange(1, num):
@@ -97,3 +97,4 @@ if __name__ == '__main__':
     print "x         numeric   exact"
     for i in xrange(1, num):
         print "%.4f" % x[i], "--", "%.8f" % u[i]
+    """

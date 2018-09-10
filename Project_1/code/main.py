@@ -96,7 +96,7 @@ def ex_d(showplots=False):
 
     numcalls = 10
 
-    List_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7]
+    List_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6]
     gen_times = []
     spe_times = []
     lu_times = []
@@ -109,10 +109,11 @@ def ex_d(showplots=False):
             numcalls = 100
         else:
             numcalls = 10000
-        exectime_gen = np.zeros(numcalls)
+
 
         print "Calling general..."
-
+        
+        exectime_gen = np.zeros(numcalls)
         for i in range(numcalls):
             a = np.ones(N) * -1
             b = np.ones(N) * 2
@@ -139,9 +140,9 @@ def ex_d(showplots=False):
             exectime_lu = np.zeros(numcalls)
             for i in range(numcalls):
                 t0 = time.time()
-                x, u = specialized(N)
+                x, u = LU_benchmark(N)
                 t1 = time.time()
-            exectime_lu[i] = t1 - t0
+                exectime_lu[i] = t1 - t0
             lu_times.append(np.mean(exectime_lu))
 
     List_of_N = np.array(List_of_N)  # So i can operate on the entire lists
@@ -208,5 +209,5 @@ def ex_e(showplots=False):
 
 if __name__ == '__main__':
     # ex_c()
-    #ex_d()
-    ex_e()
+    ex_d(showplots=True)
+    #ex_e()
