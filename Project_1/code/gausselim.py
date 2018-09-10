@@ -12,7 +12,7 @@ def f_func(x):
     return 100 * np.exp(-10 * x)
 
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def gauss_general(n, a, b, c):
     """"
     Solves for length n vector u in system Au = f(x)
@@ -26,44 +26,29 @@ def gauss_general(n, a, b, c):
               diagonal respectively.
     """
 
-    x = np.linspace(0, 1, n)    # x in [0, 1]
+    x = np.linspace(0, 1.0, n)    # x in [0, 1]
     h = 1.0 / n      # Step size
 
-    f = 100 * np.exp(-10 * x)  # Using directly to optimize for numba (jit)
-
-    _f = np.zeros(n)
-    _b = np.zeros(n)
+    f = 100.0 * np.exp(-10.0 * x)  # Using directly to optimize for numba (jit)
     u = np.zeros(n)  # Initializing with np.zeros also sets Dirichlet bounds
-    print u[0], u[-1]
-
-    _b[0] = b[0]
-    _f[0] = f[0]
 
     # Forward substitution
-    for i in range(1, n):
-        _b[i] = b[i] - ((a[i] * c[i - 1]) / _b[i - 1])
-        _f[i] = f[i] - ((a[i] * _f[i - 1]) / _b[i - 1])
-    print u[0], u[-1]
-    u[n - 1] = _f[n - 1] / _b[n - 1]
-    print u[0], u[-1]
+    for i in range(1, n):  # 1 -> n-1
+        b[i] -= ((a[i] * c[i - 1]) / b[i - 1])
+        f[i] -= ((a[i] * f[i - 1]) / b[i - 1])
+
+    u[n - 1] = f[n - 1] / b[n - 1]
 
     # Backward substitution
-    for i in range(n - 2, 0, -1):
-        u[i] = (_f[i] - c[i] * u[i + 1]) / _b[i]
+    for i in range(n - 2, 0, -1):  # n-2 ->1
+        u[i] = (f[i] - c[i] * u[i + 1]) / b[i]
 
     u *= h**2
-
-    if u[0] != analyticSolution(x[0]) or u[-1] != analyticSolution(x[-1]):
-        print "Boundaries don't match (General)"
-        print "u(0) = ", u[0]
-        print "v(0) = ", analyticSolution(x[0])
-        print "u(1) = ", u[-1]
-        print "v(1) = ", analyticSolution(x[-1])
 
     return x, u
 
 
-#@jit(nopython=True)
+@jit(nopython=True)
 def gauss_specialized(n):
 
     x = np.linspace(0, 1, n)    # x in [0, 1]

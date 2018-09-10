@@ -46,5 +46,3 @@ if __name__ == '__main__':
     plt.xlabel("$log_{10}n$")
     plt.legend()
     plt.show()
-
-

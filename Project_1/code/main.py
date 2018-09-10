@@ -58,9 +58,11 @@ def relError(v, u):
 def ex_c(showplots=False):
     "Contains the calls pertaining to exercise 1c"
 
-    List_of_N = [1e1, 1e2, 1e3, 1e4]
+    print "starting (c)"
+    List_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7]
     plt.figure(figsize=(3.8, 3.8))
     for N in List_of_N:
+        print "N=%.1E" % N
         N = int(N)  # Float input causes errors
         a = np.ones(N) * -1      # Below diagonal
         b = np.ones(N) * 2       # Diagonal entries
@@ -68,7 +70,7 @@ def ex_c(showplots=False):
 
         x_gauss, u_gauss = gauss_general(N, a, b, c)
 
-        plt.plot(x_gauss, u_gauss, label="N = %i" % N)
+        plt.plot(x_gauss, u_gauss, label="N = %.1E" % N)
 
     x_ana = np.linspace(0, 1, 1e3)  # lots of points to create smooth line
     u_ana = analyticSolution(x_ana)
@@ -78,7 +80,7 @@ def ex_c(showplots=False):
     # plt.savefig("../figs/ec1c_compare.png")
 
     figsetup(title="Testing for convergence of algorithm", xlab="x", ylab="u(x)",
-             fname="ex1c_compare", show=True)
+             fname="ex1c_compare", show=showplots)
 
     return
 
@@ -151,10 +153,13 @@ def ex_d(showplots=False):
 def ex_e(showplots=False):
     "Function calls to 'solve' question e. should combine with (d) for better efficiency"
 
-    List_of_N = [1e1, 1e2, 1e3, 1e4]
+    print "Starting (e)"
+
+    List_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8]
     errors = []
 
     for N in List_of_N:
+        print "N=%.1E" % N
         N = int(N)
         a = np.ones(N) * -1      # Below diagonal
         b = np.ones(N) * 2       # Diagonal entries
@@ -169,7 +174,7 @@ def ex_e(showplots=False):
     steps = 1 / np.array(List_of_N)
 
     plt.figure(figsize=(3.8, 3.8))
-    plt.plot(np.log10(steps), errors, "x--")
+    plt.plot(np.log10(steps), np.log10(errors), "x--")
     figsetup(title="Error of algorithm for different step sizes", xlab="$log_{10}h$",
              ylab="$log_{10}\\epsilon_i$", fname="ex1e_err2", show=showplots)
 
@@ -177,6 +182,6 @@ def ex_e(showplots=False):
 
 
 if __name__ == '__main__':
-    # ex_c()
+    ex_c()
     # ex_d()
-    ex_e(True)
+    #ex_e(True)
