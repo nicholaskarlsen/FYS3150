@@ -1,10 +1,16 @@
+# By Nicholas Karlsen
+# Python 2.7.14 (Anaconda)
+"""
+Contains all of the function calls to produce material for Project 1 as well as some
+other useful functions.
+"""
 from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
-import timeit
+import time
+import sys
 from gausselim import *
 from lu import *
-import time
 
 
 def f_func(x):
@@ -27,7 +33,7 @@ def figsetup(title, xlab, ylab, fname, show=False):
     plt.title(title)
     plt.legend()
     plt.savefig("../figs/" + fname + ".png", dpi=250)
-    if show == False:
+    if show is False:
         plt.close()
     else:
         plt.show()
@@ -35,14 +41,18 @@ def figsetup(title, xlab, ylab, fname, show=False):
 
 
 def analyticSolution(x):
-    return 1 - (1 - np.exp(-10)) * x - np.exp(-10 * x)
+    return 1.0 - (1.0 - np.exp(-10.0)) * x - np.exp(-10.0 * x)
 
 
-def relError(u, v):
+def relError(v, u):
     "Computes relative error between two sets of data u, v and returns max"
-    err = np.abs((u[1:-2] - v[1:-2]) / v[1:-2])
+    # Dont include boundaries as they are equal and zero (-> error)
+    err = abs((v[1:-1] - u[1:-1]) / u[1:-1])
     maxErr = np.amax(err)
     return maxErr
+
+
+""" Below are functions containing calls to generate plots etc for report """
 
 
 def ex_c(showplots=False):
@@ -67,11 +77,20 @@ def ex_c(showplots=False):
     # plt.legend()
     # plt.savefig("../figs/ec1c_compare.png")
 
-    figsetup(title="Testing for convergence of algorithm", xlab="x", ylab="u(x)", fname="ex1c_compare", show=True)
+    figsetup(title="Testing for convergence of algorithm", xlab="x", ylab="u(x)",
+             fname="ex1c_compare", show=True)
+
     return
 
 
-def ex_d( showplots=False):
+def ex_d(showplots=False):
+
+    # Require confirm because function takes a while to run
+    confirm = raw_input("Do you want to run timing script? [y/n]:")
+
+    if confirm.lower() != "y":
+        print "Exiting program"
+        sys.exit()
 
     general_times = []
     special_times = []
@@ -92,7 +111,6 @@ def ex_d( showplots=False):
             ncalls = 10000
         else:
             ncalls = 100
-
 
         t = 0
         for i in xrange(ncalls):
@@ -115,7 +133,7 @@ def ex_d( showplots=False):
     plt.plot(log10N, general_times, "x--", label="General algorithm")
     plt.plot(log10N, special_times, "x--", label="Specialized algorithm")
     figsetup(title="Average execution time of functions", xlab="$log_{10}N$",
-             ylab="Time [s]", fname="ex1d_time", show=True)
+             ylab="Time [s]", fname="ex1d_time", show=showplots)
     # Percentage difference in timings
     general_times = np.array(general_times)  # Convert to arrays for easier manipulation
     special_times = np.array(special_times)
@@ -125,11 +143,40 @@ def ex_d( showplots=False):
     plt.figure(figsize=(3.8, 3.8))
     plt.plot(log10N, percent_diff, "x--")
     figsetup(title="Percentage difference of execution time", xlab="$log_{10}N$",
-             ylab="Percentage difference [%]", fname="ex1d_timediff2", show=True)
+             ylab="Percentage difference [%]", fname="ex1d_timediff", show=showplots)
+
+    return
+
+
+def ex_e(showplots=False):
+    "Function calls to 'solve' question e. should combine with (d) for better efficiency"
+
+    List_of_N = [1e1, 1e2, 1e3, 1e4]
+    errors = []
+
+    for N in List_of_N:
+        N = int(N)
+        a = np.ones(N) * -1      # Below diagonal
+        b = np.ones(N) * 2       # Diagonal entries
+        c = np.ones(N) * -1      # Above diagonal
+        x, u = gauss_general(N, a, b, c)
+        #x, u = gauss_specialized(N)
+        #x, u = LU_benchmark(N)
+        u2 = analyticSolution(x)
+        errors.append(relError(u, u2))
+
+    errors = np.array(errors)
+    steps = 1 / np.array(List_of_N)
+
+    plt.figure(figsize=(3.8, 3.8))
+    plt.plot(np.log10(steps), errors, "x--")
+    figsetup(title="Error of algorithm for different step sizes", xlab="$log_{10}h$",
+             ylab="$log_{10}\\epsilon_i$", fname="ex1e_err2", show=showplots)
 
     return
 
 
 if __name__ == '__main__':
-    #ex_c()
-    ex_d()
+    # ex_c()
+    # ex_d()
+    ex_e(True)

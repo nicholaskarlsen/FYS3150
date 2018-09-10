@@ -1,3 +1,6 @@
+# By Nicholas Karlsen
+# Python 2.7.14 (Anaconda)
+# Performs LU decomposition to solve tridiagonal matrix using scipy
 import scipy.sparse
 import scipy.linalg
 import numpy as np
