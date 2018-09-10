@@ -59,7 +59,7 @@ def ex_c(showplots=False):
     "Contains the calls pertaining to exercise 1c"
 
     print "starting (c)"
-    List_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7]
+    List_of_N = [1e1, 1e2, 1e3]
     plt.figure(figsize=(3.8, 3.8))
     for N in List_of_N:
         print "N=%.1E" % N
@@ -68,7 +68,7 @@ def ex_c(showplots=False):
         b = np.ones(N) * 2       # Diagonal entries
         c = np.ones(N) * -1       # Above diagonal
 
-        x_gauss, u_gauss = gauss_general(N, a, b, c)
+        x_gauss, u_gauss = general(N, a, b, c)
 
         plt.plot(x_gauss, u_gauss, label="N = %.1E" % N)
 
@@ -86,68 +86,82 @@ def ex_c(showplots=False):
 
 
 def ex_d(showplots=False):
+    """
+    This function is exceedingly badly written as i had some issues when trying to 
+    time my code in a previous itteration of the script. Since time is short, i opted
+    to not spend any time to re-write this to a cleaner form once i got it all working.
+    """
 
-    # Require confirm because function takes a while to run
-    confirm = raw_input("Do you want to run timing script? [y/n]:")
+    print "Starting (d)"
 
-    if confirm.lower() != "y":
-        print "Exiting program"
-        sys.exit()
+    numcalls = 10
 
-    general_times = []
-    special_times = []
-
-    List_of_N = [10, 25, 50, 75, 100, 250, 500, 750, 1e3, 2.5e3, 5e3, 7.5e3,
-                 1e4, 1e5, 5e5, 1e6, 1e7]
+    List_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7]
+    gen_times = []
+    spe_times = []
+    lu_times = []
 
     for N in List_of_N:
-        N = int(N)               # Float input causes errors
-        # Preparing input vectors before function call
-        a = np.ones(N) * -1      # Below diagonal
-        b = np.ones(N) * 2       # Diagonal entries
-        c = np.ones(N) * -1      # Above diagonal
+        print "N = %.1E" % N
+        N = int(N)
 
-        print "\nStarting timing for N=%.1E" % N
-
-        if N < 1E4:
-            ncalls = 10000
+        if N > 1e4:
+            numcalls = 100
         else:
-            ncalls = 100
+            numcalls = 10000
+        exectime_gen = np.zeros(numcalls)
 
-        t = 0
-        for i in xrange(ncalls):
+        print "Calling general..."
+
+        for i in range(numcalls):
+            a = np.ones(N) * -1
+            b = np.ones(N) * 2
+            c = np.ones(N) * -1
             t0 = time.time()
-            gauss_general(N, a, b, c)
+            x, u = general(N, a, b, c)
             t1 = time.time()
-            t += t1 - t0
-        general_times.append(t / ncalls)
+            exectime_gen[i] = t1 - t0
+        gen_times.append(np.mean(exectime_gen))
 
-        t = 0
-        for i in xrange(ncalls):
+        print "Calling specialized..."
+
+        exectime_spe = np.zeros(numcalls)
+        for i in range(numcalls):
             t0 = time.time()
-            gauss_specialized(N)
+            x, u = specialized(N)
             t1 = time.time()
-            t += t1 - t0
-        special_times.append(t / ncalls)
+            exectime_spe[i] = t1 - t0
+        spe_times.append(np.mean(exectime_spe))
 
-    log10N = np.log10(np.array(List_of_N))
+        if N <= 1e4:  # N > 1e4 -> run out of memory
+
+            print "Calling LU..."
+            exectime_lu = np.zeros(numcalls)
+            for i in range(numcalls):
+                t0 = time.time()
+                x, u = specialized(N)
+                t1 = time.time()
+            exectime_lu[i] = t1 - t0
+            lu_times.append(np.mean(exectime_lu))
+
+    List_of_N = np.array(List_of_N)  # So i can operate on the entire lists
+    gen_times = np.array(gen_times)
+    spe_times = np.array(spe_times)
+    lu_times = np.array(lu_times)
+
     plt.figure(figsize=(3.8, 3.8))
-    plt.plot(log10N, general_times, "x--", label="General algorithm")
-    plt.plot(log10N, special_times, "x--", label="Specialized algorithm")
-    figsetup(title="Average execution time of functions", xlab="$log_{10}N$",
-             ylab="Time [s]", fname="ex1d_time", show=showplots)
-    # Percentage difference in timings
-    # Convert to arrays for easier manipulation
-    general_times = np.array(general_times)
-    special_times = np.array(special_times)
+    plt.plot(np.log10(List_of_N), np.log10(gen_times), "x--", label="General algorithm")
+    plt.plot(np.log10(List_of_N), np.log10(spe_times), "x--", label="specialized algorithm")
+    plt.plot(np.log10(List_of_N[List_of_N<=1e4]), np.log10(lu_times), "x--", label="LU-Decomposition")
 
-    percent_diff = np.abs(general_times - special_times) / \
-        ((special_times + general_times) / 2.0) * 100
+    figsetup(title="Timing algorithms", xlab="$log_{10}N$", ylab="$log_{10}t$",
+             fname="ex1d_time", show=showplots)
 
+    rdiff_time = np.abs(gen_times - spe_times) / ((np.abs(gen_times) + np.abs(spe_times)) / 2.0)
     plt.figure(figsize=(3.8, 3.8))
-    plt.plot(log10N, percent_diff, "x--")
-    figsetup(title="Percentage difference of execution time", xlab="$log_{10}N$",
-             ylab="Percentage difference [%]", fname="ex1d_timediff", show=showplots)
+    plt.plot(np.log10(List_of_N), rdiff_time, "x--")
+    figsetup(title="Relative difference of execution time", xlab="$log_{10}N$", ylab="Relative difference",
+             fname="ex1d_timediff", show=showplots)
 
     return
 
@@ -160,30 +174,39 @@ def ex_e(showplots=False):
     List_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8]
     errors = []
 
+    errors_LU = []
+
     for N in List_of_N:
         print "N=%.1E" % N
         N = int(N)
         a = np.ones(N) * -1      # Below diagonal
         b = np.ones(N) * 2       # Diagonal entries
         c = np.ones(N) * -1      # Above diagonal
-        x, u = gauss_general(N, a, b, c)
-        #x, u = gauss_specialized(N)
-        #x, u = LU_benchmark(N)
+        x, u = general(N, a, b, c)
+        # x, u = specialized(N)
+        # x, u = LU_benchmark(N)
         u2 = analyticSolution(x)
         errors.append(relError(u, u2))
 
-    errors = np.array(errors)
-    steps = 1 / np.array(List_of_N)
+        if N <= 1e4:
+            xlu, ulu = LU_benchmark(N)
+            u3 = analyticSolution(xlu)
+            errors_LU.append(relError(ulu, u3))
 
+    errors = np.array(errors)
+    errors_LU = np.array(errors_LU)
+    steps = 1 / np.array(List_of_N)
+    print len(steps[steps<= 1/1e4]), len(errors_LU)
     plt.figure(figsize=(3.8, 3.8))
-    plt.plot(np.log10(steps), np.log10(errors), "x--")
+    plt.plot(np.log10(steps), np.log10(errors), "x--", label="algorithm")
+    plt.plot(np.log10(steps[steps<= 1/1e4]), np.log10(errors_LU), "x--", label="LU")
     figsetup(title="Error of algorithm for different step sizes", xlab="$log_{10}h$",
-             ylab="$log_{10}\\epsilon_i$", fname="ex1e_err3", show=showplots)
+             ylab="$log_{10}\\epsilon_i$", fname="ex1e_err", show=showplots)
 
     return
 
 
 if __name__ == '__main__':
-    #ex_c(showplots=True)
-    ex_d(showplots=True)
-    # ex_e(True)
+    # ex_c()
+    #ex_d()
+    ex_e()
