@@ -98,7 +98,7 @@ def ex_d(showplots=False):
     special_times = []
 
     List_of_N = [10, 25, 50, 75, 100, 250, 500, 750, 1e3, 2.5e3, 5e3, 7.5e3,
-                 1e4, 1e5, 5e5, 1e6, 1e7, 1e8]
+                 1e4, 1e5, 5e5, 1e6, 1e7]
 
     for N in List_of_N:
         N = int(N)               # Float input causes errors
@@ -137,10 +137,12 @@ def ex_d(showplots=False):
     figsetup(title="Average execution time of functions", xlab="$log_{10}N$",
              ylab="Time [s]", fname="ex1d_time", show=showplots)
     # Percentage difference in timings
-    general_times = np.array(general_times)  # Convert to arrays for easier manipulation
+    # Convert to arrays for easier manipulation
+    general_times = np.array(general_times)
     special_times = np.array(special_times)
 
-    percent_diff = np.abs(general_times - special_times) / ((special_times + general_times) / 2.0) * 100
+    percent_diff = np.abs(general_times - special_times) / \
+        ((special_times + general_times) / 2.0) * 100
 
     plt.figure(figsize=(3.8, 3.8))
     plt.plot(log10N, percent_diff, "x--")
@@ -176,12 +178,12 @@ def ex_e(showplots=False):
     plt.figure(figsize=(3.8, 3.8))
     plt.plot(np.log10(steps), np.log10(errors), "x--")
     figsetup(title="Error of algorithm for different step sizes", xlab="$log_{10}h$",
-             ylab="$log_{10}\\epsilon_i$", fname="ex1e_err2", show=showplots)
+             ylab="$log_{10}\\epsilon_i$", fname="ex1e_err3", show=showplots)
 
     return
 
 
 if __name__ == '__main__':
-    ex_c()
-    # ex_d()
-    #ex_e(True)
+    #ex_c(showplots=True)
+    ex_d(showplots=True)
+    # ex_e(True)

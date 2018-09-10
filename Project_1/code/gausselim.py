@@ -33,14 +33,12 @@ def gauss_general(n, a, b, c):
     u = np.zeros(n)  # Initializing with np.zeros also sets Dirichlet bounds
 
     # Forward substitution
-    for i in range(1, n):  # 1 -> n-1
+    for i in xrange(2, n-1):  # 1 -> n-1
         b[i] -= ((a[i] * c[i - 1]) / b[i - 1])
         f[i] -= ((a[i] * f[i - 1]) / b[i - 1])
-
-    u[n - 1] = f[n - 1] / b[n - 1]
-
+    u[-2] = f[-2] / b[-2]
     # Backward substitution
-    for i in range(n - 2, 0, -1):  # n-2 ->1
+    for i in xrange(n - 1, 0, -1):  # n-2 ->1
         u[i] = (f[i] - c[i] * u[i + 1]) / b[i]
 
     u *= h**2
@@ -55,39 +53,26 @@ def gauss_specialized(n):
     h = (x[-1] - x[0]) / n
 
     f = 100 * np.exp(-10 * x)  # Using directly to optimize
-
-    _f = np.zeros(n)
-    _b = np.zeros(n)
     u = np.zeros(n)
 
-    _b[0] = 2
-    _f[0] = f[0]
 
     "Tried to calculate _b outside of loop, resulted in lower performance"
     #i_array = np.linspace(1, n-1, n)
     #_b = (i_array + 1.0) / i_array
 
     # Forward
-    for i in xrange(1, n):
+    for i in xrange(2, n):
         #_b[i] = (i + 1) / i  # Performing this outside of loop -> slower
         #_f[i] = f[i] + ((i - 1.0) * _f[i - 1]) / i
-        _b[i] = 2 - 1 / _b[i - 1]
-        _f[i] = f[i] + _f[i - 1] / _b[i - 1]
+        b[i] = 2 - 1 / b[i - 1]
+        f[i] = f[i] + f[i - 1] / b[i - 1]
 
-    u[n - 1] = _f[n - 1] / _b[n - 1]
+    u[-2] = _f[-2] / _b[-2]
     # Backward
-    for i in xrange(n - 2, 0, -1):
+    for i in xrange(n - 1, 0, -1):
         u[i] = i / (i + 1) * (_f[i] + u[i + 1])
 
     u *= h**2
-
-    if u[0] != analyticSolution(x[0]) or u[-1] != analyticSolution(x[-1]):
-        print "Boundaries don't match (Specialized)"
-        print "u(0) = ", u[0]
-        print "v(0) = ", analyticSolution(x[0])
-        print "u(1) = ", u[-1]
-        print "v(1) = ", analyticSolution(x[-1])
-        sys.exit()
 
     return x, u
 
