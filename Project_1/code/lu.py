@@ -10,7 +10,7 @@ import main
 def LU_benchmark(n):
     "Solves system by LU decomposition for a given n using scipy"
     n = int(n)  # In case input is float, needs to be int or else errors.
-    h = 1.0 / float(n)  # Step size
+    h = 1.0 / float(n-1)  # Step size
 
     a = np.ones(n) * (-1)  # Entries below diagonal
     b = np.ones(n) * 2     # Diagonal entries
@@ -33,6 +33,7 @@ if __name__ == '__main__':
     # Testbench ensuring everything works
     import time
     import matplotlib.pyplot as plt
+    """
     times = []
     nvals = [1e1, 1e2, 1e3, 1e4]
     for n in nvals:
@@ -45,4 +46,8 @@ if __name__ == '__main__':
     plt.ylabel("Time [s]")
     plt.xlabel("$log_{10}n$")
     plt.legend()
+    plt.close()
+    """
+    x, u = LU_benchmark(11)
+    plt.plot(x, u)
     plt.show()

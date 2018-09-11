@@ -3,6 +3,7 @@
 from __future__ import division  # Making sure integer division doenst sneak up on me
 from numba import jit
 import numpy as np
+import time
 
 
 def f_func(x):
@@ -11,7 +12,7 @@ def f_func(x):
 
 
 @jit(nopython=True)
-def general(n, a, b, c):
+def general(n, a, b, c, timing=False):
     """"
     Solves for length n vector u in system Au = f(x)
     where A, [nxn] matrix and f(x) lengtth n vector
@@ -31,12 +32,12 @@ def general(n, a, b, c):
 
     # Forward substitution
     for i in xrange(2, n - 1):  # 1 -> n-1
-        b[i] -= ((a[i] * c[i - 1]) / b[i - 1])
-        f[i] -= ((a[i] * f[i - 1]) / b[i - 1])
-    u[-2] = f[-2] / b[-2]
+        b[i] -= ((a[i] * c[i - 1]) / b[i - 1])  # 3 * (n - 3)
+        f[i] -= ((a[i] * f[i - 1]) / b[i - 1])  # 3 * (n - 3)
+    u[-2] = f[-2] / b[-2]                       # 1
     # Backward substitution
     for i in xrange(n - 2, 0, -1):  # n-2 ->1
-        u[i] = (f[i] - c[i] * u[i + 1]) / b[i]
+        u[i] = (f[i] - c[i] * u[i + 1]) / b[i]  # 3 * (n - 2)
 
     u *= h**2
     return x, u
@@ -65,20 +66,21 @@ def specialized(n):
 
     # Forward substitution
     for i in xrange(2, n - 1):  # 1 -> n-1
-        b[i] -= 1 / b[i - 1]
-        f[i] += f[i - 1] / b[i - 1]
-    u[-2] = f[-2] / b[-2]
+        b[i] -= 1 / b[i - 1]            # 2 * (n-3)
+        f[i] += f[i - 1] / b[i - 1]     # 2 * (n-3)
+    u[-2] = f[-2] / b[-2]               # 1
     # Backward substitution
     for i in xrange(n - 2, 0, -1):  # n-2 ->1
-        u[i] = (f[i] + u[i + 1]) / b[i]
+        u[i] = (f[i] + u[i + 1]) / b[i]  # 2 * (n-2)
 
     u *= h**2
+
     return x, u
 
 
 if __name__ == '__main__':
     import matplotlib.pyplot as plt
-    num = int(1e7)
+    num = int(11)
     #x, u = specialized(num)
 
     a = np.ones(num) * -1      # Below diagonal
@@ -87,14 +89,12 @@ if __name__ == '__main__':
 
     x, u = specialized(num)
     x2, u2 = general(num, a, b, c)
-    """
     print "general"
     print "x         numeric   exact"
-    for i in xrange(1, num):
+    for i in xrange(num):
         print "%.4f" % x2[i], "--", "%.8f" % u2[i]
 
     print "Specialized:"
     print "x         numeric   exact"
-    for i in xrange(1, num):
+    for i in xrange(num):
         print "%.4f" % x[i], "--", "%.8f" % u[i]
-    """

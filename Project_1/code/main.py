@@ -105,14 +105,10 @@ def ex_d(showplots=False):
         print "N = %.1E" % N
         N = int(N)
 
-        if N > 1e4:
-            numcalls = 100
-        else:
-            numcalls = 10000
-
+        numcalls = 10
 
         print "Calling general..."
-        
+
         exectime_gen = np.zeros(numcalls)
         for i in range(numcalls):
             a = np.ones(N) * -1
@@ -153,7 +149,7 @@ def ex_d(showplots=False):
     plt.figure(figsize=(3.8, 3.8))
     plt.plot(np.log10(List_of_N), np.log10(gen_times), "x--", label="General algorithm")
     plt.plot(np.log10(List_of_N), np.log10(spe_times), "x--", label="specialized algorithm")
-    plt.plot(np.log10(List_of_N[List_of_N<=1e4]), np.log10(lu_times), "x--", label="LU-Decomposition")
+    plt.plot(np.log10(List_of_N[List_of_N <= 1e4]), np.log10(lu_times), "x--", label="LU-Decomposition")
 
     figsetup(title="Timing algorithms", xlab="$log_{10}N$", ylab="$log_{10}t$",
              fname="ex1d_time", show=showplots)
@@ -168,8 +164,6 @@ def ex_d(showplots=False):
 
 
 def ex_e(showplots=False):
-    "Function calls to 'solve' question e. should combine with (d) for better efficiency"
-
     print "Starting (e)"
 
     List_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8]
@@ -184,23 +178,14 @@ def ex_e(showplots=False):
         b = np.ones(N) * 2       # Diagonal entries
         c = np.ones(N) * -1      # Above diagonal
         x, u = general(N, a, b, c)
-        # x, u = specialized(N)
-        # x, u = LU_benchmark(N)
         u2 = analyticSolution(x)
         errors.append(relError(u, u2))
 
-        if N <= 1e4:
-            xlu, ulu = LU_benchmark(N)
-            u3 = analyticSolution(xlu)
-            errors_LU.append(relError(ulu, u3))
-
     errors = np.array(errors)
     errors_LU = np.array(errors_LU)
-    steps = 1 / np.array(List_of_N)
-    print len(steps[steps<= 1/1e4]), len(errors_LU)
+    steps = 1 / (np.array(List_of_N) - 1)
     plt.figure(figsize=(3.8, 3.8))
     plt.plot(np.log10(steps), np.log10(errors), "x--", label="algorithm")
-    plt.plot(np.log10(steps[steps<= 1/1e4]), np.log10(errors_LU), "x--", label="LU")
     figsetup(title="Error of algorithm for different step sizes", xlab="$log_{10}h$",
              ylab="$log_{10}\\epsilon_i$", fname="ex1e_err", show=showplots)
 
@@ -208,6 +193,6 @@ def ex_e(showplots=False):
 
 
 if __name__ == '__main__':
-    # ex_c()
-    ex_d(showplots=True)
-    #ex_e()
+    #ex_c()
+    #ex_d()
+    ex_e()

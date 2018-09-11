@@ -9,12 +9,28 @@
 \author{Nicholas Karlsen}
 
 \begin{abstract}
-  A look at different algorithms for solving a second-order differential equation with a known analytical solution, comparing both their speed and accuracy. Found that a specialized algorithm implemented in an efficient manner can speed up the computation significantly.
+  A look on two similar algorithms for solving an inhomogeneous second-order differential equation with a known analytical solution and comparing their efficiency to a standard LU-decomposition method. Found that the algorithms allow for greater precision and faster run-times.
 \end{abstract}
 
 \maketitle
 
 \section{Introduction}
+  When assuming spherical symmetry, the Poisson equation, eqn. \ref{poisson}
+
+  \begin{equation}
+    \label{poisson}
+    \nabla^2 \mathbf \Phi = - 4\pi \rho (\mathbf r)
+  \end{equation}
+  can be reduced to the 1-dimensional second order inhomogeneous differential equation, eqn. \ref{diffeq1},
+  by assuming spherical symmetry and scaling the problem.
+
+  \begin{equation}
+    \label{diffeq1}
+    \frac{d^2u(x)}{dx^2} = f(x)
+  \end{equation}
+
+  A numerical solver for this equation not only allows us to solve the Poisson equation, but several other systems as well. In this report i have looked at one such solver, in both its general and specialized form and compared its speed to a solver which employs the LU-decomposition method in scipy and found that the solver was faster, but more importantly, allowed for a solution closer to what is allowed by the machine precision.
+
 
 \section{Theory, algorithms and methods}
 We have second order inhomogeneous differential equation, Eqn. \ref{differential_equation}
@@ -35,7 +51,7 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
     \label{Discrete diffeq}
     - \frac{v_{i+1} + v_{i-1} + 2v_i}{h^2} = f_i
   \end{equation}
-  where $h = 1/(n+1)$ is the step size for $n+1$ points.
+  where $h = 1/(n-1)$ is the step size for $n$ points and $V_i$ is the discretized form of $u(x)$.
 
   This problem can be written in the form 
   \begin{equation}
@@ -64,12 +80,26 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
   \end{align}
 
   Which is equivalent to the discretized differential equation Eqn. \ref{Discrete diffeq},
-  showing that the differential equation can be solved as a linear algebra problem rather than iteratively.
+  showing that the differential equation can be solved as a linear algebra problem. 
+
+  $A$ can be written more generally as
+  \begin{equation}
+    \label{A matrix}
+    A = \left[ 
+    \begin{matrix}
+      b_1 & c_1 & 0 & \dots  & \dots &0 \\
+      a_2 & b_2 & c_2 & 0 & \dots &  0 \\
+      0 & a_3 & b_3 & c_3 & \dots & \vdots  \\
+      \vdots & \vdots & \vdots & \vdots & \vdots & c_{n-1}\\
+      \dots & \dots & \dots & \dots & a_n & b_n
+    \end{matrix}
+    \right]
+  \end{equation}
+
 
 
 \section{Results and discussions}
   The implementation of the code discussed in the previous section can be found on my github: \url{https://github.com/nicholaskarlsen/FYS3150}. 
-  The benchmarks were tested on my computer without a running desktop environment etc, specifications listed in Table \ref{tab:specs}
 
 
   \begin{figure}[hbtp]
@@ -81,7 +111,7 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
   \begin{figure}[hbtp]
     \center
     \includegraphics[scale=.7]{figs/ex1d_time.png}
-    \caption{Percentage difference between the execution times of the general and specialized algorithms on my computer}
+    \caption{The average execution time of 10 function calls on my computer}
   \end{figure}
 
   \begin{figure}[hbtp]
@@ -93,7 +123,7 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
   \begin{figure}[hbtp]
     \center
     \includegraphics[scale=.7]{figs/ex1e_err.png}
-    \caption{Percentage difference between the execution times of the general and specialized algorithms on my computer}
+    \caption{How the error evolves for smaller step sizes when comparing the general algorithm to the analytic solution}
   \end{figure}
 
 
@@ -111,22 +141,6 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
 \begin{thebibliography}{99}
 \bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
 \end{thebibliography}
-
-\newpage
-
-\appendix
-  \section{Appendix}
-  \begin{table}[h]
-  \caption{PC Specifications}
-  \begin{tabular}{|l|l|}
-    \hline
-    OS & Manjaro Linux \\ \hline
-    CPU & Intel i7-4790K (8) @ 4.400GHz \\ \hline
-    GPU & NVIDIA GeForce GTX 970  \\ \hline
-    RAM & 15969MiB \\ \hline
-  \end{tabular}
-  \label{tab:specs}
-  \end{table}
 
 
 \end{document}
