@@ -105,7 +105,7 @@ def ex_d(showplots=False):
         print "N = %.1E" % N
         N = int(N)
 
-        numcalls = 10
+        numcalls = 100
 
         print "Calling general..."
 
@@ -193,6 +193,6 @@ def ex_e(showplots=False):
 
 
 if __name__ == '__main__':
-    #ex_c()
-    #ex_d()
+    ex_c()
+    ex_d()
     ex_e()

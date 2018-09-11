@@ -31,13 +31,13 @@ def general(n, a, b, c, timing=False):
     u = np.zeros(n)  # Initializing with np.zeros also sets Dirichlet bounds
 
     # Forward substitution
-    for i in xrange(2, n - 1):  # 1 -> n-1
-        b[i] -= ((a[i] * c[i - 1]) / b[i - 1])  # 3 * (n - 3)
-        f[i] -= ((a[i] * f[i - 1]) / b[i - 1])  # 3 * (n - 3)
-    u[-2] = f[-2] / b[-2]                       # 1
+    for i in xrange(2, n - 1):
+        b[i] = b[i] - ((a[i] * c[i - 1]) / b[i - 1])
+        f[i] = f[i] - ((a[i] * f[i - 1]) / b[i - 1])
+    u[-2] = f[-2] / b[-2]
     # Backward substitution
-    for i in xrange(n - 2, 0, -1):  # n-2 ->1
-        u[i] = (f[i] - c[i] * u[i + 1]) / b[i]  # 3 * (n - 2)
+    for i in xrange(n - 2, 0, -1):
+        u[i] = (f[i] - c[i] * u[i + 1]) / b[i]
 
     u *= h**2
     return x, u
@@ -65,9 +65,9 @@ def specialized(n):
     b = np.ones(n) * 2
 
     # Forward substitution
-    for i in xrange(2, n - 1):  # 1 -> n-1
-        b[i] -= 1 / b[i - 1]            # 2 * (n-3)
-        f[i] += f[i - 1] / b[i - 1]     # 2 * (n-3)
+    for i in xrange(2, n - 1):
+        b[i] = b[i] - 1 / b[i - 1]            # 2 * (n-3)
+        f[i] = f[i] + f[i - 1] / b[i - 1]     # 2 * (n-3)
     u[-2] = f[-2] / b[-2]               # 1
     # Backward substitution
     for i in xrange(n - 2, 0, -1):  # n-2 ->1
