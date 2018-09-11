@@ -129,9 +129,7 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
       \tilde f_i = f_i + \frac{\tilde f_{i -1}}{\tilde b_{i-1}}, 
       \quad i &\in \{2, 3, \dots, n-2\} 
       \\
-
-      v_{n-2}
-
+      v_{n-2} = \frac{\tilde f_{n-2}}{\tilde b_{n-2}}, &
       \\
       v_i = \frac{\tilde f_i + v_{i+1}}{\tilde b_i}, 
       \quad i &\in \{n-2, n-3, \dots, 1\}
@@ -142,7 +140,7 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
   Or written in pseudocode/python;
   \lstinputlisting[language=Python, firstline=33, lastline=40]{code/gausselim.py}
 
-  If we asume $\mathcal O(n)$ is such that $\pm$ numbers of order 0 become insignificant, then $9n$ FLOPS is required to compute this algorithm.
+  If we asume $\mathcal O(n)$ is such that $\pm$ numbers of order 0 become insignificant, then $\approx 9n$ FLOPS is required to compute this algorithm.
 
   For the special case, eqn. \ref{A matrix}, this algorithm can be further simplified by abusing the fact that the diagonal matrix elements $a_i, c_i$ are identical for all $i$. Resulting in the following sets of equations, \ref{eqn:improved}, for the substitutions.
 
@@ -154,11 +152,13 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
       \tilde f_i = f_i + \frac{\tilde f_{i -1}}{\tilde b_{i-1}}, 
       \quad i &\in \{2, 3, \dots, n-2\} 
       \\
+      v_{n-2} = \frac{\tilde f_{n-2}}{\tilde b_{n-2}}, &
+      \\
       v_i = \frac{\tilde f_i + v_{i+1}}{\tilde b_i}, 
       \quad i &\in \{n-2, n-3, \dots, 1\}
     \end{split}
   \end{align}
-  This simplification results in $\approx 6n$ flops required to solve the problem, $66\%$ less flops than the general algorithm.
+  This simplification results in $\approx 6n$ flops required to solve the problem, $67\%$ less flops than the general algorithm.
 
 
 

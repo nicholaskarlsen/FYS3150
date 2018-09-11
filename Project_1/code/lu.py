@@ -33,7 +33,6 @@ if __name__ == '__main__':
     # Testbench ensuring everything works
     import time
     import matplotlib.pyplot as plt
-    """
     times = []
     nvals = [1e1, 1e2, 1e3, 1e4]
     for n in nvals:
@@ -47,7 +46,3 @@ if __name__ == '__main__':
     plt.xlabel("$log_{10}n$")
     plt.legend()
     plt.close()
-    """
-    x, u = LU_benchmark(11)
-    plt.plot(x, u)
-    plt.show()
