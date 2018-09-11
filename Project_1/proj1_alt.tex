@@ -33,19 +33,19 @@
 \author{Nicholas Karlsen}
 
 \begin{abstract}
-  A look on two similar algorithms for solving an inhomogeneous second-order differential equation with a known analytical solution and comparing their efficiency to a standard LU-decomposition method. Found that the algorithms allow for greater precision and faster run-times.
+  A look at two similar algorithms for solving a second-order differential equation with a known analytical solution and comparing their efficiency to a standard LU-decomposition method. Found that the algorithms allow for greater precision and faster run-times.
 \end{abstract}
 
 \maketitle
 
 \section{Introduction}
-  When assuming spherical symmetry, the Poisson equation, eqn. \ref{poisson}
+  The Poisson equation, eqn. \ref{poisson}
 
   \begin{equation}
     \label{poisson}
     \nabla^2 \mathbf \Phi = - 4\pi \rho (\mathbf r)
   \end{equation}
-  can be reduced to the 1-dimensional second order inhomogeneous differential equation, eqn. \ref{diffeq1},
+  can be reduced to the 1-dimensional second order differential equation, eqn. \ref{diffeq1},
   by assuming spherical symmetry and scaling the problem.
 
   \begin{equation}
@@ -53,11 +53,11 @@
     \frac{d^2u(x)}{dx^2} = f(x)
   \end{equation}
 
-  A numerical solver for this equation not only allows us to solve the Poisson equation, but several other systems as well. In this report i have looked at one such solver, in both its general and specialized form and compared its speed to a solver which employs the LU-decomposition method in scipy and found that the solver was faster, but more importantly, allowed for a solution closer to what is allowed by the machine precision.
+  A numerical solver for this equation not only allows us to solve the Poisson equation, but several other systems as well. In this report i have looked at one such solver, in both its general and specialized form and compared its speed to a solver which employs the LU-decomposition method in scipy and found that the solver was faster, but more importantly, allowed for a solution to the precision that is allowed by the machine precision using a standard personal computer.
 
 
 \section{Theory, algorithms and methods}
-We have second order inhomogeneous differential equation, Eqn. \ref{differential_equation}
+We have second order differential equation, Eqn. \ref{differential_equation}
   \begin{equation}
     \label{differential_equation}
     \frac{d^2u(x)}{dx^2} = f(x)
@@ -70,12 +70,12 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
     u(x) = 1 - (1 - e^{-10})x - e^{-10x}
   \end{equation}
 
-  This problem can also be solved numerically by discretization. By the use of taylor expansions, it can be shown that there is a discrete, iterative solution in the form Eqn. \ref{Discrete diffeq} \cite{lecture_notes}
+  This problem can also be solved numerically by discretization. By the use of Taylor expansions, it can be shown that there is a discrete, iterative solution in the form Eqn. \ref{Discrete diffeq} \cite{lecture_notes}
   \begin{equation}
     \label{Discrete diffeq}
     - \frac{v_{i+1} + v_{i-1} + 2v_i}{h^2} = f_i
   \end{equation}
-  where $h = 1/(n-1)$ is the step size for $n$ points and $V_i$ is the discretized form of $u(x)$.
+  where $h = 1/(n-1)$ is the step size for $n$ points and $v_i$ is the discretized form of $u(x)$.
 
   This problem can be written in the form 
   \begin{equation}
@@ -123,7 +123,7 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
 
     \begin{align}
     \begin{split}
-      \label{eqn:improved}
+      \label{eqn:general}
       \tilde b_i = b_i - \frac{1}{\tilde b_{i-1}}, 
       \enspace
       \tilde f_i = f_i + \frac{\tilde f_{i -1}}{\tilde b_{i-1}}, 
@@ -135,12 +135,12 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
       \quad i &\in \{n-2, n-3, \dots, 1\}
     \end{split}
   \end{align}
-
+  \newpage % Pagebreak to prevent code block to span 2 different pages
 
   Or written in pseudocode/python;
   \lstinputlisting[language=Python, firstline=33, lastline=40]{code/gausselim.py}
 
-  If we asume $\mathcal O(n)$ is such that $\pm$ numbers of order 0 become insignificant, then $\approx 9n$ FLOPS is required to compute this algorithm.
+  If we assume $\mathcal O(n)$ is such that $\pm$ numbers of order 0 become insignificant, then $\approx 9n$ FLOPS is required to compute this algorithm.
 
   For the special case, eqn. \ref{A matrix}, this algorithm can be further simplified by abusing the fact that the diagonal matrix elements $a_i, c_i$ are identical for all $i$. Resulting in the following sets of equations, \ref{eqn:improved}, for the substitutions.
 
@@ -162,8 +162,12 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
 
 
 
+
+
 \section{Results and discussions}
   The implementation of the code discussed in the previous section can be found on my github: \url{https://github.com/nicholaskarlsen/FYS3150}. The code is in its entirety written in python, both due to how quick it is to implement and (mostly) because i am not yet comfortable enough with a more efficient language yet to use anything else. In order to offset some of the shortcomings of python i added some level of optimization using the JIT flag provided in the numba package.
+
+  \newpage
 
 
   \begin{figure}[h!]
@@ -180,6 +184,8 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
     \label{fig:error}
   \end{figure}
 
+  \newpage
+
   \begin{figure}[h!]
     \center
     \includegraphics[scale=.7]{figs/ex1d_time.png}
@@ -194,7 +200,9 @@ We have second order inhomogeneous differential equation, Eqn. \ref{differential
     \label{fig:timediff}
   \end{figure}
 
-  As seen in Figures \ref{fig:compare}, \ref{fig:error}, the algorithm converges towards the analytic solution with a relative error, $\epsilon$ such that $\log_{10}\epsilon \propto \log_{10} h$ for $\log_{10}h \gtrapprox 5$ which is where loss of precision due to the finite representation of numbers in computers becomes relevant. As such, it is ideal to chose $h\approx 10^{-5}$ when precision is the main priority, but never $h\lessapprox10^{-5}$ as the extra computation time is simply wasted.
+  \newpage
+  
+  As seen in Figures \ref{fig:compare}, \ref{fig:error}, the algorithm converges towards the analytic solution with a relative error, $\epsilon$ such that $\log_{10}\epsilon \propto \log_{10} h$ for $\log_{10}h \gtrapprox 5$ which is where loss of precision due to the finite representation of numbers in computers becomes relevant. As such, it is ideal to choose $h\approx 10^{-5}$ when precision is the main priority, but never $h\lessapprox10^{-5}$ as the extra computation time is simply wasted.
 
   In Figures \ref{fig:time}, \ref{fig:timediff} we see how the execution time of the different algorithms compare for different $N$. This data does not reflect the expected $66\%$ performance increase predicted based on the number of FLOPS. Therefore I suspect there may be something wrong with either the way I'm timing the functions, or the numpy calls prior to the backward/forward loops may be the dominating factor in the execution time. Due to the way i wrote gausselim.general(), i was somewhat limited in the way i could time my function without causing errors, and i did not have the time to explore different options / restructure my code.
 
