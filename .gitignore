@@ -6,6 +6,8 @@
 *.blg
 *.fdb_latexmk
 *.synctex.gz
+*.bbl
+*.bib
 
 # Python stuff
 *.pyc
