@@ -39,6 +39,17 @@
 \maketitle
 
 \section{Introduction}
+  \subsection{Preservation of scalar product \& orthogonality in unitary transformations}
+    Consider an orthonormal set of basis vectors $\mathbf v_i$ such that $\mathbf v_j^T \mathbf v_i = \delta_{ij}$. Let unitary matrix $U$ where $U^T U= I_N$, where $I_N$ denotes the $N\times N$ identity matrix, operate on $\mathbf v_i$ to get $\mathbf w_i$
+    \begin{equation}
+      \mathbf w_i = U \mathbf v_i
+    \end{equation}
+    Then
+    \begin{equation}
+      \mathbf w_j^T\mathbf w_i = (U\mathbf v_j)^TU\mathbf v_i = \mathbf v_j^T U^T U \mathbf v_i
+      = \mathbf v_j^T \mathbf v_i = \delta_{ij}
+    \end{equation}
+    In the unitary transformation of $\mathbf v_i$ both the scalar product and orthogonality has been preserved.
 \section{Theory, Algorithms and Methods}
 \section{Results and Discussions}
 \section{Conclusions}
