@@ -5,48 +5,80 @@ import scipy.sparse
 import main
 
 
-def jacobi_rot(A, N, tol=1e-8):
+def jacobi_rot(A, tol=1e-8):
     """
     tol = Tolerance
     """
 
-    S = np.zeros([N, N], dtype=np.float64)
+    print "-- Starting Rotation --"
 
-    def tau():
-        return (a[l, l] - a[k, k]) / (2 * a[k, l])
+    counter = 0
 
-    while main.max_nondiag(A) >= tol:
-        pass
+    k, l = main.max_nondiag(A)
 
-    return S
+    while A[k, l]**2 >= tol:
+        A = rotate(A, k, l)
+        k, l = main.max_nondiag(A)
+        counter += 1
+
+    print "-- Rotation done --"
+    print "Found eigenvalues after %i rotations" % counter
+    return A
 
 
 def rotate(A, k, l):
-    sim_A = np.copy(A)  # Creates a copy of A to modify
-
+    """ Givens rotation """
     tau = (A[l, l] - A[k, k]) / (2 * A[k, l])   # cot(2*ang)
 
-    t = - tau + np.sqrt(1 + tau**2)
-    t = - tau - np.sqrt(1 + tau**2)
+    if tau >= 0:                                # tan(ang)
+        t = 1.0 / (tau + np.sqrt(1.0 + tau**2))
+    else:
+        t = -1.0 / (-tau + np.sqrt(1.0 + tau**2))
 
     c = 1.0 / np.sqrt(1 + t**2)                 # cos(ang)
     s = t * c                                   # sin(ang)
 
-    sim_A[k, k] = A[k, k] * c**2 - 2 * A[k, l] * c * s + A[l, l] * s**2
-    sim_A[l, l] = A[l, l] * c**2 + 2 * A[k, l] * c * s + A[k, k] * s**2
-    sim_A[k, l] = (a[k, k] - a[l, l]) * c * s + a[k, l] * (c**2 - s**2)
+    a_kk = A[k, k]
+    a_ll = A[l, l]
 
+    A[k][k] = c * c * a_kk - 2.0 * c * s * A[k][l] + s * s * a_ll
+    A[l][l] = s * s * a_kk + 2.0 * c * s * A[k][l] + c * c * a_ll
+    A[k][l] = 0.0  # hard-coding of the zeros
+    A[l][k] = 0.0
+    # and then we change the remaining elements
+    for i in xrange(len(A)):
+        if i != k and i != l:
+            a_ik = A[i][k]
+            a_il = A[i][l]
+            A[i][k] = c * a_ik - s * a_il
+            A[k][i] = A[i][k]
+            A[i][l] = c * a_il + s * a_ik
+            A[l][i] = A[i][l]
+
+    return A
+
+
+def testFunc():
+    "Performs a series of tests to ensure proper functionality"
+    X = main.construct(10)
+    Y = jacobi_rot(X)
     return
 
 
 if __name__ == '__main__':
+    testFunc()
 
-    N_test = 100
+    """
 
-    h = 1.0 / N_test
+    A_test = main.construct(50)
 
-    d = np.ones(N_test - 2) * 2.0 / h**2
-    a = - np.ones(N_test - 2) * 1.0 / h**2
+    B = jacobi_rot(A_test)
 
-    A_test = scipy.sparse.spdiags(
-        [a, d, a], [-1, 0, 1], N_test - 2, N_test - 2).toarray()  # Generates matrix
+    eigenvals = np.zeros(len(B))
+    for i in range(len(B)):
+        eigenvals[i] = B[i, i]
+
+    print np.sort(np.linalg.eigvals(B))
+    print np.sort(eigenvals)
+    
+    """

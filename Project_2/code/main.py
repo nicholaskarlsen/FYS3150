@@ -7,26 +7,39 @@ import scipy.linalg
 import scipy.sparse
 
 
-def constructA(N):
+def construct(N):
     """
     Generates the matrix A as defined in report.
     """
-    h = 1.0 / N
-    d = 2.0 / h**2 * np.ones(N - 2)
-    a = - 1.0 / h**2 * np.ones(N - 2)
-    A = scipy.sparse.spdiags([a, d, a], [-1, 0, 1], N - 2, N - 2).toarray()  # Generates matrix
-
-    eig = np.linalg.eigvals(A)
-
-    return A, eig
+    h = 1.0 / (N + 1)
+    d = 2.0 / h**2 * np.ones(N)
+    a = - 1.0 / h**2 * np.ones(N)
+    A = scipy.sparse.spdiags([a, d, a], [-1, 0, 1], N, N).toarray()  # Generates matrix
+    return A
 
 
-def max_nondiag(A, tol=1e-8):
-    " Finds the maximum of the squares of nondiagonal elements in A "
-    A_copy = np.copy(A)             # Creates a copy of A
-    np.fill_diagonal(A_copy, 0)     # Fills diagonal of A copy with 0
+def max_nondiag(input_matrix, tol=1e-8):
+    """
+    Returns index i, j for the nondiagonal element which square is maximum.
+    If multiple, equal maxima, return the last one
+    """
+    temp_matrix = np.copy(input_matrix)  # Creates a copy to manipulate
+    np.fill_diagonal(temp_matrix, 0)     # Fills diagonal of temp with 0
 
-    return np.amax(A_copy**2)
+    currMax = 0  # Stores the current maximum
+    for i in xrange(len(input_matrix)):
+        for j in xrange(len(input_matrix)):
+            if temp_matrix[i, j]**2 >= currMax:
+                currMax = temp_matrix[i, j]**2
+                imax = i
+                jmax = j
+            else:
+                pass
+
+    if imax == jmax:
+        raise "max_nondiag() found a diagonal element"
+
+    return imax, jmax
 
 
 def analyticalSolution(N):
@@ -38,26 +51,24 @@ def analyticalSolution(N):
     return lambd
 
 
-def librarySolution(N):
-    """
-    Finds eigenvalues using the diagonalization functions in numpy
-    """
-    A = constructA(N)
-    A_diag = np.diag(A)
-    return
-
-
 def exercise_2b():
     """ Contains calls relevant to question 2b """
 
     return
 
 
-if __name__ == '__main__':
-    A, eig = constructA(10)
-    eig2 = analyticalSolution(10)
-    print eig[0]
-    print eig2[0]
-    print "Done"
+def test_max_dondiag():
+    testMat = np.array([[1, 9, 4, 5],
+                        [1, 11, -9, 4],
+                        [1, 3, 10, 8],
+                        [1, 3, 4, 5]])
 
-    print max_nondiag(A)
+    i, j = max_nondiag(testMat)
+
+    if i != 1 and j != 2:
+        raise "max_nondiag() returned unexpected indices"
+    return
+
+
+if __name__ == '__main__':
+    test_max_dondiag()
