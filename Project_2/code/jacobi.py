@@ -1,5 +1,7 @@
 # Python Version: Python 2.7.15
-from __future__ import division  # Defaults to float division
+
+from __future__ import division  # Nobody expects the integer division
+
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -17,10 +19,11 @@ def jacobi_rot(A, tol=1e-8, keep_counter=False):
 
     k, l = main.max_nondiag(A)
 
-    while A[k, l]**2 >= tol:
+    while A[k, l]**2 >= tol or counter < len(A)**2:
         A = rotate(A, k, l)
         k, l = main.max_nondiag(A)
         counter += 1
+        print counter
 
     print "--- Found eigenvalues after %i rotations ---" % counter
 
@@ -28,6 +31,7 @@ def jacobi_rot(A, tol=1e-8, keep_counter=False):
         return A, counter
     else:
         return A
+
 
 @jit(nopython=True)
 def rotate(A, k, l):
@@ -90,6 +94,7 @@ def testFunc():
     print "Test function passed with tolerance %.1e." % eigTol
     return
 
+
 def num_rotations():
     N = np.linspace(5, 200, 10, dtype=int)
     no_rots = np.zeros(len(N))
@@ -99,7 +104,7 @@ def num_rotations():
     a = np.polyfit(N, no_rots, deg=2)
     print a
     x = np.linspace(5, 1000, 1e5)
-    extrapolation = a[0]*x**2 + a[1]*x + a[2]
+    extrapolation = a[0] * x**2 + a[1] * x + a[2]
 
     plt.figure(figsize=(3.8, 3.8))
     plt.loglog(N, no_rots, "x", label="Data")
@@ -111,11 +116,9 @@ def num_rotations():
     return
 
 
-
-
 if __name__ == '__main__':
     testFunc()
-    #num_rotations()
+    # num_rotations()
 
     """
 
