@@ -1,17 +1,18 @@
 # Python Version: Python 2.7.15
 from __future__ import division  # Defaults to float division
 import numpy as np
-import scipy.sparse
+import matplotlib.pyplot as plt
+import sys
+from numba import jit
 import main
 
 
-def jacobi_rot(A, tol=1e-8):
+def jacobi_rot(A, tol=1e-8, keep_counter=False):
     """
     tol = Tolerance
     """
 
-    print "-- Starting Rotation --"
-
+    print "--- Starting Jacobi method ---"
     counter = 0
 
     k, l = main.max_nondiag(A)
@@ -21,11 +22,14 @@ def jacobi_rot(A, tol=1e-8):
         k, l = main.max_nondiag(A)
         counter += 1
 
-    print "-- Rotation done --"
-    print "Found eigenvalues after %i rotations" % counter
-    return A
+    print "--- Found eigenvalues after %i rotations ---" % counter
 
+    if keep_counter is True:
+        return A, counter
+    else:
+        return A
 
+@jit(nopython=True)
 def rotate(A, k, l):
     """ Givens rotation """
     tau = (A[l, l] - A[k, k]) / (2 * A[k, l])   # cot(2*ang)
@@ -60,13 +64,58 @@ def rotate(A, k, l):
 
 def testFunc():
     "Performs a series of tests to ensure proper functionality"
-    X = main.construct(10)
+    N = 5
+    eigTol = 1e-8
+
+    X = main.construct(N)
     Y = jacobi_rot(X)
+    jacobi_eigenvals = np.zeros(N)
+
+    # Put the eigenvalues from the diagonal into a 1-D array
+    for i in xrange(N):
+        jacobi_eigenvals[i] = Y[i, i]
+
+    # Sort list of eigenvalues in ascending order
+    jacobi_eigenvals = np.sort(jacobi_eigenvals)
+    ana_eigenvals = np.sort(main.analyticalSolution(N))
+
+    # Checking that the computed eigenvalues match up with analytical eigenvalues
+    for i in xrange(N):
+        if abs(jacobi_eigenvals[i] - ana_eigenvals[i]) >= eigTol:
+            print "-- Computed eigenvalues differ too much from numpy result, exiting --"
+            sys.exit()
+        else:
+            pass
+
+    print "Test function passed with tolerance %.1e." % eigTol
     return
+
+def num_rotations():
+    N = np.linspace(5, 200, 10, dtype=int)
+    no_rots = np.zeros(len(N))
+    for i in range(len(N)):
+        temp, no_rots[i] = jacobi_rot(main.construct(N[i]), keep_counter=True)
+
+    a = np.polyfit(N, no_rots, deg=2)
+    print a
+    x = np.linspace(5, 1000, 1e5)
+    extrapolation = a[0]*x**2 + a[1]*x + a[2]
+
+    plt.figure(figsize=(3.8, 3.8))
+    plt.loglog(N, no_rots, "x", label="Data")
+    plt.loglog(x, extrapolation, label="Etrapolation")
+
+    main.figsetup(title="Number of itterations needed for N-dim",
+                  xlab="N", ylab="No. Rotations", fname="norots")
+
+    return
+
+
 
 
 if __name__ == '__main__':
     testFunc()
+    #num_rotations()
 
     """
 
