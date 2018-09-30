@@ -52,13 +52,46 @@
     In the unitary transformation of $\mathbf v_i$ both the scalar product and orthogonality has been preserved.
 \section{Theory, Algorithms and Methods}
 \section{Results and Discussions}
+  \begin{figure}
+    \center
+    \includegraphics[width=8cm]{figs/norots.png}
+  \end{figure}
 \section{Conclusions}
-
- 
 
 \begin{thebibliography}{99}
 \bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
 \end{thebibliography}
 
+\newpage
+\appendix
+\section{Jacobi Eigenvalue Algorithm}
+\begin{lstlisting}[mathescape=true, language=python]
+$\tau = \frac{a_{ll} - a_{kk}}{2a_{kl}}$
 
-\end{document}
+if $\tau \geq 0$:
+    $t = \frac{1}{\tau + \sqrt{1 + \tau^2}}$
+else:
+    $t = \frac{-1}{-\tau + \sqrt{1 + \tau^2}}$
+
+$c = \frac{1}{\sqrt{1 + t^2}}$
+$s = tc$
+
+$a_{kk}' = a_{kk}$
+$a_{ll}' = a_{ll}$
+
+$a_{kk} = c^2 * a_{kk}' - 2cs * a_{kl} + s^2 * a_{ll}'$
+$a_{ll} = s^2 * a_{kk}' + 2cs * a_{kl} + c^2 * a_{ll}'$
+$a_{kl} = 0.0 $
+$a_{lk} = 0.0 $
+
+for $i = 1, 2, \dots N$:
+    if $i \neq k$ and $i \neq l$:
+        $a_{ik} = a_{ik} $
+        $a_{il} = a_{il} $
+        $a_{ik} = c * a_{ik} - s * a_{il} $
+        $a_{ki} = a_{ik} $
+        $a_{il} = c * a_{il} + s * a_{ik} $
+        $a_{li} = a_{il} $
+\end{lstlisting}
+
+\end{document}  
