@@ -11,30 +11,32 @@ import main
 
 def jacobi_rot(A, tol=1e-8, keep_counter=False):
     """
-    tol = Tolerance
+    Finds set of eigenvalues and its corresponding eigenvecotrs
     """
 
     print "--- Starting Jacobi method ---"
     counter = 0
 
+    v = np.identity(len(A))    # Identidy matrix, used as set of orthonormal eigenvectors
+
     k, l = main.max_nondiag(A)
 
     while A[k, l]**2 >= tol or counter < len(A)**2:
-        A = rotate(A, k, l)
+        A, v = rotate(A, v, k, l)
         k, l = main.max_nondiag(A)
         counter += 1
-        print counter
 
     print "--- Found eigenvalues after %i rotations ---" % counter
 
+    # in case i wish to store the counter for some reason
     if keep_counter is True:
-        return A, counter
+        return A, v, counter
     else:
-        return A
+        return A, v
 
 
 @jit(nopython=True)
-def rotate(A, k, l):
+def rotate(A, v, k, l):
     """ Givens rotation """
     tau = (A[l, l] - A[k, k]) / (2 * A[k, l])   # cot(2*ang)
 
@@ -49,21 +51,26 @@ def rotate(A, k, l):
     a_kk = A[k, k]
     a_ll = A[l, l]
 
-    A[k][k] = c * c * a_kk - 2.0 * c * s * A[k][l] + s * s * a_ll
-    A[l][l] = s * s * a_kk + 2.0 * c * s * A[k][l] + c * c * a_ll
-    A[k][l] = 0.0  # hard-coding of the zeros
-    A[l][k] = 0.0
+    A[k, k] = c * c * a_kk - 2.0 * c * s * A[k, l] + s * s * a_ll
+    A[l, l] = s * s * a_kk + 2.0 * c * s * A[k, l] + c * c * a_ll
+    A[k, l] = 0.0  # hard-coding of the zeros
+    A[l, k] = 0.0
     # and then we change the remaining elements
     for i in xrange(len(A)):
         if i != k and i != l:
-            a_ik = A[i][k]
-            a_il = A[i][l]
-            A[i][k] = c * a_ik - s * a_il
-            A[k][i] = A[i][k]
-            A[i][l] = c * a_il + s * a_ik
-            A[l][i] = A[i][l]
+            a_ik = A[i, k]
+            a_il = A[i, l]
+            A[i, k] = c * a_ik - s * a_il
+            A[k, i] = A[i, k]
+            A[i, l] = c * a_il + s * a_ik
+            A[l, i] = A[i, l]
+        # Compute new eigenvectors
+        v_ik = v[i, k]
+        v_il = v[i, l]
+        v[i, k] = c * v_ik - s * v_il
+        v[i, l] = c * v_il + s * v_ik
 
-    return A
+    return A, v
 
 
 def testFunc():
@@ -72,26 +79,34 @@ def testFunc():
     eigTol = 1e-8
 
     X = main.construct(N)
-    Y = jacobi_rot(X)
+    Y, v = jacobi_rot(X)
     jacobi_eigenvals = np.zeros(N)
 
     # Put the eigenvalues from the diagonal into a 1-D array
     for i in xrange(N):
         jacobi_eigenvals[i] = Y[i, i]
 
-    # Sort list of eigenvalues in ascending order
-    jacobi_eigenvals = np.sort(jacobi_eigenvals)
-    ana_eigenvals = np.sort(main.analyticalSolution(N))
+    # Sort list of eigenvalues & eigenvecs in ascending order
+    permute1 = jacobi_eigenvals.argsort()
+    jacobi_eigenvals = jacobi_eigenvals[permute1]
+    jacobi_eigenvecs = v[:, permute1]
 
+    Eigval_numpy, Eigvec_numpy = np.linalg.eig(X)
+    permute2 = Eigval_numpy.argsort()
+    Eigval_numpy = Eigval_numpy[permute2]
+    Eigvec_numpy = Eigvec_numpy[:, permute2]
     # Checking that the computed eigenvalues match up with analytical eigenvalues
     for i in xrange(N):
-        if abs(jacobi_eigenvals[i] - ana_eigenvals[i]) >= eigTol:
+        if abs(jacobi_eigenvals[i] - Eigval_numpy[i]) >= eigTol:
             print "-- Computed eigenvalues differ too much from numpy result, exiting --"
             sys.exit()
         else:
             pass
 
     print "Test function passed with tolerance %.1e." % eigTol
+    print np.matmul(np.transpose(jacobi_eigenvecs[:,1]), jacobi_eigenvecs[:, 0])
+    print np.matmul(np.transpose(Eigvec_numpy[:, 1]), Eigvec_numpy[:, 0])
+    print 
     return
 
 

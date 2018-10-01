@@ -50,6 +50,7 @@ def construct(N, rhoMax=0, potential=False):
     A = scipy.sparse.spdiags([a, d, a], [-1, 0, 1], N, N).toarray()  # Generates matrix
     return A
 
+
 @jit
 def max_nondiag(input_matrix, tol=1e-8):
     """
@@ -106,27 +107,26 @@ def test_max_dondiag():
 
 def ex_d():
     "contains the calls pertaining to exercise 2e"
-    n = 1000
+    n = 400
     X = construct(n, rhoMax=1, potential=1)
-    #Y = jacobi.jacobi_rot(X)
+    Y, Eigvec_jacobi = jacobi.jacobi_rot(X)
 
-    """
-    eigenvals = np.zeros(n)
+    Eigval_jacobi = np.zeros(n)
     for i in xrange(n):
-        eigenvals[i] = Y[i, i]
-
-    print np.sort(eigenvals)[:10]
-    """
-
+        Eigval_jacobi[i] = Y[i, i]
     Eigval_numpy, Eigvec_numpy = np.linalg.eig(X)
     permute = Eigval_numpy.argsort()
     Eigval_numpy = Eigval_numpy[permute]
     Eigvec_numpy = Eigvec_numpy[:, permute]
 
+    permute = Eigval_jacobi.argsort()
+    Eigval_jacobi = Eigval_jacobi[permute]
+    Eigvec_jacobi = Eigvec_jacobi[:, permute]
     plt.plot(Eigvec_numpy[1])
     plt.show()
     return
 
+
 if __name__ == '__main__':
-    #test_max_dondiag()
+    # test_max_dondiag()
     ex_d()
