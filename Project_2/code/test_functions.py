@@ -25,7 +25,7 @@ def test_max_dondiag():
 def test_construct_matrix():
     "If i construct the correct matrix, numpy should yield analytical eigenvals"
     N = 10
-    A = main.construct_matrix(N)
+    A, rho = main.construct_matrix(N)
 
     eval_np, evec_np = np.linalg.eig(A)  # Calculate eigenpair using numpy
     eval_np, evec_np = main.sort_eigenpair(eval_np, evec_np)  # sorts to ascending order
@@ -51,7 +51,7 @@ def test_jacobi_solve():
     (2) The resultant eigenvectors must be orhogonal.
     """
     N = 6
-    A = main.construct_matrix(N)  # Generate matrix
+    A, rho = main.construct_matrix(N)  # Generate matrix
 
     eval_np, evec_np = np.linalg.eig(A)  # Calculate eigenpair using numpy
     eval_np, evec_np = main.sort_eigenpair(eval_np, evec_np)  # sorts to ascending order

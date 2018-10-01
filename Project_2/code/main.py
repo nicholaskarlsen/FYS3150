@@ -14,6 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.linalg
 import scipy.sparse
+import jacobi_eigensolver as je
 
 
 def figsetup(title, xlab, ylab, fname, show=False):
@@ -43,6 +44,10 @@ def potential1(x):
     return 0
 
 
+def potential2(x):
+    return x * x
+
+
 def sort_eigenpair(in_vals, in_vecs):
     "Sorts eigenpair such that eigenvals are in ascending order"
     out_vals = np.copy(in_vals)
@@ -64,8 +69,30 @@ def construct_matrix(dim, varMax=1.0, potential=potential1):
     a = - 1.0 / step**2 * np.ones(dim)
     output = scipy.sparse.spdiags([a, d, a], [-1, 0, 1], dim, dim).toarray()  # Generates matrix
 
-    return output
+    return output, var
+
+def exercise_d():
+    "calls pertaining to question d"
+    print "--- Solving for question d ---"
+    N = 1000
+    A, rho = construct_matrix(dim=N, varMax=10, potential=potential2)
+    A_eval, A_evec = je.jacobi_solve(A)
+
+    A_eval, A_evec = sort_eigenpair(A_eval, A_evec)
+
+    plt.figure(figsize=[5,5])
+    
+    for n in [0, 1, 2]:
+        plt.plot(rho, A_evec[:, n], label="$\\lambda=$%.4f" % A_eval[n])
+    
+    figsetup(title="Dimensionless wavefunction for first 3 eigenstates", xlab="$\\rho$", ylab="$u(\\rho)$",
+             fname="question2d")
+    print A_eval[:3]
+    print "--- Done Solving for question d ---"
+    return
 
 
 if __name__ == '__main__':
-    print construct_matrix(5)
+    #exercise_d()
+
+    print "Done."
