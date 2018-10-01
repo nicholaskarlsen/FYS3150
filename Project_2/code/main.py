@@ -15,6 +15,7 @@ import matplotlib.pyplot as plt
 import scipy.linalg
 import scipy.sparse
 import jacobi_eigensolver as je
+import test_functions as tests
 
 
 def figsetup(title, xlab, ylab, fname, show=False):
@@ -39,15 +40,6 @@ def figsetup(title, xlab, ylab, fname, show=False):
     return
 
 
-def potential1(x):
-    "Used for when there is no potential."
-    return 0
-
-
-def potential2(x):
-    return x * x
-
-
 def sort_eigenpair(in_vals, in_vecs):
     "Sorts eigenpair such that eigenvals are in ascending order"
     out_vals = np.copy(in_vals)
@@ -58,6 +50,11 @@ def sort_eigenpair(in_vals, in_vecs):
     out_vecs = out_vecs[:, permute]
 
     return out_vals, out_vecs
+
+
+def potential1(x):
+    "Used for when there is no potential."
+    return 0
 
 
 def construct_matrix(dim, varMax=1.0, potential=potential1):
@@ -71,28 +68,66 @@ def construct_matrix(dim, varMax=1.0, potential=potential1):
 
     return output, var
 
+
+def potential2(x):
+    "potential in question (d)"
+    return x * x
+
+
 def exercise_d():
     "calls pertaining to question d"
-    print "--- Solving for question d ---"
+    print "- Solving for question d"
     N = 1000
     A, rho = construct_matrix(dim=N, varMax=10, potential=potential2)
     A_eval, A_evec = je.jacobi_solve(A)
 
     A_eval, A_evec = sort_eigenpair(A_eval, A_evec)
 
-    plt.figure(figsize=[5,5])
-    
+    plt.figure(figsize=[5, 5])
+
     for n in [0, 1, 2]:
         plt.plot(rho, A_evec[:, n], label="$\\lambda=$%.4f" % A_eval[n])
-    
+
     figsetup(title="Dimensionless wavefunction for first 3 eigenstates", xlab="$\\rho$", ylab="$u(\\rho)$",
              fname="question2d")
     print A_eval[:3]
-    print "--- Done Solving for question d ---"
+    print "- Done Solving for question d"
+    return
+
+
+
+
+def exercise_e():
+    """
+    calls pertaining to question e
+    NOTE: when writing construct_matrix(), i didnt plan on the potentials needing
+    multiple inputs. So when needing to solve the system for different omega_F,
+    i instead opted to define a new potential3(x) function within the loop
+    in which i am solving the system. Whilst this would probably get me shot
+    over at the informatics building, i'd rather that, than have to restructure
+    this code another time.
+    """
+    print "- Solving for question e"
+    N = 100
+    plt.figure(figsize=[5, 5])
+    for _omegaF in [1, 10]:
+        def potential3(x):  # If this confuses you, read the multiline comment  above
+            o = _omegaF
+            return o * o * x * x + 1.0 / x
+        A, rho = construct_matrix(dim=N, varMax=10, potential=potential3)
+        A_eval, A_evec = je.jacobi_solve(A)
+        A_eval, A_evec = sort_eigenpair(A_eval, A_evec)
+        plt.plot(rho, A_evec[:, 0], label="$\\omega_F=$%.1e" % _omegaF)
+
+    figsetup(title="Dimensionless wavefunction for first eigenstates", xlab="$\\rho$", ylab="$u(\\rho)$",
+             fname="question2e")
+    print A_eval[:3]
+    print "- Done Solving for question e"
     return
 
 
 if __name__ == '__main__':
-    #exercise_d()
-
+    tests.run_tests()
+    # exercise_d()
+    exercise_e()
     print "Done."

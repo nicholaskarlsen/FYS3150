@@ -48,7 +48,7 @@ def test_jacobi_solve():
     """
     If jacobi_solve() works, i expect:
     (1) Get the same eigenvalues as numpy (& by exctension, analytical. see construct_matrix test)
-    (2) The resultant eigenvectors must be orhogonal.
+    (2) The resultant eigenvectors must be orthonormal.
     """
     N = 6
     A, rho = main.construct_matrix(N)  # Generate matrix
@@ -64,7 +64,7 @@ def test_jacobi_solve():
         if abs(eval_ja[i] - eval_np[i]) > 1e-8:
             raise ValueError("Computed eigenvalues differ too much from reference")
 
-    # Check orthogonality of eigenvectors
+    # Check ortonormality of eigenvectors
     for i in xrange(N):
         for j in xrange(N):
             inner_prod = np.matmul(np.transpose(evec_ja[:, i]), evec_ja[:, j])
@@ -78,11 +78,12 @@ def test_jacobi_solve():
 
 def run_tests():
     "Runs all tests in sequence"
+    print "- Running unit tests"
     test_max_dondiag()
     test_construct_matrix()
     test_jacobi_solve()
 
-    print "All tests completed."
+    print "- All tests completed & passed."
     return
 
 
