@@ -74,11 +74,7 @@ def max_nondiag(input_matrix, tol=1e-8):
 
 
 def analyticalSolution(N):
-    h = 1.0 / (N + 1)
-    d = 2.0 / h**2
-    a = 1.0 / h**2
-    j = np.linspace(1, N, N)  # j = 1, 2, ... , N-1
-    lambd = d + 2 * a * np.cos(j * np.pi / (N + 1))
+
     return lambd
 
 

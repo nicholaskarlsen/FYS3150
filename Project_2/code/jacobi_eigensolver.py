@@ -75,7 +75,7 @@ def jacobi_solve(matrix_input, tol=1e-8):
 
     p, q = max_nondiag(matrix)  # Fetch starting index
 
-    while matrix[p, q]**2 >= tol or counter < dim**2:
+    while matrix[p, q]**2 >= tol:
         matrix, eigVec = rotate(mat=matrix, vec=eigVec, k=p, l=q)  # perform transform
         p, q = max_nondiag(matrix)  # Find indices of new max
         counter += 1
