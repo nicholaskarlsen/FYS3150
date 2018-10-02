@@ -4,6 +4,7 @@ from __future__ import division  # Nobody expects the integer division
 
 import numpy as np
 from numba import jit
+import time
 
 
 @jit(nopython=True)
@@ -66,7 +67,7 @@ def rotate(mat, vec, k, l):
     return mat, vec
 
 
-def jacobi_solve(matrix_input, tol=1e-8):
+def jacobi_solve(matrix_input, tol=1e-8, diagnostics=False):
     # Create a copy of input matrix to avoid the original being changed outside of func.
     matrix = np.copy(matrix_input)
     dim = len(matrix)
@@ -75,14 +76,25 @@ def jacobi_solve(matrix_input, tol=1e-8):
 
     p, q = max_nondiag(matrix)  # Fetch starting index
 
+    if diagnostics is True:
+        start_time = time.time()
+
     while matrix[p, q]**2 >= tol:
         matrix, eigVec = rotate(mat=matrix, vec=eigVec, k=p, l=q)  # perform transform
         p, q = max_nondiag(matrix)  # Find indices of new max
         counter += 1
+
+    if diagnostics is True:
+        end_time = time.time()
+        time_elapsed = end_time - start_time
+
     print "Found eigenpair after %i transformations" % counter
 
     eigVal = np.zeros(dim)
     for i in xrange(dim):
         eigVal[i] = matrix[i, i]
 
-    return eigVal, eigVec
+    if diagnostics is False:
+        return eigVal, eigVec
+    if diagnostics is True:
+        return eigVal, eigVec, counter, time_elapsed

@@ -77,7 +77,7 @@ def test_jacobi_solve():
 
 
 def run_tests():
-    "Runs all tests in sequence"
+    "Runs all tests in sequence, any unexpected results raises an error & the program stops"
     print "- Running unit tests"
     test_max_dondiag()
     test_construct_matrix()
