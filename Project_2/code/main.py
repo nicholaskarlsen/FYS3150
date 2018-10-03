@@ -73,6 +73,7 @@ def potential2(x):
     "potential in question (d)"
     return x * x
 
+
 def exercise_c():
     "performs jacobi for no potential, and times it"
     list_of_N = [5, 10, 20, 50, 70, 100, 150, 200, 300, 400, 500, 750, 1000]
@@ -91,12 +92,32 @@ def exercise_c():
     plt.figure(figsize=[5, 5])
     plt.semilogy(list_of_N, time_taken, "o--")
     figsetup(title="Time taken for solution of N-step Buckling beam", xlab="N",
-                ylab="Time elapsed [s]", fname="q2c_time")
+             ylab="Time elapsed [s]", fname="q2c_time")
 
     plt.figure(figsize=[5, 5])
     plt.semilogy(list_of_N, no_itterations, "o--")
     figsetup(title="No. Itterations for solution of N-step Buckling beam", xlab="N",
-                ylab="No. Itterations", fname="q2c_count")
+             ylab="No. Itterations", fname="q2c_count")
+
+    plt.figure(figsize=[5, 5])
+    plt.loglog(list_of_N, time_taken, "o--")
+    figsetup(title="Time taken for solution of N-step Buckling beam", xlab="N",
+             ylab="Time elapsed [s]", fname="q2c_timeloglog")
+
+    plt.figure(figsize=[5, 5])
+    plt.loglog(list_of_N, no_itterations, "o--")
+    figsetup(title="No. Itterations for solution of N-step Buckling beam", xlab="N",
+             ylab="No. Itterations", fname="q2c_countloglog")
+
+    plt.figure(figsize=[5, 5])
+    plt.plot(list_of_N, time_taken, "o--")
+    figsetup(title="Time taken for solution of N-step Buckling beam", xlab="N",
+             ylab="Time elapsed [s]", fname="q2c_timenormal")
+
+    plt.figure(figsize=[5, 5])
+    plt.plot(list_of_N, no_itterations, "o--")
+    figsetup(title="No. Itterations for solution of N-step Buckling beam", xlab="N",
+             ylab="No. Itterations", fname="q2c_countnormal")
 
     return
 
@@ -153,7 +174,7 @@ def exercise_e():
 
 if __name__ == '__main__':
     tests.run_tests()
-    #exercise_c()
-    exercise_d()
-    exercise_e()
+    exercise_c()
+    #exercise_d()
+    #exercise_e()
     print "Done."
