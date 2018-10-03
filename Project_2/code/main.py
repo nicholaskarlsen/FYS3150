@@ -175,6 +175,6 @@ def exercise_e():
 if __name__ == '__main__':
     tests.run_tests()
     exercise_c()
-    #exercise_d()
-    #exercise_e()
+    exercise_d()
+    exercise_e()
     print "Done."

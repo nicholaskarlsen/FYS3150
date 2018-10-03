@@ -43,9 +43,9 @@
   \begin{equation}
     A\mathbf v = \lambda \mathbf v
   \end{equation}
-  where $A$ is a $N\times N$ matrix, $v\in \mathbb R^N$ vector and $\lambda \in \mathbb R$ a scalar. Problems in this form shows up frequently in many areas of Physics, particularly in Quantum Mechanics, and in this report i will use the algorithm to solve 3 such problems using the algorithm, and see how it matches up with analytical results where applicable.
+  where $A$ is a $N\times N$ matrix, $v\in \mathbb R^N$ a vector and $\lambda \in \mathbb R$ a scalar. Problems in this form shows up frequently in many areas of Physics, particularly in Quantum Mechanics, and in this report i will use the algorithm to solve 3 such problems using the algorithm, and see how it matches up with analytical results where applicable.
 
-  Lastly, my implementations of the algorithm discussed in this report can be found on my Github: \url{https://github.com/nicholaskarlsen/FYS3150}
+  My implementations of the algorithm discussed in this report can be found on my Github: \url{https://github.com/nicholaskarlsen/FYS3150}
 
 \section{Theory, Algorithms and Methods}
   \subsection{Preservation of scalar product \& orthogonality in unitary transformations\label{subsec:preservation}}
@@ -147,7 +147,7 @@ for $i = 1, 2, \dots N$:
 
 Which is repeated, until the largest squared off-diagonal element is less than some small tolerance, $a_{ij}^2 \leq \epsilon, i\neq j$, and the diagonal is populated by the eigenvalues.
 
-\subsection{Select eigenvalue problems in Physics}
+\subsection{Some eigenvalue problems in Physics}
   \subsubsection{Buckling beam}
     A buckling beam, that is a flexible beam with length $L$ fixed on both sides and compressed can be modeled by the differential equation 
     \begin{equation}
@@ -180,7 +180,7 @@ Which is repeated, until the largest squared off-diagonal element is less than s
       \end{bmatrix}
     \end{equation}
 
-    Where $e=2/h^2$, $e=-1/h^2$.
+    Where $d=2/h^2$, $e=-1/h^2$.
     Which more specifically, is an eigenvalue problem. As such, this system can then be solved
     using the Jacobi Eigenvalue Algorithm. \cite{question_text}
 
@@ -239,14 +239,14 @@ Which is repeated, until the largest squared off-diagonal element is less than s
   In order to ensure that it was performing according to my expectations, i imposed the following unit tests
   \begin{enumerate}
     \item The computed eigenvalues match up with a tested, known solver. In this case, numpy.
-    \item For the orthonormality of the starting basis is retained in the resultant eigenvectors
+    \item The orthonormality of the starting basis is retained in the resultant eigenvectors
   \end{enumerate}
 
   The function which finds the maximum of the squared non diagonal elements was also tested to work, and the function which constructs the matrix (See Eqn. \ref{eqn:eigenval matrix}) was found to produce a set of eigenvalues which match up with the analytical eigenvalues computed by Eqn. \ref{eqn:analytic eigenvals}.
 
   As such, under these conditions my implementation of the Jacobi eigensolver is working as expected.
 
-  For benchmarking, i present Figures \ref{fig:time}, \ref{fig:count}, which in their limited range seems to imply that the number of iterations needed for convergence rises with $\mathcal O(N^2)$, and the time required $\approx \mathcal O(N)$, if we look away from $N\lessapprox 10^2$, which takes $>1s$. In these cases, factors not necessarily related to the algorithm itself may come into play, and the timings may be affected as such. How these trends evolve for $N>10^3$ may not follow my predictions, and solving for these larger systems is not possible for me as of right now due to time constraints. It is also worth to note, that prior to adding Just-in-time compilation to my program, solving for $N=100$ took $\approx 40s$ on my computer, meaning that simply adding a @jit flag to my code increased performance by $\approx 400\%$, showing just how slow a dynamically interpreted language like python is at recursion.
+  For benchmarking, i present Figures \ref{fig:time}, \ref{fig:count}, which in their limited range seems to imply that the number of iterations needed for convergence rises with $\mathcal O(N^2)$, and the time required $\approx \mathcal O(N)$, if we look away from $N\lessapprox 10^2$, which takes $>1s$. In these cases, factors not necessarily related to the algorithm itself may come into play, and the timings may be affected as such. How these trends evolve for $N>10^3$ may not follow the same pattern, and solving for these larger systems is not possible for me as of right now due to time constraints. It is also worth to note, that prior to adding Just-in-time compilation to my program, solving for $N=100$ took $\approx 40s$ on my computer, meaning that simply adding the jit decorator to my code increased performance by $\approx 400\%$, showing just how slow a dynamically interpreted language like python is at recursion.
 
   \begin{figure}[h!]
     \center
@@ -283,7 +283,7 @@ Which is repeated, until the largest squared off-diagonal element is less than s
   The the lowest eigenstate solution to the 2-electron problem is presented in Fig. \ref{fig:2electrons} for different $\omega_r$, which is representative of the strength of the harmonic oscillator potential. $\rho$ in this case, is to be interpreted as the separation between the two electrons, and $u(\rho)$ the relative probability of the electrons being separated by $\rho$. As we can see, by increasing $\omega_r$, the curves become narrower, and closes in on $0$. Physically, this translates to the average separation of the electrons becoming smaller, which means that the strength of the potential well is negating the effects of the repulsive coulomb force. Further, the possible spread of values become much sharper as $\omega_r$ increases.
 
 \section{Conclusions}
-  Have seen that the Jacobi Eigenvalue algorithm is applicable to several a range of different physical systems by the clever use of scaling and parametrization, where it produces several possible solutions to the problem rather than just a very specific one, as you would get if you were to solve the problems as a standard differential equation. Further, i take a particular note of the massive performance increase yielded by introducing JIT compilation to the program and consider the potential speedups that may come from rewriting the program in a efficient, compiled language like FORTRAN or C++, which could enable me to look at even bigger problems (within reasonable computation time).
+  Have seen that the Jacobi Eigenvalue algorithm is applicable to a range of different physical systems by the clever use of scaling and parametrization, where it produces several possible solutions to the problem rather than just a very specific one, as you would get if you were to solve the problems as a standard differential equation. Further, i take a particular note of the massive performance increase yielded by introducing JIT compilation to the program and consider the potential speedups that may come from rewriting the program in a efficient, compiled language like FORTRAN or C++, which could enable me to look at even bigger problems (within reasonable computation time).
   Have also discovered the immense benefit of applying unit tests where possible, as it greatly reduced overall development time by allowing me to determine the functionality of the individual functions in my program as i wrote them.
 
   Lastly, take particular note of how flexible this algorithm can be, for solving a range of physical problem. For quantum mechanical problems in particular, if the problem can be reduced to a 1-D problem, the algorithm can be used to solve for many different potentials, requiring only minor adjustments diagonal of the initial matrix (Eqn. \ref{eqn:eigenval matrix}).
