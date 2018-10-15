@@ -44,6 +44,17 @@ This is an abstract
   Github at: \url{https://github.com/nicholaskarlsen/FYS3150}
 
 \section{Theory, Algorithms and Methods}
+\begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm]
+for $i = 0, \dots, N$
+    $\mathbf v_{i + 1} = \mathbf v_{i} + \mathbf a_{i}\Delta t$
+    $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i + 1}$
+\end{lstlisting}
+
+\begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm]
+for $i = 0, \dots, N$
+  $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2m}\mathbf F(t_i)\Delta t^2$
+  $\mathbf v_{i+1} = \mathbf v_i + \frac{1}{2m}\left( \mathbf F(t_i) + \mathbf F(t_{i+1}) \right)\Delta t$
+\end{lstlisting}
 
 \section{Results and Discussions}
 
