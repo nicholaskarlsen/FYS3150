@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+# Written by Nicholas Karlsen
+# Python version 2.7.15
+from __future__ import division  # Nobody expects the integer division
+import numpy as np
 from __future__ import division  # Nobody expects the integer division
 import numpy as np
 import matplotlib.pyplot as plt
