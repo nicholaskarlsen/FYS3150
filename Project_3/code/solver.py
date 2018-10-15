@@ -54,6 +54,9 @@ class diffeqsolver:
 
         return next_pos, next_vel
 
+    def velocityverlet(self, current_pos, current_vel, current_t, dt, diffEq):
+        return
+
     def solver(self, tn, dt, method, diffEq):
         """ Solves a differential equation using a specified method
         For diffEq, either one of the built in functions can be called,
