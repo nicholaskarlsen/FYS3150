@@ -14,6 +14,7 @@ id string needs to correspond EXACTLY to the id number which is used in the jpl 
 """
 from __future__ import division  # Nobody expects the integer division
 import numpy as np
+from numba import jit
 from astroquery.jplhorizons import Horizons, conf
 import sys
 
@@ -27,8 +28,7 @@ class solarsystem:
         Fetches data from JPL Horizons and places it in arrays let epoch
         arguement in Horizons() be default, i.e fetch data with current
         poisitions of planets during runtime -> init conditions will change
-        every time the script is ran (unless you wait for the stars to align
-        , again)
+        every time the script is ran (unless you wait for the stars to align)
         """
         self.jpl_planets = jpl_planets
         self.N_bodies = len(jpl_planets)
@@ -53,17 +53,22 @@ class solarsystem:
         print "\rFetching data from: https://ssd.jpl.nasa.gov/horizons_batch.cgi [COMPLETE]"
         return
 
-    def gravityforce(self):
+    def gravityforce(self, planet_index, time_index):
         """ Calculates the sum of all gravitational forces acting a particular
         body and returns the resultant Force vector """
 
-        resultantForce =
+        resultantForce = np.zeros(self.N_bodies - 1)  # N-1 bodies acting on it
 
         # pos_j - pos_i, i = 1,..., N,  j!=i
-        for i, pos in enumerate(pos):
-            if i != j:
-                rel_pos = pos_j - pos[i]
+        for i in range(self.N_bodies):
+            if i != planet_index:
+                rel_pos = pos[planet_index][:][time_index] - pos[i][:][time_index]
 
+        return
+
+    @staticmethod
+    @jit
+    def Solver():
         return
 
     def test_function(self):

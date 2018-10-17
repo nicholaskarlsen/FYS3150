@@ -3,8 +3,8 @@
 # Written by Nicholas Karlsen
 # Python version 2.7.15
 """
-A general purpose ODE-solver that i have written previously, and extended to include
-the velocity-verlet algorithm for this project.
+A general purpose ODE-solver that i wrote a while ago for another course, and extended 
+to include the velocity-verlet algorithm for this project.
 """
 from __future__ import division  # Nobody expects the integer division
 import numpy as np
@@ -28,7 +28,7 @@ class diffeqsolver:
         return next_pos, next_vel
 
     def rk4(self, current_pos, current_vel, current_t, dt, diffEq):
-        """ 
+        """
         Solves one timestep of a differential equation using the
         Runge-Kutta4 method. Slightly modified version of
         what is written in the textbook.
