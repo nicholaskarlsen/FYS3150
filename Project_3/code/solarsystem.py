@@ -23,48 +23,24 @@ conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 
 class solarsystem:
-    def __init__(self, jpl_planets, Dim=3):
+    def __init__(self, initPos initVel, mass):
+        self.numPlanets = len(jpl_planets)
+        self.initPos = initPos
+        self.initVel = initVel
+        self.mass = mass
+
+    def n_body_gravity(self, planet_index, time_index):
         """
-        Fetches data from JPL Horizons and places it in arrays let epoch
-        arguement in Horizons() be default, i.e fetch data with current
-        poisitions of planets during runtime -> init conditions will change
-        every time the script is ran (unless you wait for the stars to align)
+        planet_index = Index of planet which is being solved
+        time_index = Index of the time it is being solved at
         """
-        self.jpl_planets = jpl_planets
-        self.N_bodies = len(jpl_planets)
-        self.Dim = Dim
-        initPos = np.zeros([self.N_bodies, self.Dim])
-        initVel = np.zeros([self.N_bodies, self.Dim])
-        planetMass = np.zeros(self.N_bodies)
-        for i, pname in enumerate(self.jpl_planets):
-            # Status update on a single, updating line
-            print "\rFetching data from: https://ssd.jpl.nasa.gov/horizons_batch.cgi [%i/%i]" % (i, self.N_bodies),
-            sys.stdout.flush()
-            temp_obj = Horizons(id=self.jpl_planets[pname], id_type='id',
-                                location='500@0')
-            """Fetches position and velocity data in order (x, y, z)
-            Note: Print method in vectors() doesnt seem to play nice with list
-            comprehensions Hence the ugly (but stable and functioning)
-            implemetation here."""
-            initPos[i] = (temp_obj.vectors()[0][3], temp_obj.vectors()[
-                          0][4], temp_obj.vectors()[0][5])  # [AU]
-            initVel[i] = (temp_obj.vectors()[0][6], temp_obj.vectors()[
-                          0][7], temp_obj.vectors()[0][8])  # [AU/day]
-        print "\rFetching data from: https://ssd.jpl.nasa.gov/horizons_batch.cgi [COMPLETE]"
-        return
+        accel = np.zeros(self.numPlanets - 1)  # N-1 planets acting on a particular one
 
-    def gravityforce(self, planet_index, time_index):
-        """ Calculates the sum of all gravitational forces acting a particular
-        body and returns the resultant Force vector """
-
-        resultantForce = np.zeros(self.N_bodies - 1)  # N-1 bodies acting on it
-
-        # pos_j - pos_i, i = 1,..., N,  j!=i
-        for i in range(self.N_bodies):
-            if i != planet_index:
-                rel_pos = pos[planet_index][:][time_index] - pos[i][:][time_index]
-
-        return
+        for i in xrange(self.numPlanets):
+            if i != planet_index:  # Not interested in self-attraction
+                rel_pos = (pos[planet_index] - pos)  # relative position vector
+                a[i] = - self.G * mass[i] * rel_pos / np.linalg.norm(rel_pos)**3
+        return sum(accel)
 
     @staticmethod
     @jit
@@ -80,5 +56,5 @@ class solarsystem:
 
 
 if __name__ == '__main__':
-    planets = {"Sun": 10, "Earth": 399}
-    test = solarsystem(planets)
+    x0 = np.array([1, 0])  # (x, y) [AU]
+    v0 = np.array([0, 4*np.pi])
