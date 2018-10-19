@@ -39,8 +39,8 @@ class diffeqsolver:
         velocity[0] = self.v_init
         for i in xrange(len(time) - 1):
             position[i + 1], velocity[i + 1] = method(position[i],
-                                                            velocity[i],
-                                                            time[i],
-                                                            dt, diffEq)
+                                                      velocity[i],
+                                                      time[i],
+                                                      dt, diffEq)
 
         return position, velocity, time

@@ -46,20 +46,25 @@ This is an abstract
 \section{Theory, Algorithms and Methods}
   
   \subsection{Discretizing Newton's law of universal gravitation}
-    Between every body, there is a force of attraction inversly proportional to the square of the separation, or more precisely
+    Between every body, there is a force of attraction inversly proportional to the square of the separation, or more precisely, the force acting on some body with mass $m$ due to a mass $m'$ is
     \begin{equation}
-      \mathbf F = G\frac{m_1 m_2}{|\mathbf r|^2}\mathbf{\hat{u}_r}, \quad \mathbf{\hat{u}_r} = \frac{\mathbf r}{\mathbf |\mathbf r|}
+      \mathbf F = G\frac{m m'}{|\mathbf r - \mathbf r'|^2}\mathbf{\hat{u}_{r-r'}}, \quad \mathbf{\hat{u}_{r-r'}} = \frac{\mathbf r - \mathbf r'}{\mathbf |\mathbf r - \mathbf r'|}
     \end{equation}
-    Where $m_1, m_2$ denote the mass of the bodies, $G$ is the gravitational constant and $\mathbf r$ denotes the vector from body $1\rightarrow 2$.
+    Where $G$ is the gravitational constant and $\mathbf r$ denotes the vector from the body of mass $m$ to mass $m'$
 
-    If we choose to work in the cartesian coordinate system centered on body 2, then $\mathbf r = (x, y, z)$ and $|\mathbf r| = \sqrt{x^2 + y^2 + z^2} = r$.
+    If we choose to work in the cartesian coordinate system centered on the body with mass $m'$, then $\mathbf r = -(x, y, z)$ and $|\mathbf r| = \sqrt{x^2 + y^2 + z^2} = r$.
 
     By Newtons second law, the acceleration on body 1 due to the gravitational pull of body 2 can then be written as
     \begin{equation}
-      \mathbf a = \frac{1}{m_1}\mathbf F = G \frac{m_2}{r^3}\mathbf r = G\frac{m_2}{r^3}\left(x, y, z\right)
+      \mathbf a = \frac{1}{m}\mathbf F = G \frac{m'}{r^2}\frac{\mathbf r}{r} = -G\frac{m'}{r^2}\frac{\left(x, y, z\right)}{r}
     \end{equation}
+    Written out component-wise in terms of the positions, we get the set of coupled differential equations
 
-
+    \begin{equation}
+      \frac{\partial x^2}{\partial t^2} = -G\frac{m'}{r^2}\frac{x}{r}, \quad
+      \frac{\partial y^2}{\partial t^2} = -G\frac{m'}{r^2}\frac{y}{r}, \quad
+      \frac{\partial z^2}{\partial t^2} = -G\frac{m'}{r^2}\frac{z}{r}
+    \end{equation}
 
 
 \begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm]

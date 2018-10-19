@@ -23,11 +23,14 @@ conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 
 class solarsystem:
-    def __init__(self, initPos initVel, mass):
+    def __init__(self, initPos initVel, mass, dt, tn):
         self.numPlanets = len(jpl_planets)
         self.initPos = initPos
         self.initVel = initVel
-        self.mass = mass
+        self.mass = mas
+        self.N = tn * dt
+        self.pos = np.zeros(N)
+        self.vel = np.zeros(N)
 
     def n_body_gravity(self, planet_index, time_index):
         """
@@ -42,10 +45,7 @@ class solarsystem:
                 a[i] = - self.G * mass[i] * rel_pos / np.linalg.norm(rel_pos)**3
         return sum(accel)
 
-    @staticmethod
-    @jit
-    def Solver():
-        return
+    def eulercromer():
 
     def test_function(self):
         test_planets = {"Sun": 10, "Earth": 399}
@@ -57,4 +57,4 @@ class solarsystem:
 
 if __name__ == '__main__':
     x0 = np.array([1, 0])  # (x, y) [AU]
-    v0 = np.array([0, 4*np.pi])
+    v0 = np.array([0, 4 * np.pi])
