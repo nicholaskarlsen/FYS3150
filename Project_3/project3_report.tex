@@ -44,16 +44,34 @@ This is an abstract
   Github at: \url{https://github.com/nicholaskarlsen/FYS3150}
 
 \section{Theory, Algorithms and Methods}
+  
+  \subsection{Discretizing Newton's law of universal gravitation}
+    Between every body, there is a force of attraction inversly proportional to the square of the separation, or more precisely
+    \begin{equation}
+      \mathbf F = G\frac{m_1 m_2}{|\mathbf r|^2}\mathbf{\hat{u}_r}, \quad \mathbf{\hat{u}_r} = \frac{\mathbf r}{\mathbf |\mathbf r|}
+    \end{equation}
+    Where $m_1, m_2$ denote the mass of the bodies, $G$ is the gravitational constant and $\mathbf r$ denotes the vector from body $1\rightarrow 2$.
+
+    If we choose to work in the cartesian coordinate system centered on body 2, then $\mathbf r = (x, y, z)$ and $|\mathbf r| = \sqrt{x^2 + y^2 + z^2} = r$.
+
+    By Newtons second law, the acceleration on body 1 due to the gravitational pull of body 2 can then be written as
+    \begin{equation}
+      \mathbf a = \frac{1}{m_1}\mathbf F = G \frac{m_2}{r^3}\mathbf r = G\frac{m_2}{r^3}\left(x, y, z\right)
+    \end{equation}
+
+
+
+
 \begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm]
-for $i = 0, \dots, N$
+for $i = 0, \dots, N-1$
     $\mathbf v_{i + 1} = \mathbf v_{i} + \mathbf a_{i}\Delta t$
     $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i + 1}$
 \end{lstlisting}
 
 \begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm]
-for $i = 0, \dots, N$
-  $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2m}\mathbf F(t_i)\Delta t^2$
-  $\mathbf v_{i+1} = \mathbf v_i + \frac{1}{2m}\left( \mathbf F(t_i) + \mathbf F(t_{i+1}) \right)\Delta t$
+for $i = 0, \dots, N-1$
+  $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2}\mathbf a_i(\Delta t)^2$
+  $\mathbf v_{i+1} = \mathbf v_i + \frac{1}{2}(\mathbf a_{i+1} + \mathbf a_i)\Delta t  $
 \end{lstlisting}
 
 \section{Results and Discussions}
@@ -65,4 +83,7 @@ for $i = 0, \dots, N$
 \bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
 \end{thebibliography}
 
+\appendix
+\section{Fetching data from Horizons using horizons.py}
+  In order to streamline the process of fetching data from the Horizons system i created a small script, \lstinline{horizons.py} that utilizes the Astroquery python package and returns only the select data that i am interested in. The function, \lstinline{fetch_data} takes input as a dictionary, rather than a list of id numbers. Whilst this may not be as extensible or practical, it makes the code easier to read and understand, by making the instant connection between the planet name and id. For the purposes of this project, i find that much more valuable since i am only dealing with a limited ammount of planets anyway.
 \end{document}  
