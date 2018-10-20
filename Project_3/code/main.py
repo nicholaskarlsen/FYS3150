@@ -4,14 +4,14 @@
 # Python version 2.7.15
 from __future__ import division  # Nobody expects the integer division
 import numpy as np
-from __future__ import division  # Nobody expects the integer division
-import numpy as np
 import matplotlib.pyplot as plt
 
 # Contains calls which generate all figs & data for report.
 
 
 def figsetup(title, xlab, ylab, fname, show=False):
+    from matplotlib import rcParams
+    rcParams.update({'figure.autolayout': True})
     """
     Sets up and saves figure for usage in report
     usage:

@@ -23,7 +23,7 @@ conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 
 class solarsystem:
-    def __init__(self, initPos initVel, mass, dt, tn):
+    def __init__(self, initPos, initVel, mass, dt, tn):
         self.numPlanets = len(jpl_planets)
         self.initPos = initPos
         self.initVel = initVel
@@ -31,6 +31,13 @@ class solarsystem:
         self.N = tn * dt
         self.pos = np.zeros(N)
         self.vel = np.zeros(N)
+
+    def accel_g(self, position_vector):
+        '''
+        Returns the gravitational acc from the star for a given vector (i.e works for 1,
+        2 and 3-Dim etc?)
+        '''
+        return - float(self.G * self.star_mass) * position_vector / np.linalg.norm(position_vector)**3
 
     def n_body_gravity(self, planet_index, time_index):
         """
@@ -46,6 +53,25 @@ class solarsystem:
         return sum(accel)
 
     def eulercromer():
+        return
+
+    def plot(self):
+        """
+        Plots the data generated with the orbit method
+        """
+        for i in range(system.number_of_planets):
+            pos = self.orbit(planet_index=i, time_stop=100, num_steps=1e6)[1]
+            plt.plot(pos[:, 0], pos[:, 1], label="%d" % i)
+        plt.title("Orbit of planets")
+        plt.xlabel("$x$ [AU]")
+        plt.ylabel("$y$ [AU]")
+        plt.plot(0, 0, "r.")
+        plt.legend()
+        plt.annotate('Star', xy=(0, 0), xytext=(0, 0))
+        # plt.savefig("orbitfig.png")
+        plt.show()
+
+        return
 
     def test_function(self):
         test_planets = {"Sun": 10, "Earth": 399}
@@ -56,5 +82,11 @@ class solarsystem:
 
 
 if __name__ == '__main__':
-    x0 = np.array([1, 0])  # (x, y) [AU]
-    v0 = np.array([0, 4 * np.pi])
+    from horizons import fetch_data
+
+    sun_body_center = "500@10"  # JPL code for 'Sun (body center)' frame of reference
+
+    planets = {"Earth": 399}
+    x0, v0, m = fetch_data(jpl_id=planets, referenceFrame=sun_body_center)
+
+    print x0, v0

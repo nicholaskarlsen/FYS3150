@@ -7,21 +7,25 @@ conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 
 def fetch_data(jpl_id, referenceFrame="500@0"):
-    """ This function fetches position and velocity data from the Horizons system
+    """
+    This function fetches position and velocity data from the Horizons system
     hosted by the Solar dynamics group at JPL, NASA using astroquery.
     Since i only need initial conditions, i fetch data using the default epoch
-    kwarg in the Horizons() class, which yields the position and velocity vectors 
-    at time = runtime """
+    kwarg in the Horizons() class, which yields the position and velocity vectors
+    at time = runtime
+    """
     NumPlanets = len(jpl_id)
     initPos = np.zeros([NumPlanets, 3])
     initVel = np.zeros([NumPlanets, 3])
     planetMass = np.zeros(NumPlanets)
 
     # Astroquery doesn't seemt to have masses, so i hardcode these
-    # With values from the problem text [Kg]
-    MASS_TABLE = {"Sun": 2e30, "Mercury": 3.3e23, "Venus": 4.9e24, "Earth": 6e24, "Mars": 6.6e23,
-                  "Jupiter": 1.9e27, "Saturn": 5.5e26, "Uranus": 8.8e25, "Neptune": 1.03e26,
-                  "Pluto": 1.31e22}
+    # Values collected from https://en.wikipedia.org/wiki/Planetary_mass
+    # in units [Solar mass]
+    MASS_TABLE = {"Sun": 1, "Mercury": 0.16601E-6, "Venus": 2.4478383E-6,
+                  "Earth": 3.00348959632E-6, "Mars": 0.3227151E-6, "Jupiter": 954.79194E-6,
+                  "Saturn": 285.8860E-6, "Uranus": 43.66244E-6, "Neptune": 51.51389E-6,
+                  "Pluto": 0.007396E-6}
 
     for i, pname in enumerate(jpl_id):
         # Status update on a single, updating line
@@ -37,6 +41,7 @@ def fetch_data(jpl_id, referenceFrame="500@0"):
                       temp_obj.vectors()["z"])  # [AU]
         initVel[i] = (temp_obj.vectors()["vx"], temp_obj.vectors()["vy"],
                       temp_obj.vectors()["vz"])  # [AU/day]
+        initVel = initVel / (365.25)  # Convert to units [AU/yr]
         planetMass[i] = MASS_TABLE[pname]   # Fetches the mass from the hardcoded table
     print "\rFetching data from: https://ssd.jpl.nasa.gov/horizons_batch.cgi [COMPLETE]"
 
@@ -50,4 +55,4 @@ if __name__ == '__main__':
                "Jupiter": 599, "Saturn": 699, "Uranus": 799, "Neptune": 899,
                "Pluto": 999}
 
-    x0, v0, m = fetch_data(planets, 3)
+    x0, v0, m = fetch_data(planets)
