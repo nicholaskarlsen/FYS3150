@@ -22,13 +22,54 @@ import sys
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
 
+class planet(object):
+    def __init__(self, initVel, initPos, mass, name):
+        self.position = np.array(initPos)
+        self.velocity = np.array(initVel)
+        self.mass = mass
+        self.name = name
+
+    def addPos(self, newPos):
+        self.position = np.append(position, newPos)
+        return
+
+    def addVel(self, newVel):
+        self.velocity = np.append(velocity, newVel)
+        return
+
+    def getPos(self):
+        return self.position
+
+    def getVel(self):
+        return self.velocity
+
+    def getMass(self):
+        return self.mass
+
+    def getName(self):
+        return self.name
+
+class solarsystem(planet):
+    return
+
+
 class solarsystem:
     def __init__(self, initPos, initVel, mass, dt, tn):
+        """
+        The class is initialized by feeding it arrays containing relevant info 
+        pertaining to the system at hand.
+        initPos : [planet, time, dimensions]
+        initVel : [planet, time, dimensions]
+        mass : [planet]
+        N : Number of integration points
+        """
         self.numPlanets = len(jpl_planets)
         self.initPos = initPos
         self.initVel = initVel
         self.mass = mas
-        self.N = tn * dt
+        self.N = N
+        self.tn = tn
+        self.dt = tn / N
         self.pos = np.zeros(N)
         self.vel = np.zeros(N)
         self._G = 4 * np.pi**2    # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
