@@ -31,13 +31,14 @@ class solarsystem:
         self.N = tn * dt
         self.pos = np.zeros(N)
         self.vel = np.zeros(N)
+        self._G = 4 * np.pi**2    # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
 
-    def accel_g(self, position_vector):
+    def accel_g(self, position_vector, mass):
         '''
         Returns the gravitational acc from the star for a given vector (i.e works for 1,
-        2 and 3-Dim etc?)
+        2 and 3-Dim)
         '''
-        return - float(self.G * self.star_mass) * position_vector / np.linalg.norm(position_vector)**3
+        return - pos * self.G * mass / np.linalg.norm(pos) ** 3
 
     def n_body_gravity(self, planet_index, time_index):
         """
@@ -48,11 +49,25 @@ class solarsystem:
 
         for i in xrange(self.numPlanets):
             if i != planet_index:  # Not interested in self-attraction
-                rel_pos = (pos[planet_index] - pos)  # relative position vector
-                a[i] = - self.G * mass[i] * rel_pos / np.linalg.norm(rel_pos)**3
+                rel_pos = (pos[planet_index] - pos[i])  # relative position vector
+                accel[i] = accel_g(rel_pos, self.mass[i])
         return sum(accel)
 
+    @staticmethod  # Needs to be static for JIT
     def eulercromer():
+        for i in xrange(N - 1):
+            for j in xrange():
+            vel[i + 1] = vel[i] + h * acc
+            pos[i + 1] = pos[i] + h * vel[i + 1]
+        return
+
+    @staticmethod  # Needs to be static for JIT
+    def velocityverlet():
+        for i in xrange(N - 1):
+            a1 = diffeq(pos[i], mass=1)   # mass of sun = 1
+            pos[i + 1] = pos[i] + vel[i] * h + 0.5 * a1 * h**2
+            a2 = diffeq(pos[i + 1], mass=1)
+            vel[i + 1] = vel[i] + 0.5 * h * (a1 + a2)
         return
 
     def plot(self):
