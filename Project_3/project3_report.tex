@@ -5,6 +5,7 @@
 \usepackage[colorlinks=true,urlcolor=blue,citecolor=blue]{hyperref}
 \usepackage{color}
 \usepackage{listings}
+\usepackage{subfig}
 
 \lstset{ %
   basicstyle=\footnotesize,        % the size of the fonts that are used for the code
@@ -81,8 +82,23 @@ for $i = 0, \dots, N-1$
 
 \section{Results and Discussions}
 
-\section{Conclusions}
+\begin{figure}[h!tb]
+  \center
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/exb_energy_verlet.pdf}\label{fig:earthsun energy verlet}}\\
+   \subfloat[][Euler-Cromer]{\includegraphics[width=8cm]{figs/exb_energy_euler.pdf}\label{fig:earthsun energy cromer}}
+   \caption{The fluctuation of the total energy of the Earth in the Earth-Sun system for solutions using the Velocity-Verlet algorithm (a) and the Euler-Cromer algorithm (b)}
+   \label{steady_state}
+\end{figure}
 
+\begin{figure}[h!tb]
+  \center
+  \includegraphics[width=8cm]{figs/exb_orbit_verlet.pdf}
+\end{figure}
+
+
+
+\section{Conclusions}
+  In trying to generalize my code through the use of object orientation, i had to strike a balance between generality and complexity
 
 \begin{thebibliography}{99}
 \bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
@@ -90,5 +106,5 @@ for $i = 0, \dots, N-1$
 
 \appendix
 \section{Fetching data from Horizons using horizons.py}
-  In order to streamline the process of fetching data from the Horizons system i created a small script, \lstinline{horizons.py} that utilizes the Astroquery python package and returns only the select data that i am interested in. The function, \lstinline{fetch_data} takes input as a dictionary, rather than a list of id numbers. Whilst this may not be as extensible or practical, it makes the code easier to read and understand, by making the instant connection between the planet name and id. For the purposes of this project, i find that much more valuable since i am only dealing with a limited ammount of planets anyway.
+  In order to streamline the process of fetching data from the Horizons system i created a small script, \lstinline{horizons.py} that utilizes the Astroquery python package and returns only the select data that i am interested in. The function, \lstinline{fetch_data} takes input as a dictionary, rather than a list of id numbers. Whilst this may not be as extensible or practical, it makes the code easier to read and understand, by making the instant connection between the planet name and id. For the purposes of this project, i find that much more valuable since i am only dealing with a limited amount of planets anyway.
 \end{document}  
