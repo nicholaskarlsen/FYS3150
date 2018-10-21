@@ -5,6 +5,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from main import figsetup
 
+_G = 4 * np.pi**2    # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
+
 
 def gravity(pos, mass):
     return - pos * _G * mass / np.linalg.norm(pos) ** 3
@@ -26,7 +28,6 @@ def eulercromer(diffeq):
 
 
 if __name__ == '__main__':
-    _G = 4 * np.pi**2    # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
 
     tn = 10          # Timespan (1 year)
     N = int(1e6)    # Number of integration points

@@ -5,6 +5,7 @@
 from __future__ import division  # Nobody expects the integer division
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits import mplot3d
 
 # Contains calls which generate all figs & data for report.
 
@@ -31,3 +32,18 @@ def figsetup(title, xlab, ylab, fname, show=False):
     else:
         plt.show()
     return
+
+if __name__ == '__main__':
+        
+    fig = plt.figure()
+    ax = plt.axes(projection='3d')#
+
+    # Data for a three-dimensional line
+    zline = np.linspace(0, 15, 1000)
+    xline = np.sin(zline)
+    yline = np.cos(zline)
+    ax.plot3D(xline, yline, zline)
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
+    plt.show()
