@@ -8,21 +8,21 @@ from main import figsetup
 _G = 4 * np.pi**2    # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
 
 
-def gravity(pos, mass):
-    return - pos * _G * mass / np.linalg.norm(pos) ** 3
+def gravity(pos, _mass):
+    return - pos * _G * _mass / np.linalg.norm(pos) ** 3
 
 
 def velocityverlet(diffeq):
     for i in xrange(N - 1):
-        a1 = diffeq(pos[i], mass=1)   # mass of sun = 1
+        a1 = diffeq(pos[i], _mass=1)   # mass of sun = 1
         pos[i + 1] = pos[i] + vel[i] * h + 0.5 * a1 * h**2
-        a2 = diffeq(pos[i + 1], mass=1)
+        a2 = diffeq(pos[i + 1], _mass=1)
         vel[i + 1] = vel[i] + 0.5 * h * (a1 + a2)
 
 
 def eulercromer(diffeq):
     for i in xrange(N - 1):
-        acc = diffeq(pos[i], mass=1)   # mass of sun = 1
+        acc = diffeq(pos[i], _mass=1)   # mass of sun = 1
         vel[i + 1] = vel[i] + h * acc
         pos[i + 1] = pos[i] + h * vel[i + 1]
 

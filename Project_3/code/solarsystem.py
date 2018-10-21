@@ -25,6 +25,7 @@ from numba import int32, float32    # import the types
 # Default server does not work on my version of astroquery, so set it manually
 conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
 
+
 class solarsystem:
     def __init__(self, initPos, initVel, mass, N, tn):
         """
@@ -77,7 +78,7 @@ class solarsystem:
             if i != planet_index:  # Not interested in self-attraction
                 # compute relative position vector, then acceleration due to that body
                 rel_pos = (self.pos[planet_index, time_index] - self.pos[i, time_index])
-                #print rel_pos, i
+                # print rel_pos, i
                 accel += rel_pos * self._G * self.mass[i] / np.linalg.norm(rel_pos) ** 3
         return accel  # Return sum of acceleration due to all bodies.
 
