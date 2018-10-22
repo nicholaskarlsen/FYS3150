@@ -91,6 +91,8 @@ This is an abstract
 \section{Results and Discussions}
   \subsection{Object orientation}
     When designing the class \lstinline{solarsystem}, i wanted to strike a balance between utilizing the benefits, and expandability you get from object orientation whilst also not abstracting the data too much. As such, the class simply manipulates arrays of a particular format in a particular way. Not abstracting the operation by creating objects for each planet (or something else of that nature), which seems to be a common pitfall of object orientation as i percieve it.
+
+    A particular benefit in the way i wrote my code, is that there is no difference if the input data is in 2 Dimensions or 3. The code will work just the same either way by making full use of the way Numpy arrays work.
  
 \begin{figure}[h!tb]
   \center
