@@ -46,7 +46,7 @@ This is an abstract
 
 \section{Theory, Algorithms and Methods}
   
-  \subsection{Discretizing Newton's law of universal gravitation}
+  \subsection{Newton's law of universal gravitation}
     Between every body, there is a force of attraction inversly proportional to the square of the separation, or more precisely, the force acting on some body with mass $m$ due to a mass $m'$ is
     \begin{equation}
       \mathbf F = G\frac{m m'}{|\mathbf r - \mathbf r'|^2}\mathbf{\hat{u}_{r-r'}}, \quad \mathbf{\hat{u}_{r-r'}} = \frac{\mathbf r - \mathbf r'}{\mathbf |\mathbf r - \mathbf r'|}
@@ -66,22 +66,32 @@ This is an abstract
       \frac{\partial y^2}{\partial t^2} = -G\frac{m'}{r^2}\frac{y}{r}, \quad
       \frac{\partial z^2}{\partial t^2} = -G\frac{m'}{r^2}\frac{z}{r}
     \end{equation}
+\subsection{Solving ODE numerically}
+  \subsubsection{Forward Euler}
+    Consider a function $y(t)$, which derivative, $y'(t, y)$ has a known form.
 
+  \begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm]
+  for $i = 0, \dots, N-1$
+    $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2}\mathbf a_i(\Delta t)^2$
+    $\mathbf v_{i+1} = \mathbf v_i + \frac{1}{2}(\mathbf a_{i+1} + \mathbf a_i)\Delta t  $
+  \end{lstlisting}
 
-\begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm]
-for $i = 0, \dots, N-1$
-    $\mathbf v_{i + 1} = \mathbf v_{i} + \mathbf a_{i}\Delta t$
-    $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i + 1}$
-\end{lstlisting}
+    \begin{lstlisting}[mathescape=true, language=python, title=Forward Euler Algorithm]
+  for $i = 0, \dots, N-1$
+      $\mathbf v_{i + 1} = \mathbf v_{i} + \mathbf a_{i}\Delta t$
+      $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i}\Delta t$
+  \end{lstlisting}
 
-\begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm]
-for $i = 0, \dots, N-1$
-  $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2}\mathbf a_i(\Delta t)^2$
-  $\mathbf v_{i+1} = \mathbf v_i + \frac{1}{2}(\mathbf a_{i+1} + \mathbf a_i)\Delta t  $
-\end{lstlisting}
+  \begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm]
+  for $i = 0, \dots, N-1$
+      $\mathbf v_{i + 1} = \mathbf v_{i} + \mathbf a_{i}\Delta t$
+      $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i + 1}\Delta t$
+  \end{lstlisting}
 
 \section{Results and Discussions}
-
+  \subsection{Object orientation}
+    When designing the class \lstinline{solarsystem}, i wanted to strike a balance between utilizing the benefits, and expandability you get from object orientation whilst also not abstracting the data too much. As such, the class simply manipulates arrays of a particular format in a particular way. Not abstracting the operation by creating objects for each planet (or something else of that nature), which seems to be a common pitfall of object orientation as i percieve it.
+ 
 \begin{figure}[h!tb]
   \center
   \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/exb_energy_verlet.pdf}\label{fig:earthsun energy verlet}}\\
