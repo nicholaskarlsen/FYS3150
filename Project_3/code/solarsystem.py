@@ -94,7 +94,7 @@ class solarsystem:
                 xline = self.pos[i, :, 0]
                 yline = self.pos[i, :, 1]
                 zline = self.pos[i, :, 2]
-                ax.plot3D(xline, yline, zline, label=names[i])
+                ax.plot3D(xline, yline, zline, label=self.names[i])
             ax.set_xlabel('x [AU]')
             ax.set_ylabel('y [AU]')
             ax.set_zlabel('z [AU]')
