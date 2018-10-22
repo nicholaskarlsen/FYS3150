@@ -4,30 +4,43 @@ import matplotlib.pyplot as plt
 from mpl_toolkits import mplot3d
 import horizons as hori
 
+from numba import jitclass          # import the decorator
+from numba import int32, float32, float64, char    # import the types
 
+spec = [
+    ('mass', float64[:]),
+    ("N", int32),
+    ("tn", float32),
+    ("names", char[:]),
+    ("numPlanets", int32),
+    ("dim", int32),
+    ("G", float64),
+    ("pos", float64[:, :, :]),
+    ("vel", float64[:, :, :])
+]
+
+
+#@jitclass(spec)
 class solarsystem:
-    def __init__(self, initPos, initVel, mass, N, tn, names=False):
+    def __init__(self, initPos, initVel, mass, N, tn, names):
         # Adding input
-        self.initPos = initPos  # (planet index, xyz-tuple) [AU]
-        self.initVel = initVel  # (planet index, xyz-tuple) [AU/Yr]
         self.mass = mass        # Array of mass, sequential
         self.N = int(N)         # Number of integration points
         self.tn = tn            # Simulation time [Yr]
-        if names is not False:
-            self.names = names  # Names of planets, for plotting
+        self.names = names      # Names of planets, for plotting
         # Some useful constants based on the input
         self.numPlanets = len(self.mass)
         self.h = self.tn / self.N
-        self.dim = len(initPos[0][:])  # Number of dimensions, should be 2/3-Dim.
+        self.dim = len(initPos[0][:])  # Number of dimensions, should be 2 or 3
         self.G = 4 * np.pi ** 2  # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
 
         # Creating arrays
-        self.pos = np.zeros([self.numPlanets, self.N, self.dim])
-        self.vel = np.zeros([self.numPlanets, self.N, self.dim])
-        self.pos[:, 0] = self.initPos  # Setting initial conditions for all planets
-        self.vel[:, 0] = self.initVel
+        self.pos = np.zeros([self.numPlanets, self.N, self.dim], dtype=np.float64)
+        self.vel = np.zeros([self.numPlanets, self.N, self.dim], dtype=np.float64)
+        # Setting initial conditions for all planets
+        self.pos[:, 0] = initPos  # [AU]
+        self.vel[:, 0] = initVel  # [AU/Yr]
 
-        print "Dim = ", self.dim
         return
 
     def gravity(self, planetIndex, timeIndex):
@@ -38,15 +51,6 @@ class solarsystem:
                 accel += relPos * self.G * self.mass[j] / np.linalg.norm(relPos) ** 3
 
         return accel
-
-    def eulerforward(self, diffeq):
-        for i in xrange(self.N - 1):
-            for n in xrange(self.numPlanets):
-                acc = diffeq(n, i)
-                self.vel[n][i + 1] = self.vel[n][i] + self.h * acc
-                self.pos[n][i + 1] = self.pos[n][i + 1] + self.h * self.vel[n][i]
-
-        return
 
     def eulercromer(self, diffeq):
         """ 
@@ -112,7 +116,6 @@ class solarsystem:
     def get(self):
         return self.pos, self.vel
 
-
 if __name__ == '__main__':
     m = np.array([3.00348959632E-6, 1])
     x0 = np.array([[1, 0], [0, 0]])
@@ -125,5 +128,4 @@ if __name__ == '__main__':
 
     esys = solarsystem(initPos=x0, initVel=v0, mass=m, N=N, tn=tn, names=names)
     esys.velocityverlet(esys.gravity)
-    esys.changeref(1)
     esys.plot("earthsun")
