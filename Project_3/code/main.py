@@ -1,23 +1,14 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
-# Written by Nicholas Karlsen
-# Python version 2.7.15
-from __future__ import division  # Nobody expects the integer division
-import numpy as np
+from __future__ import division
+#from horizons import *
+from get_initconds import *
 import matplotlib.pyplot as plt
-from mpl_toolkits import mplot3d
-from solarsystem import *
 from matplotlib import rcParams
-from astroquery.jplhorizons import Horizons
-from astroquery.jplhorizons import conf
-
-conf.horizons_server = 'https://ssd.jpl.nasa.gov/horizons_batch.cgi'
-rcParams.update({'figure.autolayout': True})
-
-# Contains calls which generate all figs & data for report.
+from mpl_toolkits import mplot3d
+from n_solver import *
+import time
 
 
-def figsetup(title, xlab, ylab, fname, show=False):
+def figsetup(title, xlab, ylab, fname, legend=True, show=False):
     """
     Sets up and saves figure for usage in report
     usage:
@@ -30,7 +21,8 @@ def figsetup(title, xlab, ylab, fname, show=False):
     plt.title(fname)
     plt.tight_layout()
     plt.title(title)
-    plt.legend()
+    if legend is True:
+        plt.legend()
     plt.savefig("../figs/" + fname + ".pdf")
     if show is False:
         plt.close()
@@ -39,124 +31,218 @@ def figsetup(title, xlab, ylab, fname, show=False):
     return
 
 
-def ex_c():
-    "Calls generating figs for ex c"
-    m = np.array([3.00348959632E-6, 1])
-    x0 = np.array([[1, 0], [0, 0]])
-    v0 = np.array([[0, 2 * np.pi], [0, 0]])
-    #planets = {"Earth": 399, "Sun": 10}
-    #x01, v01, m1 = hori.fetch_data(jpl_id=planets)
-    names = ["Earth", "Sun"]
-    tn = 10
-    list_of_N = tn * np.array([1e1, 1e2, 1e3, 1e4, 1e5])
+def ex_a():
+    return
+
+
+def ex_b():
+    x0 = np.array([[1, 0]], dtype=np.float64)             # [AU]
+    v0 = np.array([[0, 2 * np.pi]], dtype=np.float64)     # [AU/yr]
+    m = np.array([3.00348959632E-6], dtype=np.float64)
+    names = ['earth']
+    list_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7]
+
+    N_exponent = 0
+    method_name = ["eulercromer", "velocityverlet", "eulerforward"]  # for filename purposes.
     for N in list_of_N:
-        esys = solarsystem(initPos=x0, initVel=v0, mass=m, N=N, tn=tn, names=names)
-        esys.velocityverlet(esys.gravity)
-        esys.changeref(1)
-        pos, vel = esys.get()
-        epos = pos[0]
-        plt.plot(epos[:, 0], epos[:, 1], label="%.1e" % N)
+        N_exponent += 1
+        for i in range(3):  # Methods numbered 0, 1, 2 corresponding to list above
+            # Initialize the solver
+            # Not strictly required to re-initialize each time as initial conds. arent altered
+            inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=10)
+            inst.solarsystem(method=i, system=1)  # Solve using solarsystem model for method=i
+            pos, vel = inst.get()       # Fetch arrays
 
-    def excplots(fname):
-        plt.legend()
-        plt.xlim(-1.1, 1.1)
-        plt.ylim(-1.1, 1.1)
-        plt.savefig("../figs/ex_c_" + fname + "_orbit.pdf")
-        plt.close()
-        # System is still "solved" for the last N
-        pos, vel = esys.get()  # Returns the pos and vel arrays from the object
-        epos, evel = pos[0], vel[0]
-        Ek = np.zeros(int(list_of_N[-1]))   # kinetic energy
-        Ep = np.zeros(int(list_of_N[-1]))   # potential energy
-        _G = 4 * np.pi ** 2
-        for i in xrange(int(list_of_N[-1])):
-            r = np.linalg.norm(epos[i])
-            v = np.linalg.norm(evel[i])
-            Ek[i] = 0.5 * m[0] + v**2
-            Ep[i] = - m[0] * _G / r
+            # Arrays to store speed & radius values for each t
+            r = np.zeros(len(pos[0]))
+            s = np.zeros(len(vel[0]))
+            # Calculate r, s for each t
+            for j in range(len(pos[0])):
+                r[j] = np.linalg.norm(pos[0, j])
+                s[j] = np.linalg.norm(vel[0, j])
 
-        plt.plot(Ek + Ep)
-        plt.xlabel("i")
-        plt.ylabel("Energy")
-        plt.legend()
-        plt.savefig("../figs/ex_c_" + fname + "_energy.pdf")
-        plt.close()
+            plt.figure(figsize=[2.5, 2.5])
+            for j in xrange(len(x0)):  # Plot trajectories
+                plt.plot(pos[j, :, 0], pos[j, :, 1], label=names[j])
+            plt.axis("equal")
+            figsetup(title="N = $10^%i$" % N_exponent, xlab="x [AU]", ylab="y [AU]",
+                     fname="ex_b_orbit_%s_%i" % (method_name[i], N_exponent), legend=False)
 
-    excplots("vv")
-    for N in list_of_N:
-        esys = solarsystem(initPos=x0, initVel=v0, mass=m, N=N, tn=tn, names=names)
-        esys.eulercromer(esys.gravity)
-        esys.changeref(1)
-        pos, vel = esys.get()
-        epos = pos[0]
-        plt.plot(epos[:, 0], epos[:, 1], label="%.1e" % N)
-    excplots("ec")
+            plt.figure(figsize=[5, 3])
+            plt.plot(s)
+            plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+            figsetup(title="Speed of earth", xlab="Integration point, N", ylab="|v| [Au/Yr]", fname="ex_b_speed_%s_%i" % (method_name[i], N_exponent))
 
+            plt.figure(figsize=[5, 3])
+            plt.plot(r)
+            plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+            figsetup(title="Distance between earth & sun", xlab="Integration point, N",
+                     ylab="|r| [Au]", fname="ex_b_radius_%s_%i" % (method_name[i], N_exponent))
+
+            plt.figure(figsize=[5, 3])
+            plt.plot(r * s * m[0])
+            plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
+            figsetup(title="Angular momentum of earth", xlab="Integration point, N",
+                     ylab="L [$M_\\bigodot$Au^2/Yr]", fname="ex_b_angularmomentum_%s_%i" % (method_name[i], N_exponent))
+    return
+
+
+def ex_c1():
+    x0 = np.array([[1, 0]], dtype=np.float64)             # [AU]
+    m = np.array([3.00348959632E-6], dtype=np.float64)
+    names = ['earth']
+    for speed in [1, 2, 3, 3.5, 4]:
+        v0 = np.array([[0, speed * np.pi]], dtype=np.float64)     # [AU/Yr]
+        inst = n_solver(initPos=x0, initVel=v0, mass=m, N=1e5, tn=10)
+        inst.solarsystem(method=1, system=1)  # Velocity verlet & fixed sun
+        pos, vel = inst.get()
+        plt.plot(pos[0, :, 0], pos[0, :, 1], label="$|v_0|=%.2f \\pi$" % speed)
+    plt.close()
+    return
+
+
+def ex_c2():
+    x0 = np.array([[1, 0]], dtype=np.float64)             # [AU]
+    m = np.array([3.00348959632E-6], dtype=np.float64)
+    names = ['earth']
+    for b in [2, 2.25, 2.5, 2.75, 3]:
+        v0 = np.array([[0, 2 * np.pi]], dtype=np.float64)     # [AU/Yr]
+        inst = n_solver(initPos=x0, initVel=v0, mass=m, N=1e5, tn=10, beta=b)
+        inst.solarsystem(method=1, system=1)  # Velocity verlet & fixed sun
+        pos, vel = inst.get()
+        plt.plot(pos[0, :, 0], pos[0, :, 1], label="$\\beta = %.1f$" % b)
+    plt.show()
     return
 
 
 def ex_d():
-    fig = plt.figure()
-    ax = plt.axes(projection='3d')
+    m = np.array([1, 3.00348959632E-6], dtype=np.float64)
 
-    m = np.array([3.00348959632E-6, 1])
-    x0 = np.array([[1, 0, 0], [0, 0, 0]])
-    for speed in [0.5 * np.pi, np.pi, 2 * np.pi, 3 * np.pi]:
-        v0 = np.array([[0, 2 * np.pi, speed], [0, 0, 0]])
-        #planets = {"Earth": 399, "Sun": 10}
-        #x01, v01, m1 = hori.fetch_data(jpl_id=planets)
-        names = ["Earth", "Sun"]
-        tn = 5
-        N = tn * 1e5
-        esys = solarsystem(initPos=x0, initVel=v0, mass=m, N=N, tn=tn, names=names)
-        esys.velocityverlet(esys.gravity)
-        pos, vel = esys.get()
-        # Data for a three-dimensional line
-        xline = pos[0, :, 0]
-        yline = pos[0, :, 1]
-        zline = pos[0, :, 2]
-        ax.plot3D(xline, yline, zline, label="$v_0=%.3f$" % np.sqrt(speed**2 + 4 * np.pi**2))
+    lst = [10, 399]
+
+    names = ['sun', 'earth']
+    x0, v0 = get_data(lst)
+    N = 1e5
+    tn = 1
+
+    inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn)
+    inst.solarsystem()
+    pos, vel = inst.get()
+    ax = plt.axes(projection='3d')
+    for i in range(len(lst)):
+        xline = pos[i, :, 0]
+        yline = pos[i, :, 1]
+        zline = pos[i, :, 2]
+        ax.plot3D(xline, yline, zline, label=names[i])
     ax.set_xlabel('x [AU]')
     ax.set_ylabel('y [AU]')
     ax.set_zlabel('z [AU]')
     plt.legend()
-    plt.savefig("../figs/" + "escapevel" + ".pdf")
+    plt.savefig("../figs/exd_var_beta.pdf")
     plt.show()
-
     return
 
 
 def ex_e():
-    m = np.array([3.00348959632E-6, 1, 954.79194E-6])
+    lst = [399, 599]
+    names = ["Earth", "jupiter"]
+    x0, v0 = get_data(lst)
+    for multi in [1, 10, 1000]:
+        m = np.array([3.00348959632E-6, multi * 954.79194E-6], dtype=np.float64)
+        inst = n_solver(initPos=x0, initVel=v0, mass=m, N=1e5, tn=10)
+        inst.solarsystem(method=1, system=1)  # Velocity verlet & fixed sun
+        pos, vel = inst.get()
+        ax = plt.axes(projection='3d')
+        for i in range(len(lst)):
+            xline = pos[i, :, 0]
+            yline = pos[i, :, 1]
+            zline = pos[i, :, 2]
+            ax.plot3D(xline, yline, zline, label=names[i])
+        ax.set_xlabel('x [AU]')
+        ax.set_ylabel('y [AU]')
+        ax.set_zlabel('z [AU]')
+        plt.legend()
+        plt.savefig("../figs/exe_earth_jupiter_%i.pdf" % multi)
+        plt.close()
 
-    sun = Horizons(id="10", id_type="id", location="500@10")
-    earth = Horizons(id="399", id_type="id", location="500@10")
-    jupiter = Horizons(id="599", id_type="id", location="500@10")
+    return
 
-    x0 = np.array([
-        [0.8691953608497864, 0.4844146835619565, -2.221389262494324e-05],
-        [0, 0, 0],
-        [-2.602835339639919, -4.695935682401297, 0.07774370082326859]
-    ])
 
-    v0 = np.array([
-        [-0.008654353274152921, 0.01495666860203449, -4.070416896990818e-07],
-        [0, 0, 0],
-        [0.006514074726715846, -0.003306388774089694, -0.0001320879214417232]
-    ]) / (365.25)
+def ex_f():
+    m = np.array([1, 0.16601E-6, 2.4478383E-6,
+                  3.00348959632E-6, 0.3227151E-6, 954.79194E-6,
+                  285.8860E-6, 43.66244E-6, 51.51389E-6,
+                  0.007396E-6], dtype=np.float64)
 
-    N = 1e6
+    lst = [10, 199, 299, 399, 499,
+           599, 699, 799, 899]
+
+    names = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter',
+             'satur', 'uranus', 'neptune']
+    x0, v0 = get_data(lst, referenceFrame="500@0")
+    N = 1e5
     tn = 10
-    names = ["Earth", "Sun", "Jupiter"]
 
-    esys = solarsystem(initPos=x0, initVel=v0, mass=m, N=N, tn=tn, names=names)
-    esys.velocityverlet(esys.gravity)
-    esys.plot("earthsun")
+    inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn)
+    inst.solarsystem()
+    pos, vel = inst.get()
+    ax = plt.axes(projection='3d')
+    for i in range(len(lst)):
+        xline = pos[i, :, 0]
+        yline = pos[i, :, 1]
+        zline = pos[i, :, 2]
+        ax.plot3D(xline, yline, zline, label=names[i])
+    ax.set_xlabel('x [AU]')
+    ax.set_ylabel('y [AU]')
+    ax.set_zlabel('z [AU]')
+    plt.legend()
+    plt.savefig("../figs/all_planets3d.pdf")
+    plt.show()
+    return
+
+
+def ex_g():
+    m = np.array([0.16601E-6], dtype=np.float64)
+    lst = [199]
+
+    names = ['sun', 'mercury']
+    x0, v0 = get_data(lst)
+    N = 1e7
+    tn = 100
+
+    inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn)
+    t0 = time.time()
+    inst.solarsystem(method=1, system=2)
+    print "Time taken: %.2f s" % (time.time() - t0)
+    pos, vel = inst.get()
+    ax = plt.axes(projection='3d')
+    for i in range(len(lst)):
+        xline = pos[i, ::100, 0]
+        yline = pos[i, ::100, 1]
+        zline = pos[i, ::100, 2]
+        ax.plot3D(xline, yline, zline, label=names[i])
+    ax.set_xlabel('x [AU]')
+    ax.set_ylabel('y [AU]')
+    ax.set_zlabel('z [AU]')
+    plt.axis('equal')
+    plt.legend()
+    plt.savefig("../figs/ex_g_mercury.pdf")
+    plt.show()
+    return
+
+
+def main():
+    # ex_a()
+    # ex_b()
+    # ex_c1()
+    # ex_c2()
+    # ex_d()
+    #ex_e()
+    #ex_f()
+    ex_g()
 
     return
 
 
 if __name__ == '__main__':
-    # ex_c()
-    # ex_d()
-    ex_e()
+    main()

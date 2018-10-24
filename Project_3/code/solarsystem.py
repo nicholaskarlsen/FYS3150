@@ -45,6 +45,11 @@ class solarsystem:
 
     def gravity(self, planetIndex, timeIndex):
         accel = np.zeros(self.dim)
+        if planetIndex == 0:
+            return accel
+        else:
+            pass
+
         for j in xrange(self.numPlanets):
             if j != planetIndex:  # Not interested in self-attraction
                 relPos = self.pos[j, timeIndex] - self.pos[planetIndex, timeIndex]
@@ -115,6 +120,7 @@ class solarsystem:
 
     def get(self):
         return self.pos, self.vel
+
 
 if __name__ == '__main__':
     m = np.array([3.00348959632E-6, 1])

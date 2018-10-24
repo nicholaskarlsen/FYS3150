@@ -1,80 +1,60 @@
-# This script solves the 2-body problem using a simple approach in two dimensions
-# Meant mostly to familiarize myself with the system, hence the spaghetti code.
-from __future__ import division
+from __future__ import division, print_function
 import numpy as np
-import matplotlib.pyplot as plt
-from main import figsetup
+from numba import jitclass          # import the decorator
+from numba import int32, float32, float64, uint8    # import the types
 
-_G = 4 * np.pi**2    # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
+# Declaring types for @jitclass
+spec = [
+    ('initPos', float64[:, :]),
+    ('initVel', float64[:, :]),
+    ('mass', float64[:]),
+    ('N', int32),
+    ('tn', float32),
+    ('h', float64),
+    ('numBodies', int32),
+    ('dim', int32),
+    ('G', float64),
+    ('pos', float64[:, :, :]),
+    ('vel', float64[:, :, :]),
+    ('method', uint8)
+]
 
 
-def gravity(pos, _mass):
-    return - pos * _G * _mass / np.linalg.norm(pos) ** 3
+#@jitclass(spec)
+class n_solver(object):
+    def __init__(self, initPos, initVel, mass, N, tn, method=1):
+        # Input variables
+        self.initPos = initPos      # Initial condition [AU]
+        self.initVel = initVel      # Initial velocity [Au/Yr]
+        self.mass = mass            # Array of masses [Solar mass]
+        self.N = int(N)                  # Number of integration points
+        self.tn = tn                # Simulation time [Yr]
+        self.h = self.tn / self.N
+        # Useful constants
+        self.numBodies = len(self.initPos)
+        self.dim = len(self.initPos[0])  # Number of dimensions, should be 2 or 3
+        self.G = 4 * np.pi**2           # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
 
+        # Using .self variables in the shape arg causes error with jitclass
+        self.pos = np.zeros(shape=(len(initPos), int(N), len(initPos[0])), dtype=np.float64)
+        self.vel = np.zeros(shape=(len(initPos), int(N), len(initPos[0])), dtype=np.float64)
+        self.pos[:, 0] = self.initPos
+        self.vel[:, 0] = self.initVel
 
-def velocityverlet(diffeq):
-    for i in xrange(N - 1):
-        a1 = diffeq(pos[i], _mass=1)   # mass of sun = 1
-        pos[i + 1] = pos[i] + vel[i] * h + 0.5 * a1 * h**2
-        a2 = diffeq(pos[i + 1], _mass=1)
-        vel[i + 1] = vel[i] + 0.5 * h * (a1 + a2)
-
-
-def eulercromer(diffeq):
-    for i in xrange(N - 1):
-        acc = diffeq(pos[i], _mass=1)   # mass of sun = 1
-        vel[i + 1] = vel[i] + h * acc
-        pos[i + 1] = pos[i] + h * vel[i + 1]
+    def get(self):
+        print(self.method)
+        return self.pos, self.vel, self.mass
 
 
 if __name__ == '__main__':
+    m = np.array([1, 3.00348959632E-6], dtype=np.float64)
+    x0 = np.array([[0, 0], [1, 0]], dtype=np.float64)
+    v0 = np.array([[0, 0], [0, 2 * np.pi]], dtype=np.float64)
+    names = ["Sun", "Earth"]
+    #planets = {"Earth": 399, "Sun": 10}
+    #x01, v01, m1 = hori.fetch_data(jpl_id=planets)
+    N = 1e5
+    tn = 1
 
-    tn = 10          # Timespan (1 year)
-    N = int(1e6)    # Number of integration points
-    h = tn / N      # Step size
-    print "Solving 2 body system using Euler cromer & velocityverlet, h=", h
-
-    mass = 3.00348959632E-6  # Mass of earth [Solar mass]
-
-    time = np.linspace(0, tn, N)
-    pos = np.zeros([N, 2])    # (t)(x, y)
-    vel = np.zeros([N, 2])    # (t)(x, y)
-    pos[0] = [1, 0]           # [AU]
-    vel[0] = [0, 2 * np.pi]   # [AU/yr]
-
-    velocityverlet(gravity)
-    E = np.zeros(N)
-    U = np.zeros(N)
-    for i in range(N):
-        E[i] = 0.5 * mass * np.linalg.norm(vel[i])**2
-        U[i] = - mass * _G / np.linalg.norm(pos[i])
-
-    plt.figure(figsize=(5, 3))
-    plt.plot(time, U + E)
-    figsetup(" ", "Time [Years]", "Energy", "exb_energy_verlet", show=False)
-
-    plt.figure(figsize=(5, 5))
-    plt.plot(pos[:, 0], pos[:, 1])
-    figsetup(" ", "x [AU]", "y [AU]", "exb_orbit_verlet", show=False)
-
-    # re setting data
-    time = np.linspace(0, tn, N)
-    pos = np.zeros([N, 2])    # (t)(x, y)
-    vel = np.zeros([N, 2])    # (t)(x, y)
-    pos[0] = [1, 0]           # [AU]
-    vel[0] = [0, 2 * np.pi]   # [AU/yr]
-
-    eulercromer(gravity)
-    E = np.zeros(N)
-    U = np.zeros(N)
-    for i in range(N):
-        E[i] = 0.5 * mass * np.linalg.norm(vel[i])**2
-        U[i] = - mass * _G / np.linalg.norm(pos[i])
-
-    plt.figure(figsize=(5, 3))
-    plt.plot(time, U + E)
-    figsetup(" ", "Time [Years]", "Energy", "exb_energy_euler", show=False)
-
-    plt.figure(figsize=(5, 5))
-    plt.plot(pos[:, 0], pos[:, 1])
-    figsetup(" ", "x [AU]", "y [AU]", "exb_orbit_euler", show=False)
+    esys = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn, method="ec")
+    pos, vel, mass = esys.get()

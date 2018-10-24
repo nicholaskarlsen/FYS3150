@@ -27,7 +27,9 @@ def fetch_data(jpl_id, referenceFrame="500@0"):
                   "Saturn": 285.8860E-6, "Uranus": 43.66244E-6, "Neptune": 51.51389E-6,
                   "Pluto": 0.007396E-6}
 
+
     for i, pname in enumerate(jpl_id):
+        print "Here", i, pname
         # Status update on a single, updating line
         print "\rFetching data from: https://ssd.jpl.nasa.gov/horizons_batch.cgi [%i/%i]" % (i, NumPlanets),
         sys.stdout.flush()
@@ -37,11 +39,11 @@ def fetch_data(jpl_id, referenceFrame="500@0"):
         Note: Print method in vectors() doesnt seem to play nice with list
         comprehensions Hence the ugly (but stable and functioning)
         implemetation here."""
-        initPos[i] = (temp_obj.vectors()["x"], temp_obj.vectors()["y"],
-                      temp_obj.vectors()["z"])  # [AU]
-        initVel[i] = (temp_obj.vectors()["vx"], temp_obj.vectors()["vy"],
-                      temp_obj.vectors()["vz"])  # [AU/day]
-        initVel = initVel / (365.25)  # Convert to units [AU/yr]
+        initPos[i] = [temp_obj.vectors()["x"], temp_obj.vectors()["y"],
+                      temp_obj.vectors()["z"]]  # [AU]
+        initVel[i] = [temp_obj.vectors()["vx"], temp_obj.vectors()["vy"],
+                      temp_obj.vectors()["vz"]]  # [AU/day]
+        initVel = initVel * (365.25)  # Convert to units [AU/yr]
         planetMass[i] = MASS_TABLE[pname]   # Fetches the mass from the hardcoded table
     print "\rFetching data from: https://ssd.jpl.nasa.gov/horizons_batch.cgi [COMPLETE]"
 
