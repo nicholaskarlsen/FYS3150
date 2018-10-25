@@ -237,7 +237,7 @@ def ex_g():
     r = np.load('mercury_rad.npy')
     i = int(N - 2)
     while r[i] < r[i + 1]:
-        i-=1
+        i -= 1
     print i
 
     plt.figure(figsize=[5, 5])
