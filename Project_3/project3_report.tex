@@ -40,6 +40,8 @@ This is an abstract
 \maketitle
 
 \section{Introduction}
+
+  In this report we will take a look at two methods for solving Ordinary differential equations (ODE) numerically, which is of great interest to physicists, as a lot of physical systems are governed by such equations, most of which lack analytical solutions. In particular, 
   
   Lastly, the source code for any code discussed in this report can be found on my
   Github at: \url{https://github.com/nicholaskarlsen/FYS3150}
@@ -95,7 +97,7 @@ This is an abstract
     Consider a function $f(t)$, which derivative, $f'(t)$ is known and we want to find $f(t + \delta t)$. 
     Take the taylor expansion of $f(t + \delta t)$
     \begin{equation}
-      f(t + \delta t) = f(t) + f'(t)\delta t + f''(t)\delta t^2 + \dots + f^{(n)}(t)\delta t^n
+      f(t + \delta t) = f(t) + f'(t)\delta t + \frac{1}{2}f''(t)\delta t^2 + \dots + \frac{1}{n!}f^{(n)}(t)\delta t^n
     \end{equation}
     If we then truncate this series after the second term we get
     \begin{equation}
@@ -148,15 +150,19 @@ This is an abstract
     I also made an attempt to utilize just-in-time (JIT) compilation by using jitclass from the Numba package, however, jitclass is poorly documented in its current state and imposes many restrictions as to what is permitted compared to regular python, or even the standard jit flag that is used for regular python functions. Eventually, i reached the point where i would have to sacrifice the modularity of my program in order to run it using jitclass, which obviously was not an option. So i gave up on the endeavor.
 
   \subsection{Earth-Sun System}
-    Working in units $M_\odot, AU, Yr$ for mass, length and time respectively, i initialized a 2D system using the \lstinline{n_solver} class where the sun is fixed at the origin and the earth has initial velocity $\mathbf v_0 = (0, 2\pi)$ at position $\mathbf r_0 = (1, 0)$, corresponding to an orbit of eccentricity, $e=0$, a perfect circle.
 
-    \begin{figure}[h!]
+    Working in units $M_\odot, AU, Years$ for mass, length and time respectively, i initialized a 2D system using the \lstinline{n_solver} class where the sun is fixed at the origin and the earth has initial velocity $\mathbf v_0 = (0, 2\pi)$ at position $\mathbf r_0 = (1, 0)$, corresponding to an orbit of eccentricity, $e=0$, a perfect circle.
+    
+    \begin{figure}
       \center
       \includegraphics[width=8cm]{figs/timing_earthsun.pdf}
       \caption{Time taken to solve the Earth-Sun system for different number of integration points for $t_n=10\, Yr$}
+      \label{fig:timing}
     \end{figure}
-    
-    The system was then simulated for a time period of $10$ years using a different number of integration points for both the Velocity-Verlet and Forward Euler algorithms. The resulting orbits shown in Fig. \ref{fig:3c_earthsun}, shows that the Velocity-Verlet solution yields a reasonable orbit for $N=10^3$ integration points, whilst the Forward Euler algorithm doest produce a comparable orbit until $N=10^6$ integration points.
+
+    The system was then simulated for a time period of $10$ years using a different number of integration points for both the Velocity-Verlet and Forward Euler algorithms. The resulting orbits shown in Fig. \ref{fig:3c_earthsun}, shows that the Velocity-Verlet solution yields a reasonable approximate orbit for $N=10^3$ integration points, whilst the Forward Euler algorithm doesn't produce a comparable orbit until $N=10^6$ integration points. In Fig. \ref{fig:timing} we see the time it took for my program to solve this system for a selection of $N$. These numbers apply of course, only to the system with a fixed sun with one planet orbiting, as calculating the acceleration on more than one planets adds to the number of FLOPS.
+
+    In Figures \ref{fig:c_speed}, \ref{fig:c_radius} we see how the speed and radius evolves throughout the integration points for $N=10^6$, and most notably, how they change. As mentioned prior, for the set of initial conditions used, we expect a perfectly circular orbit, but also constant speed. Looking at Figures \ref{fig:earthsun speed forward euler}, \ref{fig:c_radius_euler}, corresponding to the Forward Euler solution, that the earth is slightly drifting away from the sun, whilst loosing speed, which further implies that both the potential and kinetic energy in the system has not been conserved. Now we turn to Figures \ref{fig:earthsun speed verlet}, \ref{fig:c_radius_verlet}, corresponding to the Velocity-Verlet solution, where we see a periodic, but seemingly constant behavior of both the radius and speed, meaning that on average the energy of the system is conserved. Since the angular momentum is proportional to the product of the speed and radius, it follows that it is conserved and not conserved for the Verlet and Euler algorithms respectively.
 
 \begin{figure*}[h!p]
   \center
@@ -178,33 +184,27 @@ This is an abstract
   \label{fig:3c_earthsun}
 \end{figure*}
  
-\begin{figure}
+\begin{figure*}
   \center
-  \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/ex_b_speed_velocityverlet_6.pdf}\label{fig:earthsun energy verlet}}\\
-   \subfloat[][Forward Euler]{\includegraphics[width=8cm]{figs/ex_b_speed_eulerforward_6.pdf}\label{fig:earthsun energy forward euler}}
-   \caption{The fluctuation of the total energy of the Earth in the Earth-Sun system for solutions using the Velocity-Verlet algorithm (a) and the Forward Euler algorithm (b) in a 10 Year simulation}
-   \label{fig:c_energy}
-\end{figure}
-
-\begin{figure}
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/ex_b_speed_velocityverlet_6.pdf}\label{fig:earthsun speed verlet}}
+   \subfloat[][Forward Euler]{\includegraphics[width=8cm]{figs/ex_b_speed_eulerforward_6.pdf}\label{fig:earthsun speed forward euler}}
+   \caption{The speed of Earth in the Earth-Sun system for solutions using the Velocity-Verlet algorithm (a) and the Forward Euler algorithm (b) in a 10 Year simulation and $N=10^6$ integration points}
+   \label{fig:c_speed}
+\end{figure*}
+\begin{figure*}
   \center
-  \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/ex_b_radius_velocityverlet_6.pdf}\label{fig:earthsun potential verlet}}\\
-   \subfloat[][Forward Euler]{\includegraphics[width=8cm]{figs/ex_b_radius_eulerforward_6.pdf}\label{fig:earthsun potential forwardeuler}}
-   \caption{The fluctuation of the total energy of the Earth in the Earth-Sun system for solutions using the Velocity-Verlet algorithm (a) and the Forward Euler algorithm (b) in a 10 Year simulation}
-   \label{fig:c_energy}
-\end{figure}
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/ex_b_radius_velocityverlet_6.pdf}\label{fig:earthsun potential verlet}\label{fig:c_radius_verlet}}
+   \subfloat[][Forward Euler]{\includegraphics[width=8cm]{figs/ex_b_radius_eulerforward_6.pdf}\label{fig:earthsun potential forwardeuler}\label{fig:c_radius_euler}}
+   \caption{The radius of Earth in the Earth-Sun system for solutions using the Velocity-Verlet algorithm (a) and the Forward Euler algorithm (b) in a 10 Year simulation and $N=10^6$ integration points}
+   \label{fig:c_radius}
+\end{figure*}
 
-\begin{figure}
-  \center
-  \includegraphics[width=8cm]{figs/ex_b_angularmomentum_velocityverlet_1.pdf}
-  \includegraphics[width=8cm]{figs/ex_b_angularmomentum_eulerforward_1.pdf}
-\end{figure}
 
-\begin{figure}
+\begin{figure*}
   \center
   \subfloat[][]{\includegraphics[width=14cm]{figs/exe_earth_jupiter_10.pdf}}\\
   \subfloat[][]{\includegraphics[width=14cm]{figs/exe_earth_jupiter_1000.pdf}}
-\end{figure}
+\end{figure*}
 
 \begin{figure}
   \center
