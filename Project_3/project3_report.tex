@@ -90,15 +90,20 @@ This is an abstract
 
       Now, in order to find the perihelion precession we define a coordinate system such that 
 
-\subsection{Solving ODE numerically}
+\subsection{Solving ODEs numerically}
   \subsubsection{Forward Euler}
-    Consider a function $y(t)$, which derivative, $y'(t, y)$ has a known form.
+    Consider a function $f(t)$, which derivative, $f'(t)$ is known and we want to find $f(t + \delta t)$. 
+    Take the taylor expansion of $f(t + \delta t)$
+    \begin{equation}
+      f(t + \delta t) = f(t) + f'(t)\delta t + f''(t)\delta t^2 + \dots + f^{(n)}(t)\delta t^n
+    \end{equation}
+    If we then truncate this series after the second term we get
+    \begin{equation}
+      f(t + \delta t) = f(t) + f'(t)\delta t + \mathcal O(\delta t^2)
+    \end{equation}
+    where the term $\mathcal O(\delta t^2)$ contains the numerical error associated by truncating the series early.
 
-  \begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm]
-  for $i = 0, \dots, N-1$
-    $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2}\mathbf a_i(\Delta t)^2$
-    $\mathbf v_{i+1} = \mathbf v_i + \frac{1}{2}(\mathbf a_{i+1} + \mathbf a_i)\Delta t  $
-  \end{lstlisting}
+    Since $f(t), f'(t)$ are known, this allows us to find $f(t + \delta t)$, which is the basis of the Forward Euler algorithm. Following, i have written out in pseudocode how this algorithm can be used to solve a system governed by some known force $\mathbf F$ and initial conditions $\mathbf v(0) \simeq v_0, \mathbf r(0) \simeq r_0$.
 
     \begin{lstlisting}[mathescape=true, language=python, title=Forward Euler Algorithm]
   for $i = 0, \dots, N-1$
@@ -106,21 +111,54 @@ This is an abstract
       $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i}\Delta t$
   \end{lstlisting}
 
+  Notice that the value of $\mathbf v_{i+1}$ is known when computing $\mathbf r_{i+1}$. By using this newly calculated velocity in the computation instead, we get the Euler-Cromer method, which wont be discussed further in this report.
+
   \begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm]
   for $i = 0, \dots, N-1$
       $\mathbf v_{i + 1} = \mathbf v_{i} + \mathbf a_{i}\Delta t$
       $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i + 1}\Delta t$
   \end{lstlisting}
 
+  \subsubsection{Velocity-Verlet}
+    The Velocity-Verlet method is another method for solving ODE's numerically, which just like Forward Euler is derived from the manipulation of Taylor expansions. However, this time i refer you to \cite{ode_lecture} for the full derivation and simply state the result
+
+    \begin{align}
+      \begin{split}
+        f(t + \delta t) &= f(t) + f'(t)\delta t + \frac{f''(t)\delta t}{2} + \mathcal O(\delta t^3) \\
+        f'(t + \delta t) &= f'(t) + \frac{\left( f''(t + \delta t) + f''(t) \right)\delta t}{2} + \mathcal O(\delta t^3)
+      \end{split}
+    \end{align}
+    Which again, can be applied to solve a Physical system where $\mathbf F$ is known. The algorithm for doing this is written out below
+  \begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm]
+  for $i = 0, \dots, N-1$
+    $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2}\mathbf a_i(\Delta t)^2$
+    $\mathbf v_{i+1} = \mathbf v_i + \frac{1}{2}(\mathbf a_{i+1} + \mathbf a_i)\Delta t  $
+  \end{lstlisting}
+
+
+
 \section{Results and Discussions}
   \subsection{Object orientation}
-    When designing the class \lstinline{solarsystem}, i wanted to strike a balance between utilizing the benefits, and expandability you get from object orientation whilst also not abstracting the data too much. As such, the class simply manipulates arrays of a particular format in a particular way. Not abstracting the process by creating objects for each planet (or something else of that nature), which seems to be a pitfall of object orientation as i percieve it.
+    When designing the class \lstinline{n_solver}, i wanted to strike a balance between utilizing the benefits, and expandability you get from object orientation whilst also not abstracting the data too much. As such, the class simply manipulates arrays of a particular format in a particular way. Not abstracting the process by creating objects for each planet (or something else of that nature), which seems to be a pitfall of object orientation as i perceive it.
+
+    As such, the class can easily be expanded by adding new solvers and differential equations, to solve similar multi-body problems governed by a different set of coupled differential equations.
 
     A particular benefit in the way i wrote my code, is that there is no difference if the input data is in 2 Dimensions or 3. The code will work just the same either way by making full use of the way Numpy arrays work.
 
+    I also made an attempt to utilize just-in-time (JIT) compilation by using jitclass from the Numba package, however, jitclass is poorly documented in its current state and imposes many restrictions as to what is permitted compared to regular python, or even the standard jit flag that is used for regular python functions. Eventually, i reached the point where i would have to sacrifice the modularity of my program in order to run it using jitclass, which obviously was not an option. So i gave up on the endeavor.
 
-\onecolumngrid
-\begin{figure}[h!p]
+  \subsection{Earth-Sun System}
+    Working in units $M_\odot, AU, Yr$ for mass, length and time respectively, i initialized a 2D system using the \lstinline{n_solver} class where the sun is fixed at the origin and the earth has initial velocity $\mathbf v_0 = (0, 2\pi)$ at position $\mathbf r_0 = (1, 0)$, corresponding to an orbit of eccentricity, $e=0$, a perfect circle.
+
+    \begin{figure}[h!]
+      \center
+      \includegraphics[width=8cm]{figs/timing_earthsun.pdf}
+      \caption{Time taken to solve the Earth-Sun system for different number of integration points for $t_n=10\, Yr$}
+    \end{figure}
+    
+    The system was then simulated for a time period of $10$ years using a different number of integration points for both the Velocity-Verlet and Forward Euler algorithms. The resulting orbits shown in Fig. \ref{fig:3c_earthsun}, shows that the Velocity-Verlet solution yields a reasonable orbit for $N=10^3$ integration points, whilst the Forward Euler algorithm doest produce a comparable orbit until $N=10^6$ integration points.
+
+\begin{figure*}[h!p]
   \center
   \subfloat[][Velocity-Verlet]{\includegraphics[width=4cm]{figs/ex_b_orbit_velocityverlet_1.pdf}}
   \subfloat[][Forward Euler]{\includegraphics[width=4cm]{figs/ex_b_orbit_eulerforward_1.pdf}} 
@@ -137,10 +175,10 @@ This is an abstract
   \subfloat[][Velocity-Verlet]{\includegraphics[width=4cm]{figs/ex_b_orbit_velocityverlet_6.pdf}}
   \subfloat[][Forward Euler]{\includegraphics[width=4cm]{figs/ex_b_orbit_eulerforward_6.pdf}} 
   \caption{The orbit of earth around a stationary sun for a timeperiod of 10 Years with simulated with a varying number of integration points N (see fig titles) using the Velocity-Verlet and Forward Euler algorithms}
-\end{figure}
-\twocolumngrid
+  \label{fig:3c_earthsun}
+\end{figure*}
  
-\begin{figure}[h!]
+\begin{figure}
   \center
   \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/ex_b_speed_velocityverlet_6.pdf}\label{fig:earthsun energy verlet}}\\
    \subfloat[][Forward Euler]{\includegraphics[width=8cm]{figs/ex_b_speed_eulerforward_6.pdf}\label{fig:earthsun energy forward euler}}
@@ -148,7 +186,7 @@ This is an abstract
    \label{fig:c_energy}
 \end{figure}
 
-\begin{figure}[h!]
+\begin{figure}
   \center
   \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/ex_b_radius_velocityverlet_6.pdf}\label{fig:earthsun potential verlet}}\\
    \subfloat[][Forward Euler]{\includegraphics[width=8cm]{figs/ex_b_radius_eulerforward_6.pdf}\label{fig:earthsun potential forwardeuler}}
@@ -156,19 +194,19 @@ This is an abstract
    \label{fig:c_energy}
 \end{figure}
 
-\begin{figure}[h!tb]
+\begin{figure}
   \center
   \includegraphics[width=8cm]{figs/ex_b_angularmomentum_velocityverlet_1.pdf}
   \includegraphics[width=8cm]{figs/ex_b_angularmomentum_eulerforward_1.pdf}
 \end{figure}
 
-\begin{figure}[h!tb]
+\begin{figure}
   \center
   \subfloat[][]{\includegraphics[width=14cm]{figs/exe_earth_jupiter_10.pdf}}\\
   \subfloat[][]{\includegraphics[width=14cm]{figs/exe_earth_jupiter_1000.pdf}}
 \end{figure}
 
-\begin{figure}[h!tb]
+\begin{figure}
   \center
   \includegraphics{figs/all_planets3d.pdf}
 \end{figure}
@@ -177,17 +215,15 @@ This is an abstract
 
 
 \section{Conclusions}
-  In trying to generalize my code through the use of object orientation, i had to strike a balance between generality and complexity
+
 
 \begin{thebibliography}{99}
 \bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
+\bibitem{ode_lecture} M.~Hjorth-Jensen, Ordinary differential equations - Computational Physics Lectures (2017)
 \bibitem{problem_set} M.~Hjorth-Jensen, Building a model for the solar system using ordinary differ-
 ential equations - Project 3 (2018)
 \end{thebibliography}
 
-\appendix
-\section{Fetching data from Horizons using horizons.py}
-  In order to streamline the process of fetching data from the Horizons system i created a small script, \lstinline{horizons.py} that utilizes the Astroquery python package and returns only the select data that i am interested in. The function, \lstinline{fetch_data} takes input as a dictionary, rather than a list of id numbers. Whilst this may not be as extensible or practical, it makes the code easier to read and understand, by making the instant connection between the planet name and id. For the purposes of this project, i find that much more valuable since i am only dealing with a limited amount of planets anyway.
 
 
 \end{document}  

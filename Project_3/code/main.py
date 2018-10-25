@@ -6,6 +6,7 @@ from matplotlib import rcParams
 from mpl_toolkits import mplot3d
 from n_solver import *
 import time
+import os.path
 
 
 def figsetup(title, xlab, ylab, fname, legend=True, show=False):
@@ -41,6 +42,7 @@ def ex_b():
     m = np.array([3.00348959632E-6], dtype=np.float64)
     names = ['earth']
     list_of_N = [1e1, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7]
+    timing = [[], [], []]
 
     N_exponent = 0
     method_name = ["eulercromer", "velocityverlet", "eulerforward"]  # for filename purposes.
@@ -50,7 +52,11 @@ def ex_b():
             # Initialize the solver
             # Not strictly required to re-initialize each time as initial conds. arent altered
             inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=10)
-            inst.solarsystem(method=i, system=1)  # Solve using solarsystem model for method=i
+
+            t_start = time.time()                    # Start timing algorithm
+            inst.solarsystem(method=i, system=1)     # Solve using solarsystem model for method=i
+            timing[i].append(time.time() - t_start)  # Record time
+
             pos, vel = inst.get()       # Fetch arrays
 
             # Arrays to store speed & radius values for each t
@@ -84,6 +90,11 @@ def ex_b():
             plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
             figsetup(title="Angular momentum of earth", xlab="Integration point, N",
                      ylab="L [$M_\\bigodot$Au^2/Yr]", fname="ex_b_angularmomentum_%s_%i" % (method_name[i], N_exponent))
+    plt.figure(figsize=[5, 5])
+    for j in [1, 2]:
+        plt.loglog(list_of_N, timing[j], "o--", label=method_name[j])
+    figsetup(title="Timing Algorithms", xlab="N", ylab="Time [s]", fname="timing_earthsun")
+
     return
 
 
@@ -202,21 +213,42 @@ def ex_f():
 
 
 def ex_g():
-    m = np.array([0.16601E-6], dtype=np.float64)
+    N = int(1e8)   # takes 7131.14 s
+    tn = 100
+    if os.path.isfile('mercurypos.npy') is False:
+        m = np.array([0.16601E-6], dtype=np.float64)
+        names = ['mercury']
+        x0 = [[0.307499, 0]]
+        v0 = [[0, 12.44]]
+        inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn)
+        t0 = time.time()
+        inst.solarsystem(method=1, system=2)
+        print "Time taken: %.2f s" % (time.time() - t0)
+        pos, vel = inst.get()
+        np.save('mercurypos.npy', pos)
+        np.save('mercuryvel.npy', vel)
+    if os.path.isfile('mercury_rad.npy') is False:
+        pos = np.load('mercurypos.npy')
+        r = np.zeros(N)
+        for i in xrange(N):
+            r[i] = np.linalg.norm(pos[0, i])
+        np.save('mercury_rad.npy', r)
 
-    names = ['mercury']
-    x0 = [[0.307499, 0]]
-    v0 = [[0, 12.44]]
-    N = 1e4
-    tn = 1
+    r = np.load('mercury_rad.npy')
+    i = int(N - 2)
+    while r[i] < r[i + 1]:
+        i-=1
+    print i
 
-    inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn)
-    t0 = time.time()
-    inst.solarsystem(method=1, system=2)
-    print "Time taken: %.2f s" % (time.time() - t0)
-    pos, vel = inst.get()
-    np.save('mercurypos.npy', pos)
-    np.save('mercuryvel.npy', vel)
+    plt.figure(figsize=[5, 5])
+    plt.plot(r)
+    plt.plot(i, r[i], 'rx')
+    plt.xlim(i - 100000, N)
+    figsetup(title="Distance between mercury and sun", xlab="Integration point, N", ylab="|$\\vec r$| [Au/Yr]", fname="ex_g_radius")
+
+    pos = np.load('mercurypos.npy')
+    print np.arctan(pos[0, i, 1] / pos[0, i, 0])
+
     return
 
 

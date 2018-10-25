@@ -86,13 +86,14 @@ class n_solver(object):
         # Calculate gravity between sun & planet
         l_vec = np.cross(self.pos[planetIndex, timeIndex], self.vel[planetIndex, timeIndex])  # Angular momentum
         l = np.linalg.norm(l_vec)  # Magnitude of angular momentum
-        relCorr = 1 + ((3 * l**2) / (self.pos[planetIndex, timeIndex]**2 * self.c**2))  # correction factor
+        rad = np.linalg.norm(self.pos[planetIndex, timeIndex])  # Radius
+        relCorr = 1 + ((3 * l**2) / (rad**2 * self.c**2))  # correction factor
         # Computes gravitational acceleration due to fixed sun
-        accel -= relCorr * self.pos[planetIndex, timeIndex] * self.G / np.linalg.norm(self.pos[planetIndex, timeIndex])**(1 + self.beta)
+        accel -= relCorr * self.pos[planetIndex, timeIndex] * self.G / rad**(1 + self.beta)
         return accel
 
     def eulerforward(self, diffeq):
-        """ 
+        """
         Solves N coupled differential equations using Forward Euler
         for a given differential equationi, diffeq
         diffeq: function(t, n)
