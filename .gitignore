@@ -11,3 +11,4 @@
 
 # Python stuff
 *.pyc
+*.npy
