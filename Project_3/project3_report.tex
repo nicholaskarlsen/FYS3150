@@ -49,23 +49,47 @@ This is an abstract
   \subsection{Newton's law of universal gravitation}
     Between every body, there is a force of attraction inversly proportional to the square of the separation, or more precisely, the force acting on some body with mass $m$ due to a mass $m'$ is
     \begin{equation}
-      \mathbf F = G\frac{m m'}{|\mathbf r - \mathbf r'|^2}\mathbf{\hat{u}_{r-r'}}, \quad \mathbf{\hat{u}_{r-r'}} = \frac{\mathbf r - \mathbf r'}{\mathbf |\mathbf r - \mathbf r'|}
+      \mathbf F = -G\frac{m m'}{|\mathbf r - \mathbf r'|^2}\mathbf{\hat{u}_{r-r'}}, \quad \mathbf{\hat{u}_{r-r'}} = \frac{\mathbf r - \mathbf r'}{\mathbf |\mathbf r - \mathbf r'|}
     \end{equation}
-    Where $G$ is the gravitational constant and $\mathbf r$ denotes the vector from the body of mass $m$ to mass $m'$
+    Where $G$ is the gravitational constant and $\mathbf r, \mathbf r'$ denote the position vectors of bodies with mass $m, m'$ respectively.
 
-    If we choose to work in the cartesian coordinate system centered on the body with mass $m'$, then $\mathbf r = -(x, y, z)$ and $|\mathbf r| = \sqrt{x^2 + y^2 + z^2} = r$.
+    Chosing the the 2D cartesian coordinate system, let $\mathbf r - \mathbf r'= (x_{r}, y_{r})$, where the $r$ suffix denote that these coordinates are to be understood as the relative coordinates between bodies $m, m'$.
+    Further, $|\mathbf r - \mathbf r'| = \sqrt{x_r^2 + y_r^2} = r$ is the distance between the two bodies.
 
     By Newtons second law, the acceleration on body 1 due to the gravitational pull of body 2 can then be written as
     \begin{equation}
-      \mathbf a = \frac{1}{m}\mathbf F = G \frac{m'}{r^2}\frac{\mathbf r}{r} = -G\frac{m'}{r^2}\frac{\left(x, y, z\right)}{r}
+      \mathbf a = \frac{1}{m}\mathbf F = -G \frac{m'}{r^2}\frac{(\mathbf r-\mathbf r')}{r} = -G\frac{m'}{r^2}\frac{\left(x_r, y_r\right)}{r}
     \end{equation}
     Written out component-wise in terms of the positions, we get the set of coupled differential equations
 
     \begin{equation}
-      \frac{\partial x^2}{\partial t^2} = -G\frac{m'}{r^2}\frac{x}{r}, \quad
-      \frac{\partial y^2}{\partial t^2} = -G\frac{m'}{r^2}\frac{y}{r}, \quad
-      \frac{\partial z^2}{\partial t^2} = -G\frac{m'}{r^2}\frac{z}{r}
+      \frac{\partial^2 x}{\partial t^2} = -G\frac{m'}{r^2}\frac{x_r}{r}, \quad
+      \frac{\partial^2 y}{\partial t^2} = -G\frac{m'}{r^2}\frac{y_r}{r}
     \end{equation}
+    Similar, for 3 dimensions where $\mathbf r - \mathbf r' = (x_r, y_r, z_r), r=\sqrt{x_r^2 + y_r^2 + z_r^2}$.
+
+    \subsubsection{Relativistic Correction}
+
+      \begin{figure}[h!]
+        \center
+        \includegraphics[width=4cm]{figs/486px-Perihelion-Aphelion.png}
+        \caption{In an eliptic orbit, the closest and farthest points in the orbit is defined as the Perhelion and Aphelion respectively [\href{https://en.wikipedia.org/wiki/Perihelion_and_aphelion}{Image source}]}
+        \label{fig:perhelion}
+      \end{figure}
+
+      The aforementioned model of gravity fails to predict the perihelion (see fig. \ref{fig:perhelion}) precession of mercury, which is observed to be $43"$ per century \cite{problem_set}. 
+
+      That is, the closed, uniform elliptical orbits predicted by the Newtonian model for gravity does not match with observations in Astronomy, where the perihelion of Mercury seems to shift over time. In fact, the perihelion precession of mercury was the first experimental confirmations of General relativity, which accurately predicts this phenomena.
+
+      And so, a correcting factor accounting for the relativistic effects is added to Newtons model, and the magnitude of the gravitational force becomes \cite{problem_set}
+
+      \begin{equation}
+        |\mathbf F| = G \frac{m m'}{r^2}\left[1 + \frac{3l^2}{r^2c^2}\right]
+      \end{equation}
+      Where $l$ denotes the magnitude of the angular momentum of the orbiting body and $c$ the speed of light.
+
+      Now, in order to find the perihelion precession we define a coordinate system such that 
+
 \subsection{Solving ODE numerically}
   \subsubsection{Forward Euler}
     Consider a function $y(t)$, which derivative, $y'(t, y)$ has a known form.
@@ -90,22 +114,65 @@ This is an abstract
 
 \section{Results and Discussions}
   \subsection{Object orientation}
-    When designing the class \lstinline{solarsystem}, i wanted to strike a balance between utilizing the benefits, and expandability you get from object orientation whilst also not abstracting the data too much. As such, the class simply manipulates arrays of a particular format in a particular way. Not abstracting the operation by creating objects for each planet (or something else of that nature), which seems to be a common pitfall of object orientation as i percieve it.
+    When designing the class \lstinline{solarsystem}, i wanted to strike a balance between utilizing the benefits, and expandability you get from object orientation whilst also not abstracting the data too much. As such, the class simply manipulates arrays of a particular format in a particular way. Not abstracting the process by creating objects for each planet (or something else of that nature), which seems to be a pitfall of object orientation as i percieve it.
 
     A particular benefit in the way i wrote my code, is that there is no difference if the input data is in 2 Dimensions or 3. The code will work just the same either way by making full use of the way Numpy arrays work.
- 
-\begin{figure}[h!tb]
+
+
+\onecolumngrid
+\begin{figure}[h!p]
   \center
-  \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/exb_energy_verlet.pdf}\label{fig:earthsun energy verlet}}\\
-   \subfloat[][Euler-Cromer]{\includegraphics[width=8cm]{figs/exb_energy_euler.pdf}\label{fig:earthsun energy cromer}}
-   \caption{The fluctuation of the total energy of the Earth in the Earth-Sun system for solutions using the Velocity-Verlet algorithm (a) and the Euler-Cromer algorithm (b)}
-   \label{steady_state}
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=4cm]{figs/ex_b_orbit_velocityverlet_1.pdf}}
+  \subfloat[][Forward Euler]{\includegraphics[width=4cm]{figs/ex_b_orbit_eulerforward_1.pdf}} 
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=4cm]{figs/ex_b_orbit_velocityverlet_2.pdf}}
+  \subfloat[][Forward Euler]{\includegraphics[width=4cm]{figs/ex_b_orbit_eulerforward_2.pdf}} 
+  \\
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=4cm]{figs/ex_b_orbit_velocityverlet_3.pdf}}
+  \subfloat[][Forward Euler]{\includegraphics[width=4cm]{figs/ex_b_orbit_eulerforward_3.pdf}} 
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=4cm]{figs/ex_b_orbit_velocityverlet_4.pdf}}
+  \subfloat[][Forward Euler]{\includegraphics[width=4cm]{figs/ex_b_orbit_eulerforward_4.pdf}} 
+  \\
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=4cm]{figs/ex_b_orbit_velocityverlet_5.pdf}}
+  \subfloat[][Forward Euler]{\includegraphics[width=4cm]{figs/ex_b_orbit_eulerforward_5.pdf}}
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=4cm]{figs/ex_b_orbit_velocityverlet_6.pdf}}
+  \subfloat[][Forward Euler]{\includegraphics[width=4cm]{figs/ex_b_orbit_eulerforward_6.pdf}} 
+  \caption{The orbit of earth around a stationary sun for a timeperiod of 10 Years with simulated with a varying number of integration points N (see fig titles) using the Velocity-Verlet and Forward Euler algorithms}
+\end{figure}
+\twocolumngrid
+ 
+\begin{figure}[h!]
+  \center
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/ex_b_speed_velocityverlet_6.pdf}\label{fig:earthsun energy verlet}}\\
+   \subfloat[][Forward Euler]{\includegraphics[width=8cm]{figs/ex_b_speed_eulerforward_6.pdf}\label{fig:earthsun energy forward euler}}
+   \caption{The fluctuation of the total energy of the Earth in the Earth-Sun system for solutions using the Velocity-Verlet algorithm (a) and the Forward Euler algorithm (b) in a 10 Year simulation}
+   \label{fig:c_energy}
+\end{figure}
+
+\begin{figure}[h!]
+  \center
+  \subfloat[][Velocity-Verlet]{\includegraphics[width=8cm]{figs/ex_b_radius_velocityverlet_6.pdf}\label{fig:earthsun potential verlet}}\\
+   \subfloat[][Forward Euler]{\includegraphics[width=8cm]{figs/ex_b_radius_eulerforward_6.pdf}\label{fig:earthsun potential forwardeuler}}
+   \caption{The fluctuation of the total energy of the Earth in the Earth-Sun system for solutions using the Velocity-Verlet algorithm (a) and the Forward Euler algorithm (b) in a 10 Year simulation}
+   \label{fig:c_energy}
 \end{figure}
 
 \begin{figure}[h!tb]
   \center
-  \includegraphics[width=8cm]{figs/exb_orbit_verlet.pdf}
+  \includegraphics[width=8cm]{figs/ex_b_angularmomentum_velocityverlet_1.pdf}
+  \includegraphics[width=8cm]{figs/ex_b_angularmomentum_eulerforward_1.pdf}
 \end{figure}
+
+\begin{figure}[h!tb]
+  \center
+  \subfloat[][]{\includegraphics[width=14cm]{figs/exe_earth_jupiter_10.pdf}}\\
+  \subfloat[][]{\includegraphics[width=14cm]{figs/exe_earth_jupiter_1000.pdf}}
+\end{figure}
+
+\begin{figure}[h!tb]
+  \center
+  \includegraphics{figs/all_planets3d.pdf}
+\end{figure}
+
 
 
 
@@ -114,9 +181,13 @@ This is an abstract
 
 \begin{thebibliography}{99}
 \bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
+\bibitem{problem_set} M.~Hjorth-Jensen, Building a model for the solar system using ordinary differ-
+ential equations - Project 3 (2018)
 \end{thebibliography}
 
 \appendix
 \section{Fetching data from Horizons using horizons.py}
   In order to streamline the process of fetching data from the Horizons system i created a small script, \lstinline{horizons.py} that utilizes the Astroquery python package and returns only the select data that i am interested in. The function, \lstinline{fetch_data} takes input as a dictionary, rather than a list of id numbers. Whilst this may not be as extensible or practical, it makes the code easier to read and understand, by making the instant connection between the planet name and id. For the purposes of this project, i find that much more valuable since i am only dealing with a limited amount of planets anyway.
+
+
 \end{document}  

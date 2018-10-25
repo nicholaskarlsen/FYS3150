@@ -203,31 +203,20 @@ def ex_f():
 
 def ex_g():
     m = np.array([0.16601E-6], dtype=np.float64)
-    lst = [199]
 
-    names = ['sun', 'mercury']
-    x0, v0 = get_data(lst)
-    N = 1e7
-    tn = 100
+    names = ['mercury']
+    x0 = [[0.307499, 0]]
+    v0 = [[0, 12.44]]
+    N = 1e4
+    tn = 1
 
     inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn)
     t0 = time.time()
     inst.solarsystem(method=1, system=2)
     print "Time taken: %.2f s" % (time.time() - t0)
     pos, vel = inst.get()
-    ax = plt.axes(projection='3d')
-    for i in range(len(lst)):
-        xline = pos[i, ::100, 0]
-        yline = pos[i, ::100, 1]
-        zline = pos[i, ::100, 2]
-        ax.plot3D(xline, yline, zline, label=names[i])
-    ax.set_xlabel('x [AU]')
-    ax.set_ylabel('y [AU]')
-    ax.set_zlabel('z [AU]')
-    plt.axis('equal')
-    plt.legend()
-    plt.savefig("../figs/ex_g_mercury.pdf")
-    plt.show()
+    np.save('mercurypos.npy', pos)
+    np.save('mercuryvel.npy', vel)
     return
 
 
@@ -237,8 +226,8 @@ def main():
     # ex_c1()
     # ex_c2()
     # ex_d()
-    #ex_e()
-    #ex_f()
+    # ex_e()
+    # ex_f()
     ex_g()
 
     return

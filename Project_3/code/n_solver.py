@@ -77,6 +77,10 @@ class n_solver(object):
         """Fixes the sun at the origin & calculates gravitational attraction to it, and
         any other planets which may be present in the system + adds relativistic
         correction """
+
+        # Because this model is only used for 3g i made it somewhat specialized
+        if self.numBodies != 1:
+            raise ValueError("gravity_relativistic() only works for 2-body systems, where one orbits around a stationary sun")
         accel = np.zeros(self.dim)  # Used to store values
 
         # Calculate gravity between sun & planet
@@ -85,20 +89,6 @@ class n_solver(object):
         relCorr = 1 + ((3 * l**2) / (self.pos[planetIndex, timeIndex]**2 * self.c**2))  # correction factor
         # Computes gravitational acceleration due to fixed sun
         accel -= relCorr * self.pos[planetIndex, timeIndex] * self.G / np.linalg.norm(self.pos[planetIndex, timeIndex])**(1 + self.beta)
-
-        for j in xrange(self.numBodies):
-            if j != planetIndex:  # Planet doesnt act on itself
-                relPos = self.pos[planetIndex, timeIndex] - self.pos[j, timeIndex]
-                relVel = self.vel[planetIndex, timeIndex] - self.vel[j, timeIndex]
-
-                # Calculate the relativistic correction
-                l_vec = np.cross(relPos, relVel)  # Angular momentum
-                l = np.linalg.norm(l_vec)  # Magnitude of angular momentum
-                relCorr = 1 + ((3 * l**2) / (self.pos[planetIndex, timeIndex]**2 * self.c**2))  # correction factor
-
-                accel -= relCorr * (relPos * self.G * self.mass[j]) / np.linalg.norm(relPos) ** (1 + self.beta)
-            else:
-                pass
         return accel
 
     def eulerforward(self, diffeq):
