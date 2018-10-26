@@ -2,13 +2,17 @@
 from __future__ import division, print_function
 import numpy as np
 import matplotlib.pyplot as plt
-from numba import jitclass, jit          # import the decorator
-from numba import int32, float32, float64, uint8    # import the types
+# from numba import jitclass, jit          # import the decorator
+# from numba import int32, float32, float64, uint8    # import the types
 import time
 from get_initconds import *
 
-# Wanted to implement jitclass to speed up code, but am not able to
+"""Wanted to implement jitclass to speed up code, but was ultimately not able to for
+Reasons discussed in the report. Left spec incase jitclass gets patched & i decide to
+reuse this code for something."""
+
 # Declaring types for @jitclass
+"""
 spec = [
     ('initPos', float64[:, :]),
     ('initVel', float64[:, :]),
@@ -24,6 +28,7 @@ spec = [
     ('vel', float64[:, :, :]),
     ('beta', float64),
 ]
+"""
 
 
 #@jitclass(spec)
@@ -33,37 +38,48 @@ class n_solver(object):
         self.initPos = initPos      # Initial condition [AU]
         self.initVel = initVel      # Initial velocity [Au/Yr]
         self.mass = mass            # Array of masses [Solar mass]
-        self.N = int(N)                  # Number of integration points
+        self.N = int(N)             # Number of integration points
         self.tn = tn                # Simulation time [Yr]
-        self.h = self.tn / self.N
+        self.h = self.tn / self.N   # step size, dt
+        self.beta = beta            # Exponent in gravity method (1/r^beta)
+
         # Useful constants
-        self.numBodies = len(self.initPos)
-        self.dim = len(self.initPos[0])  # Number of dimensions, should be 2 or 3
-        self.G = 4 * np.pi**2            # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
-        self.c = 63197.8
-        self.beta = beta                 # Exponent in gravity method (1/r^beta)
+        self.numBodies = len(self.initPos)  # Number of bodies in the system
+        self.dim = len(self.initPos[0])     # Number of dimensions, should be 2 or 3
+        self.G = 4 * np.pi**2               # Gravitational Constant [AU^3 yr^-2 M_sun^-1]
+        self.c = 63197.8                    # Speed of light [AU/yr]
 
         # Using .self variables in the shape arg causes error with jitclass
         self.pos = np.zeros(shape=(len(initPos), int(N), len(initPos[0])), dtype=np.float64)
         self.vel = np.zeros(shape=(len(initPos), int(N), len(initPos[0])), dtype=np.float64)
-        for i in xrange(self.numBodies):
-            self.pos[i, 0] = self.initPos[i]
-            self.vel[i, 0] = self.initVel[i]
+
+        for i in xrange(self.numBodies):        # Could also be done pos[:, 0] = initPos
+            self.pos[i, 0] = self.initPos[i]    # but left as is incase future JIT implementation
+            self.vel[i, 0] = self.initVel[i]    # as jitclass didnt like the "numpy way"
 
     def gravity_fixedsun(self, planetIndex, timeIndex):
-        """Fixes the sun at the origin & calculates gravitational attraction to it, and
-        any other planets which may be present in the system """
-        accel = np.zeros(self.dim)
+        """
+        Fixes the sun at the origin & calculates gravitational attraction to it, and
+        any other planets which may be present in the system
+        """
+        accel = np.zeros(self.dim)  # Stores acceleration values
+        # Compuite acceleration due to stationary sun
         accel -= self.pos[planetIndex, timeIndex] * self.G / np.linalg.norm(self.pos[planetIndex, timeIndex])**(1 + self.beta)
+
         for j in xrange(self.numBodies):
             if j != planetIndex:  # Planet doesnt act on itself
                 relPos = self.pos[planetIndex, timeIndex] - self.pos[j, timeIndex]
                 accel -= (relPos * self.G * self.mass[j]) / np.linalg.norm(relPos) ** (1 + self.beta)
             else:
                 pass
+
         return accel
 
     def gravity(self, planetIndex, timeIndex):
+        """
+        general n-body gravity, finds gravitational attraction between ALL bodies in the
+        system, does not assume stationary sun at origin.
+        """
         accel = np.zeros(self.dim)
         for j in xrange(self.numBodies):
             if j != planetIndex:  # Planet doesnt act on itself#
@@ -71,27 +87,32 @@ class n_solver(object):
                 accel -= (relPos * self.G * self.mass[j]) / np.linalg.norm(relPos) ** (1 + self.beta)
             else:
                 pass
+
         return accel
 
     def gravity_relativistic(self, planetIndex, timeIndex):
-        """Fixes the sun at the origin & calculates gravitational attraction to it
-        with the relativistic correction"""
-
+        """
+        Fixes the sun at the origin & calculates gravitational attraction to it
+        with the relativistic correction
+        """
         accel = np.zeros(self.dim)  # Used to store values
-        # Calculate gravity between sun & planet
+
         l_vec = np.cross(self.pos[planetIndex, timeIndex], self.vel[planetIndex, timeIndex])  # Angular momentum
         l = np.linalg.norm(l_vec)  # Magnitude of angular momentum
+
         rad = np.linalg.norm(self.pos[planetIndex, timeIndex])  # Radius
         relCorr = 1 + ((3 * l**2) / (rad**2 * self.c**2))  # correction factor
         # Computes gravitational acceleration due to fixed sun
         accel -= relCorr * self.pos[planetIndex, timeIndex] * self.G / rad**(1 + self.beta)
+
         return accel
 
     def eulerforward(self, diffeq):
         """
         Solves N coupled differential equations using Forward Euler
         for a given differential equationi, diffeq
-        diffeq: function(t, n)
+        diffeq : function/method which returns acceleration given inputs
+                 (planet index, time index) in that order.
         """
         print("Solving with Forward Euler algorithm with N=", self.N)
         for t in xrange(self.N - 1):
@@ -102,9 +123,11 @@ class n_solver(object):
         return
 
     def eulercromer(self, diffeq):
-        """ 
+        """
         Solves N coupled differential equations using Euler-Cromer
         for a given differential equation
+        diffeq : function/method which returns acceleration given inputs
+                 (planet index, time index) in that order.
         """
         print("Solving with Euler-Cromer algorithm with N=", self.N)
         for t in xrange(self.N - 1):
@@ -115,6 +138,12 @@ class n_solver(object):
         return
 
     def velocityverlet(self, diffeq):
+        """
+        Solves N coupled differential equations using Euler-Cromer
+        for a given differential equation
+        diffeq : function/method which returns acceleration given inputs
+                 (planet index, time index) in that order.
+        """
         print("Solving with Velocity-Verlet algorithm with N=", self.N)
         for t in xrange(self.N - 1):
             a1 = np.zeros([self.numBodies, self.dim])
@@ -147,6 +176,7 @@ class n_solver(object):
 
     def plot(self):
         # Basic plotting method that works without input for both 2&3 dimensions
+        # Intended for quick checking of results rather than report fodder
         if self.dim == 3:
             ax = plt.axes(projection='3d')
             for i in range(self.numBodies):

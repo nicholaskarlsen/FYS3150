@@ -6,6 +6,7 @@
 \usepackage{color}
 \usepackage{listings}
 \usepackage{subfig}
+\usepackage{float}
 
 \lstset{ %
   basicstyle=\footnotesize,        % the size of the fonts that are used for the code
@@ -35,7 +36,7 @@
 
 
 \begin{abstract}
-This is an abstract
+  Looking at how n-coupled differential equations can be solved numerically using the Velocity-Verlet and Forward Euler algorithms for systems governed by Newtonian gravity. Found that the Forward Euler method falls short compared to the Velocity-Verlet method as it is not conservative and requires a greater number of integration points to converge. There was also an unsuccessful attempt at reproducing the perihelion precession of mercury using a modified model in a 2-body system.
 \end{abstract}
 
 \maketitle
@@ -43,7 +44,7 @@ This is an abstract
 
 \section{Introduction}
 
-  In this report we will take a look at two methods for solving Ordinary differential equations (ODE) numerically, which is of great interest to physicists, as a lot of physical systems are governed by such equations, most of which lack analytical solutions. In particular, we will look closely at how these numerical methods can be used to solve multi-body systems governed by Newton's law of gravity, which has no exact analytical solutions for $n\geq3$ bodies.
+  In this report we will take a look at two methods for solving Ordinary differential equations numerically, which is of great interest in physics as a lot of physical systems are governed by such equations, most of which lack closed form analytical solutions. In particular, we will look closely at how these numerical methods can be used to solve multi-body systems governed by Newton's law of gravity, which has no exact analytical solutions for $n\geq3$ bodies, as well as looking at a slightly altered model, which accounts for relativistic effects, this time restricting ourselves to a 2-body system.
 
   As such, i have developed a flexible object oriented class in python which solves systems of coupled differential equations using the Velocity-Verlet algorithm and the Forward Euler method, the source code of which can be found on my Github page at: \url{https://github.com/nicholaskarlsen/FYS3150}. 
 
@@ -53,6 +54,7 @@ This is an abstract
     Between every body, there is a force of attraction inversely proportional to the square of the separation, or more precisely, the force acting on some body with mass $m$ due to a mass $m'$ is
     \begin{equation}
       \mathbf F = -G\frac{m m'}{|\mathbf r - \mathbf r'|^2}\mathbf{\hat{u}_{r-r'}}, \quad \mathbf{\hat{u}_{r-r'}} = \frac{\mathbf r - \mathbf r'}{\mathbf |\mathbf r - \mathbf r'|}
+      \label{eqn:newton gravity}
     \end{equation}
     Where $G$ is the gravitational constant and $\mathbf r, \mathbf r'$ denote the position vectors of bodies with mass $m, m'$ respectively.
 
@@ -71,10 +73,28 @@ This is an abstract
     \end{equation}
     Similar, for 3 dimensions where $\mathbf r - \mathbf r' = (x_r, y_r, z_r), r=\sqrt{x_r^2 + y_r^2 + z_r^2}$.
 
-    The potential due to the gravitational field can be shown to be \cite{elem}
+    This force also forms a vector field, and the associated potential energy due it is
     \begin{equation}
       E_p(\mathbf r) = -G\frac{mm'}{r}
     \end{equation}
+    The derivation of which is given in \cite{elem}, and elsewhere.
+    From this, we can form an equation for the escape velocity of a body "trapped" in a gravitational field. Which is the velocity in which the Kinetic energy is greater or equal to the potential energy, that is
+    \begin{equation}
+      \frac{1}{2}m v^2 = G\frac{mm'}{r}
+    \end{equation}
+    Which leads to the expression
+    \begin{equation}
+      v_{escape} = \sqrt{\frac{2Gm'}{r}}
+      \label{eqn:escapevel}
+    \end{equation}
+
+    A special solution to the differential equation \ref{eqn:newton gravity} is for the perfectly circular orbit, for which we can use the equations of circular motion and get exact analytical predictions very easily. 
+    \begin{align}
+    \begin{split}
+      \frac{v^2}{r} &= G\frac{m'}{r^2}
+      \\ v &= \sqrt{\frac{Gm'}{r}}
+    \end{split}
+    \end{align}
 
       \begin{figure}[h!]
         \center
@@ -112,7 +132,7 @@ This is an abstract
 
     Since $f(t), f'(t)$ are known, this allows us to find $f(t + \delta t)$, which is the basis of the Forward Euler algorithm. Following, i have written out in pseudocode how this algorithm can be used to solve a system governed by some known force $\mathbf F$ and initial conditions $\mathbf v(0) \simeq v_0, \mathbf r(0) \simeq r_0$.
 
-    \begin{lstlisting}[mathescape=true, language=python, title=Forward Euler Algorithm]
+    \begin{lstlisting}[mathescape=true, language=python, title=Forward Euler Algorithm (4N FLOPS)]
   for $i = 0, \dots, N-1$
       $\mathbf v_{i + 1} = \mathbf v_{i} + \mathbf a_{i}\Delta t$
       $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i}\Delta t$
@@ -120,7 +140,7 @@ This is an abstract
 
   Notice that the value of $\mathbf v_{i+1}$ is known when computing $\mathbf r_{i+1}$. By using this newly calculated velocity in the computation instead, we get the Euler-Cromer method, which wont be discussed further in this report.
 
-  \begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm]
+  \begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm (4N FLOPS)]
   for $i = 0, \dots, N-1$
       $\mathbf v_{i + 1} = \mathbf v_{i} + \mathbf a_{i}\Delta t$
       $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i + 1}\Delta t$
@@ -136,13 +156,15 @@ This is an abstract
       \end{split}
     \end{align}
     Which again, can be applied to solve a Physical system where $\mathbf F$ is known. The algorithm for doing this is written out below
-  \begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm]
+  \begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm (10N FLOPS)]
   for $i = 0, \dots, N-1$
     $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2}\mathbf a_i(\Delta t)^2$
     $\mathbf v_{i+1} = \mathbf v_i + \frac{1}{2}(\mathbf a_{i+1} + \mathbf a_i)\Delta t  $
   \end{lstlisting}
 
+  Take note that the number of FLOPS given for each algorithm does is not account for any computation required to compute the acceleration. For n-body systems in particular, the Velocity-Verlet algorithm can become quite expensive, as the acceleration would have to be computed twice per loop, compared to the Euler methods which only requires this calculation to be done once.
 
+\newpage
 
 \section{Results and Discussions}
   \subsection{Object orientation}
@@ -150,7 +172,7 @@ This is an abstract
 
     As such, the class can easily be expanded by adding new solvers and differential equations, to solve similar multi-body problems governed by a different set of coupled differential equations.
 
-    A particular benefit in the way i wrote my code, is that there is no difference if the input data is in 2 Dimensions or 3. The code will work just the same either way by making full use of the way Numpy arrays work.
+    A particular benefit in the way i wrote my code, is that there is no difference if the input data is in 2 Dimensions or 3\footnote{Technically, it would work for any higher dimensions as well, provided the shape of the input arrays are compatible.}. The code will work just the same either way by making full use of the way Numpy arrays work.
 
     I also made an attempt to utilize just-in-time (JIT) compilation by using jitclass from the Numba package, however, jitclass is poorly documented in its current state and imposes many restrictions as to what is permitted compared to regular python, or even the standard jit flag that is used for regular python functions. Eventually, i reached the point where i would have to sacrifice the modularity of my program in order to run it using jitclass, which obviously was not an option. So i gave up on the endeavor.
 
@@ -196,45 +218,61 @@ This is an abstract
 
     Working in units $M_\odot, AU, Years$ for mass, length and time respectively, i initialized a 2D system using the \lstinline{n_solver} class where the sun is fixed at the origin and the earth has initial velocity $\mathbf v_0 = (0, 2\pi)$ at position $\mathbf r_0 = (1, 0)$, corresponding to an orbit of eccentricity, $e=0$, a perfect circle.
     
-    \begin{figure}[h!]
+
+    The system was then simulated for a time period of $10$ years using a different number of integration points for both the Velocity-Verlet and Forward Euler algorithms. The resulting orbits shown in Fig. \ref{fig:3c_earthsun}, shows that the Velocity-Verlet solution yields a reasonable approximate orbit for $N=10^3$ integration points, whilst the Forward Euler algorithm doesn't produce a comparable orbit until $N=10^6$ integration points. In Fig. \ref{fig:timing} we see the time it took for my program to solve this system for a selection of $N$. These numbers apply of course, only to the system with a fixed sun with one planet orbiting, as calculating the acceleration on more than one planets adds to the number of FLOPS.
+
+    \begin{figure}[H]
       \center
       \includegraphics[width=8cm]{figs/timing_earthsun.pdf}
       \caption{Time taken to solve the Earth-Sun system for different number of integration points for $t_n=10\, Yr$}
       \label{fig:timing}
     \end{figure}
 
-    The system was then simulated for a time period of $10$ years using a different number of integration points for both the Velocity-Verlet and Forward Euler algorithms. The resulting orbits shown in Fig. \ref{fig:3c_earthsun}, shows that the Velocity-Verlet solution yields a reasonable approximate orbit for $N=10^3$ integration points, whilst the Forward Euler algorithm doesn't produce a comparable orbit until $N=10^6$ integration points. In Fig. \ref{fig:timing} we see the time it took for my program to solve this system for a selection of $N$. These numbers apply of course, only to the system with a fixed sun with one planet orbiting, as calculating the acceleration on more than one planets adds to the number of FLOPS.
-
     In Figures \ref{fig:c_speed}, \ref{fig:c_radius} we see how the speed and radius evolves throughout the integration points for $N=10^6$, and most notably, how they change. As mentioned prior, for the set of initial conditions used, we expect a perfectly circular orbit, but also constant speed. Looking at Figures \ref{fig:earthsun speed forward euler}, \ref{fig:c_radius_euler}, corresponding to the Forward Euler solution, that the earth is slightly drifting away from the sun, whilst losing speed, which further implies that both the potential and kinetic energy in the system has not been conserved\footnote{Because $E_k \propto v^2$ and $E_p\propto -\frac{1}{r}$}. Now we turn to Figures \ref{fig:earthsun speed verlet}, \ref{fig:c_radius_verlet}, corresponding to the Velocity-Verlet solution, where we see a periodic, but seemingly constant behavior of both the radius and speed, meaning that on average the energy of the system is conserved. Since the angular momentum is proportional to the product of the speed and radius, it follows that it is conserved and not conserved for the Verlet and Euler algorithms respectively.
+
+    \begin{figure}[H]
+      \center
+      \includegraphics[width=8cm]{figs/ex_d_escape.pdf}
+      \caption{The trajectories of Earth in the Earth-Sun system for different initial velocities and $N=5\cdot 10^5$ integration points over a $50$ year simulation.}
+      \label{fig: escapevel}
+    \end{figure}
 
     \subsubsection{Escape Velocity}
 
+
+    In Fig. \ref{fig: escapevel} we see the trajectories resultant of different initial speeds, $|v_0|$. See that the only orbit which isn't closed is that for $|v_0|=3\pi$, meaning the escape velocity is in the interval $[2.75\pi, 3\pi]$. From Eqn. \ref{eqn:escapevel} we find that the theoretical escape velocity is $\sqrt{8}\pi$, matching our result. Of course this is rather trivial, so i now point you to \footnote{Which is found after the main text, because figure placement isn't always the easiest when producing a document in revtex}Fig. \ref{fig: escapevel varbeta}, in which we see what happens to the same problem in a universe where the force of gravity is proportional to $r^{-\beta}, \, \beta \in [2, 3]$, instead of $|\mathbf F| \propto r^{-2}$. What is very interesting to note, is that $|v_0|=2\pi$ seemingly remains a stable orbit in the selected values for which i simulated, whilst all other 'surrounding' change drastically, taking particular note of the interesting pattern that emerges from $\beta=2.5, \, |v_0| = 1\pi$. 
+
+    \begin{figure*}[h!p]
+      \subfloat[][$\beta = 2.5$]{\includegraphics[width=8cm]{figs/ex_d_escape_25.pdf}}
+      \subfloat[][$\beta = 2.75$]{\includegraphics[width=8cm]{figs/ex_d_escape_275.pdf}}\\
+      \subfloat[][$\beta = 2.9$]{\includegraphics[width=8cm]{figs/ex_d_escape_29.pdf}}
+      \subfloat[][$\beta = 3$]{\includegraphics[width=8cm]{figs/ex_d_escape_3.pdf}}
+      \caption{Trajectories in the earth-sun system initialized $1\,$AU away from the sun with modified laws of gravity such that $|\mathbf F|\propto r^{-\beta}$}
+      \label{fig: escapevel varbeta}
+    \end{figure*}
+
 \subsection{3-Body problem}
-  Fetching initial conditions from the Horizons\footnote{\url{https://ssd.jpl.nasa.gov/horizons.cgi}} system hosted by JPL at NASA, i simulated the trajectory of Earth and Jupiter orbiting around a fixed sun. As the data is in 3 dimensions, this also proved a great time to test flexibility of \lstinline{n_solver}, which as expected worked just as well when fed 3D data, without having to make any adjustments. The trajectory for a 30 Year simulation with $N=10^6$ integration points is presented in Fig \ref{fig:jupiter_1_30}. Pluto, and other smaller celestial objects could very easily be added thanks to a script i wrote, \lstinline{get_initconds.py}, which fetches initial conditions using the Astroquery python package. However, i opted not to simply because it adds clutter to figure.
+  Fetching initial conditions from the Horizons\footnote{\url{https://ssd.jpl.nasa.gov/horizons.cgi}} system hosted by JPL at NASA, i simulated the trajectory of Earth and Jupiter orbiting around a fixed sun. As the data is in 3 dimensions, this also proved a great time to test flexibility of \lstinline{n_solver}, which as expected worked just as well when fed 3D data, without having to make any adjustments. The trajectory for a 30 Year simulation with $N=10^6$ integration points is presented in Fig \ref{fig:jupiter_1_30}.
 
-  \begin{figure}[h!]
+  \begin{figure}[H]
     \center
-    \includegraphics[width=8cm]{figs/exe_earth_jupiter_1_30yrs.pdf}
-    \caption{Trajectory of Earth and Jupiter with the sun fixed at the center for 30 years with $N=10^6$ integration points.}
-    \label{fig:jupiter_1_30}
-  \end{figure}
-
-  \begin{figure}[h!]
-    \center
+    \subfloat[][$M_{jupiter}$, $t=30$ Yr]{\includegraphics[width=8cm]{figs/exe_earth_jupiter_1_30yrs.pdf}\label{fig:jupiter_1_30}}\\
     \subfloat[][$10M_{jupiter}$, $t=30$ Yr]{\includegraphics[width=8cm]{figs/exe_earth_jupiter_10_30yrs.pdf}}\\
     \subfloat[][$10^3M_{jupiter}$, $t=15$ Yr]{\includegraphics[width=8cm]{figs/exe_earth_jupiter_1000_15yrs.pdf}}
-    \caption{Trajectories for earth and jupiter in the 3-body system with fixed sun at the origin, with the mass of jupiter multiplied by a factor 10 (a) and $10^3$ (b) solved with $N=10^6$ integration points}
+    \caption{Trajectories for earth and jupiter in the 3-body system with fixed sun at the origin, with the mass of jupiter multiplied by a factor 10 (b) and $10^3$ (c) solved with $N=10^6$ integration points}
     \label{fig:exe jupiter mass increase}
   \end{figure}
 
   The resultant orbits are seemingly uniform, and stable within the time frame of the solution.
 
-  Now, we will look at what the system would look like if the mass of Jupiter was increased by a factor 10, and 1000, presented in Fig. \ref{fig:exe jupiter mass increase}. We see that the resultant trajectory with the mass of Jupiter increased by a factor 10 looks much the same as what we saw in Fig. \ref{fig:jupiter_1_30}, but increasing the mass by a factor 1000 throws the system out of control and eventually slingshots the earth far away from the system, which can be seen in Fig. \ref{fig:ex_e earth slingshot}, after the main text has ended in the appendix. Whilst a fun exercise, it is important to note that this simulation is not necessarily physically realistic, not because of the instantaneous mass increase of Jupiter, but because the planets are treated as point particles, which only interact via their gravitational attractions. A more realistic outcome of this scenario would be that earth crashes into either the sun and Jupiter in a terribly violent fashion.
+  Now, we will look at what the system would look like if the mass of Jupiter was increased by a factor 10, and 1000, also presented in Fig. \ref{fig:exe jupiter mass increase}. We see that the resultant trajectory with the mass of Jupiter increased by a factor 10 looks much the same as what we saw in Fig. \ref{fig:jupiter_1_30}, but increasing the mass by a factor 1000 throws the system out of control and eventually slingshots the earth far away from the system, which can be seen in Fig. \ref{fig:ex_e earth slingshot}, after the main text has ended. Whilst a fun exercise, it is important to note that this simulation is not necessarily physically realistic, not because of the instantaneous mass increase of Jupiter, but because the planets are treated as point particles, which only interact via their gravitational attractions. A more realistic outcome of this scenario would be that earth crashes into either the sun and Jupiter in a terribly violent fashion.
 
 \subsection{Simulating the Solar system}
   As a final example of simulations using Newtonian gravity, i present a simulation of all the major bodies in the solar system in motion about the barycenter\footnote{Center of mass in an n-body system} in Fig \ref{fig:solarsystem}, once again having fetched the initial conditions from the Horizons system.
+  Pluto, and other smaller celestial objects could very easily be added thanks to the script i wrote, \lstinline{get_initconds.py}, which fetches initial conditions using the Astroquery python package. However, i opted not to, simply because it would add further "clutter" to a figure already lacking in any significant detail.
 
-\begin{figure}[h!]
+
+\begin{figure}[H]
   \center
   \includegraphics[width=8cm]{figs/all_bodies.pdf}
   \caption{Simulation of the major bodies within the solar system for 165 Years and $N=10^6$ integration points using initial conditions from Horizons}
@@ -248,13 +286,16 @@ This is an abstract
   This could either be due to the simplification in the model, not including the other planets in the system, or it could simply be an error in my implementation of the system. As this simulation takes such a significant amount of time to run on my computer, it simply isn't feasible for me to explore this problem much further.
 
 
-
-
 \section{Conclusions}
+  We have seen how the choice of numerical method when solving ODE's is of great importance when analyzing numerical results, as one might draw incorrect conclusions when inferring about the time evolution of the energy of a system when using non-conservative methods, which the Forward Euler algorithm turned out to be in this problem. Further, whilst more computationally expensive per iteration, the Velocity-Verlet proves to be the cheaper method when accounting for its quick convergence when compared to the Forward Euler method.
+
+  Lastly, in regards to object orientation, i find that many of the supposed 'benefits' of this type of development simply does not apply to numerical computation, regardless of its usefulness in other scenarios. Abstracting what is otherwise simple, numerical computations which we as physicists are very much familiar is nonsensical in my opinion. If i were to define my own, special data-types to be operated on by numerical algorithms, that would only serve to decrease the flexibility of my algorithms by requiring to define new, similar data types which could be operated on in a similar fashion if i were to utilize the program to another problem.
+
+  Of course, the aforementioned problems does not strictly apply to my class\footnote{which just as easily could have been implemented in a strictly functional approach}, \lstinline{n_solver}, which should work effortlessly for different systems, given new methods for the governing forces.
 
 
 \begin{thebibliography}{99}
-\bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
+%\bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
 \bibitem{ode_lecture} M.~Hjorth-Jensen, Ordinary differential equations - Computational Physics Lectures (2017)
 \bibitem{problem_set} M.~Hjorth-Jensen, Building a model for the solar system using ordinary differ-
 ential equations - Project 3 (2018)
@@ -264,7 +305,7 @@ ential equations - Project 3 (2018)
 \appendix
 
 \section{Earth goes on a journey \label{sect:slingshot}}
-  \begin{figure*}
+  \begin{figure*}[h!]
     \center
     \subfloat[][t=5 years]{\includegraphics[width=8cm]{figs/exe_earth_jupiter_1000_5yrs.pdf}}
     \subfloat[][t=10 years]{\includegraphics[width=8cm]{figs/exe_earth_jupiter_1000_10yrs.pdf}}\\

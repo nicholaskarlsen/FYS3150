@@ -1,4 +1,4 @@
-# Uses astroquery to fetch JPL Horizons data to use as initial conditions
+# Uses astroquery to fetch JPL Horizons data to use as initial conditions & testing
 import numpy as np
 from astroquery.jplhorizons import Horizons
 from astroquery.jplhorizons import conf
@@ -33,6 +33,6 @@ def get_data(id_list, referenceFrame="500@10"):   # defaut @ sun center of mass
 if __name__ == '__main__':
     '*** How to use ****'
     # Make list of planet ids (see JPL Horizons website)
-    lst = [10, 399, 599]  # Sun, earth, jupiter
+    lst = [10, 399, 599]
     # Call get_data with lst parameter and get initial conditions
     r0, v0 = get_data(lst)

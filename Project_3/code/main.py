@@ -1,5 +1,5 @@
 from __future__ import division
-#from horizons import *
+# from horizons import *
 from get_initconds import *
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
@@ -9,7 +9,7 @@ import time
 import os.path
 
 
-def figsetup(title, xlab, ylab, fname, legend=True, show=False):
+def figsetup(title, xlab, ylab, fname, legend=True, show=False, tightlayout=True):
     """
     Sets up and saves figure for usage in report
     usage:
@@ -20,8 +20,9 @@ def figsetup(title, xlab, ylab, fname, legend=True, show=False):
     plt.xlabel(xlab)
     plt.ylabel(ylab)
     plt.title(fname)
-    plt.tight_layout()
     plt.title(title)
+    if tightlayout is True:
+        plt.tight_layout()
     if legend is True:
         plt.legend()
     plt.savefig("../figs/" + fname + ".pdf")
@@ -32,11 +33,7 @@ def figsetup(title, xlab, ylab, fname, legend=True, show=False):
     return
 
 
-def ex_a():
-    return
-
-
-def ex_b():
+def ex_c():
     x0 = np.array([[1, 0]], dtype=np.float64)             # [AU]
     v0 = np.array([[0, 2 * np.pi]], dtype=np.float64)     # [AU/yr]
     m = np.array([3.00348959632E-6], dtype=np.float64)
@@ -98,59 +95,22 @@ def ex_b():
     return
 
 
-def ex_c1():
-    x0 = np.array([[1, 0]], dtype=np.float64)             # [AU]
-    m = np.array([3.00348959632E-6], dtype=np.float64)
-    names = ['earth']
-    for speed in [1, 2, 3, 3.5, 4]:
-        v0 = np.array([[0, speed * np.pi]], dtype=np.float64)     # [AU/Yr]
-        inst = n_solver(initPos=x0, initVel=v0, mass=m, N=1e5, tn=10)
-        inst.solarsystem(method=1, system=1)  # Velocity verlet & fixed sun
-        pos, vel = inst.get()
-        plt.plot(pos[0, :, 0], pos[0, :, 1], label="$|v_0|=%.2f \\pi$" % speed)
-    plt.close()
-    return
-
-
-def ex_c2():
-    x0 = np.array([[1, 0]], dtype=np.float64)             # [AU]
-    m = np.array([3.00348959632E-6], dtype=np.float64)
-    names = ['earth']
-    for b in [2, 2.25, 2.5, 2.75, 3]:
-        v0 = np.array([[0, 2 * np.pi]], dtype=np.float64)     # [AU/Yr]
-        inst = n_solver(initPos=x0, initVel=v0, mass=m, N=1e5, tn=10, beta=b)
-        inst.solarsystem(method=1, system=1)  # Velocity verlet & fixed sun
-        pos, vel = inst.get()
-        plt.plot(pos[0, :, 0], pos[0, :, 1], label="$\\beta = %.1f$" % b)
-    plt.show()
-    return
-
-
 def ex_d():
-    m = np.array([1, 3.00348959632E-6], dtype=np.float64)
-
-    lst = [10, 399]
-
-    names = ['sun', 'earth']
-    x0, v0 = get_data(lst)
-    N = 1e5
-    tn = 1
-
-    inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn)
-    inst.solarsystem()
-    pos, vel = inst.get()
-    ax = plt.axes(projection='3d')
-    for i in range(len(lst)):
-        xline = pos[i, :, 0]
-        yline = pos[i, :, 1]
-        zline = pos[i, :, 2]
-        ax.plot3D(xline, yline, zline, label=names[i])
-    ax.set_xlabel('x [AU]')
-    ax.set_ylabel('y [AU]')
-    ax.set_zlabel('z [AU]')
-    plt.legend()
-    plt.savefig("../figs/exd_var_beta.pdf")
-    plt.show()
+    x0 = np.array([[1, 0]], dtype=np.float64)             # [AU]
+    m = np.array([3.00348959632E-6], dtype=np.float64)
+    fn = ['2', '25', '275', '29' ,'3']
+    fn_c = 0
+    for beta in [2, 2.5, 2.75, 2.9, 3]:
+        for speed in [1, 2, 2.25, 2.5, 2.75, 3, ]:
+            v0 = np.array([[0, speed * np.pi]], dtype=np.float64)     # [AU/Yr]
+            inst = n_solver(initPos=x0, initVel=v0, mass=m, N=5e5, tn=50, beta=beta)
+            inst.solarsystem(method=1, system=1)  # Velocity verlet & fixed sun
+            pos, vel = inst.get()
+            plt.plot(pos[0, :, 0], pos[0, :, 1], label="$|v_0|=%.2f \\pi$" % speed)
+        plt.ylim(-1.5, 1.5)
+        plt.xlim(-1.5, 1.5)
+        figsetup(title="", xlab="x [AU]", ylab="y [AU]", fname="ex_d_escape_%s" % fn[fn_c], tightlayout=False)
+        fn_c += 1
     return
 
 
@@ -254,14 +214,12 @@ def ex_g():
 
 
 def main():
-    # ex_a()
-    # ex_b()
-    # ex_c1()
-    # ex_c2()
-    # ex_d()
-    #ex_e()
-    #ex_f()
-    ex_g()
+    # ex_c()
+    ex_d()
+    # ex_d2()
+    # ex_e()
+    # ex_f()
+    # ex_g()
 
     return
 
