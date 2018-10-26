@@ -158,23 +158,24 @@ def ex_e():
     lst = [399, 599]
     names = ["Earth", "jupiter"]
     x0, v0 = get_data(lst)
-    for multi in [1, 10, 1000]:
-        m = np.array([3.00348959632E-6, multi * 954.79194E-6], dtype=np.float64)
-        inst = n_solver(initPos=x0, initVel=v0, mass=m, N=1e5, tn=10)
-        inst.solarsystem(method=1, system=1)  # Velocity verlet & fixed sun
-        pos, vel = inst.get()
-        ax = plt.axes(projection='3d')
-        for i in range(len(lst)):
-            xline = pos[i, :, 0]
-            yline = pos[i, :, 1]
-            zline = pos[i, :, 2]
-            ax.plot3D(xline, yline, zline, label=names[i])
-        ax.set_xlabel('x [AU]')
-        ax.set_ylabel('y [AU]')
-        ax.set_zlabel('z [AU]')
-        plt.legend()
-        plt.savefig("../figs/exe_earth_jupiter_%i.pdf" % multi)
-        plt.close()
+    for yrs in [5, 10]:#, 15, 20, 25, 30]:
+        for multi in [1, 10, 1000]:
+            m = np.array([3.00348959632E-6, multi * 954.79194E-6], dtype=np.float64)
+            inst = n_solver(initPos=x0, initVel=v0, mass=m, N=1e6, tn=yrs)
+            inst.solarsystem(method=1, system=1)  # Velocity verlet & fixed sun
+            pos, vel = inst.get()
+            ax = plt.axes(projection='3d')
+            for i in range(len(lst)):
+                xline = pos[i, :, 0]
+                yline = pos[i, :, 1]
+                zline = pos[i, :, 2]
+                ax.plot3D(xline, yline, zline, label=names[i])
+            ax.set_xlabel('x [AU]')
+            ax.set_ylabel('y [AU]')
+            ax.set_zlabel('z [AU]')
+            plt.legend()
+            plt.savefig("../figs/exe_earth_jupiter_%i_%iyrs.pdf" % (multi, yrs))
+            plt.close()
 
     return
 
@@ -191,8 +192,8 @@ def ex_f():
     names = ['sun', 'mercury', 'venus', 'earth', 'mars', 'jupiter',
              'satur', 'uranus', 'neptune']
     x0, v0 = get_data(lst, referenceFrame="500@0")
-    N = 1e5
-    tn = 10
+    N = 1e6
+    tn = 165
 
     inst = n_solver(initPos=x0, initVel=v0, mass=m, N=N, tn=tn)
     inst.solarsystem()
@@ -258,8 +259,8 @@ def main():
     # ex_c1()
     # ex_c2()
     # ex_d()
-    # ex_e()
-    # ex_f()
+    #ex_e()
+    #ex_f()
     ex_g()
 
     return

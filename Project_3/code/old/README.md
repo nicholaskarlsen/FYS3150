@@ -1,0 +1,2 @@
+In this folder you will find much of the code that was written in the process of getting everything to work. 
+A lot of this code does not function correctly, or simply were alternate solutions to what i ultimately ended up with.
