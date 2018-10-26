@@ -74,15 +74,10 @@ class n_solver(object):
         return accel
 
     def gravity_relativistic(self, planetIndex, timeIndex):
-        """Fixes the sun at the origin & calculates gravitational attraction to it, and
-        any other planets which may be present in the system + adds relativistic
-        correction """
+        """Fixes the sun at the origin & calculates gravitational attraction to it
+        with the relativistic correction"""
 
-        # Because this model is only used for 3g i made it somewhat specialized
-        if self.numBodies != 1:
-            raise ValueError("gravity_relativistic() only works for 2-body systems, where one orbits around a stationary sun")
         accel = np.zeros(self.dim)  # Used to store values
-
         # Calculate gravity between sun & planet
         l_vec = np.cross(self.pos[planetIndex, timeIndex], self.vel[planetIndex, timeIndex])  # Angular momentum
         l = np.linalg.norm(l_vec)  # Magnitude of angular momentum

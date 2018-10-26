@@ -33,23 +33,24 @@
 \title{FYS3150 Computational Physics - Project 3}
 \author{Nicholas Karlsen}
 
+
 \begin{abstract}
 This is an abstract
 \end{abstract}
 
 \maketitle
 
+
 \section{Introduction}
 
-  In this report we will take a look at two methods for solving Ordinary differential equations (ODE) numerically, which is of great interest to physicists, as a lot of physical systems are governed by such equations, most of which lack analytical solutions. In particular, 
-  
-  Lastly, the source code for any code discussed in this report can be found on my
-  Github at: \url{https://github.com/nicholaskarlsen/FYS3150}
+  In this report we will take a look at two methods for solving Ordinary differential equations (ODE) numerically, which is of great interest to physicists, as a lot of physical systems are governed by such equations, most of which lack analytical solutions. In particular, we will look closely at how these numerical methods can be used to solve multi-body systems governed by Newton's law of gravity, which has no analytical solution.
+
+  As such, i have developed a flexible object oriented class in python which solves systems of coupled differential equations using the Velocity-Verlet algorithm and the Forward Euler method, the source code of which can be found on my Github page at: \url{https://github.com/nicholaskarlsen/FYS3150}. 
 
 \section{Theory, Algorithms and Methods}
   
   \subsection{Newton's law of universal gravitation}
-    Between every body, there is a force of attraction inversly proportional to the square of the separation, or more precisely, the force acting on some body with mass $m$ due to a mass $m'$ is
+    Between every body, there is a force of attraction inversely proportional to the square of the separation, or more precisely, the force acting on some body with mass $m$ due to a mass $m'$ is
     \begin{equation}
       \mathbf F = -G\frac{m m'}{|\mathbf r - \mathbf r'|^2}\mathbf{\hat{u}_{r-r'}}, \quad \mathbf{\hat{u}_{r-r'}} = \frac{\mathbf r - \mathbf r'}{\mathbf |\mathbf r - \mathbf r'|}
     \end{equation}
@@ -70,18 +71,18 @@ This is an abstract
     \end{equation}
     Similar, for 3 dimensions where $\mathbf r - \mathbf r' = (x_r, y_r, z_r), r=\sqrt{x_r^2 + y_r^2 + z_r^2}$.
 
-    \subsubsection{Relativistic Correction}
-
       \begin{figure}[h!]
         \center
         \includegraphics[width=4cm]{figs/486px-Perihelion-Aphelion.png}
         \caption{In an eliptic orbit, the closest and farthest points in the orbit is defined as the Perhelion and Aphelion respectively [\href{https://en.wikipedia.org/wiki/Perihelion_and_aphelion}{Image source}]}
         \label{fig:perhelion}
       \end{figure}
+    
+    \subsubsection{Relativistic Correction}
 
-      The aforementioned model of gravity fails to predict the perihelion (see fig. \ref{fig:perhelion}) precession of mercury, which is observed to be $43"$ per century \cite{problem_set}. 
+      The aforementioned model of gravity fails to predict the perihelion (see fig. \ref{fig:perhelion}) precession of mercury, which is observed to be $43"$ (arcseconds) per century \cite{problem_set}. 
 
-      That is, the closed, uniform elliptical orbits predicted by the Newtonian model for gravity does not match with observations in Astronomy, where the perihelion of Mercury seems to shift over time. In fact, the perihelion precession of mercury was the first experimental confirmations of General relativity, which accurately predicts this phenomena.
+      That is, the closed, uniform elliptical orbits predicted by the Newtonian model for gravity does not match with observations in Astronomy, where the perihelion of Mercury seems to shift its location over time. In fact, the perihelion precession of mercury was the first experimental confirmation of General relativity, the model of gravity developed by Albert Einstein which accurately predicts this phenomena.
 
       And so, a correcting factor accounting for the relativistic effects is added to Newtons model, and the magnitude of the gravitational force becomes \cite{problem_set}
 
@@ -89,9 +90,6 @@ This is an abstract
         |\mathbf F| = G \frac{m m'}{r^2}\left[1 + \frac{3l^2}{r^2c^2}\right]
       \end{equation}
       Where $l$ denotes the magnitude of the angular momentum of the orbiting body and $c$ the speed of light.
-
-      Now, in order to find the perihelion precession we define a coordinate system such that 
-
 \subsection{Solving ODEs numerically}
   \subsubsection{Forward Euler}
     Consider a function $f(t)$, which derivative, $f'(t)$ is known and we want to find $f(t + \delta t)$. 
@@ -200,15 +198,15 @@ This is an abstract
 \end{figure*}
 
 
-\begin{figure*}
+\begin{figure}
   \center
-  \subfloat[][]{\includegraphics[width=14cm]{figs/exe_earth_jupiter_10.pdf}}\\
-  \subfloat[][]{\includegraphics[width=14cm]{figs/exe_earth_jupiter_1000.pdf}}
-\end{figure*}
+  \subfloat[][]{\includegraphics[width=8cm]{figs/exe_earth_jupiter_10.pdf}}\\
+  \subfloat[][]{\includegraphics[width=8cm]{figs/exe_earth_jupiter_1000.pdf}}
+\end{figure}
 
 \begin{figure}
   \center
-  \includegraphics{figs/all_planets3d.pdf}
+  \includegraphics[width=8cm]{figs/all_planets3d.pdf}
 \end{figure}
 
 
@@ -216,6 +214,10 @@ This is an abstract
 
 \section{Conclusions}
 
+\begin{figure*}[h!]
+  \center
+  \includegraphics[scale=0.5]{figs/orbital_mechanics.png}
+\end{figure*}
 
 \begin{thebibliography}{99}
 \bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
