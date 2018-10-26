@@ -72,12 +72,14 @@ def ex_c():
                      fname="ex_b_orbit_%s_%i" % (method_name[i], N_exponent), legend=False)
 
             plt.figure(figsize=[5, 3])
-            plt.plot(s)
+            plt.plot(s, label="Computed")
+            plt.plot(np.ones(int(N)) * 2 * np.pi, label="Expected")
             plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
             figsetup(title="Speed of earth", xlab="Integration point, N", ylab="|v| [Au/Yr]", fname="ex_b_speed_%s_%i" % (method_name[i], N_exponent))
 
             plt.figure(figsize=[5, 3])
-            plt.plot(r)
+            plt.plot(r, label="Computed")
+            plt.plot(np.ones(int(N)), label="Expected")
             plt.ticklabel_format(style='sci', axis='y', scilimits=(0, 0))
             figsetup(title="Distance between earth & sun", xlab="Integration point, N",
                      ylab="|r| [Au]", fname="ex_b_radius_%s_%i" % (method_name[i], N_exponent))
@@ -101,6 +103,7 @@ def ex_d():
     fn = ['2', '25', '275', '29' ,'3']
     fn_c = 0
     for beta in [2, 2.5, 2.75, 2.9, 3]:
+        plt.figure(figsize=[5, 5])    
         for speed in [1, 2, 2.25, 2.5, 2.75, 3, ]:
             v0 = np.array([[0, speed * np.pi]], dtype=np.float64)     # [AU/Yr]
             inst = n_solver(initPos=x0, initVel=v0, mass=m, N=5e5, tn=50, beta=beta)
@@ -214,7 +217,7 @@ def ex_g():
 
 
 def main():
-    # ex_c()
+    #ex_c()
     ex_d()
     # ex_d2()
     # ex_e()

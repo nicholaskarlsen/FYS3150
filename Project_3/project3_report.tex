@@ -36,7 +36,7 @@
 
 
 \begin{abstract}
-  Looking at how n-coupled differential equations can be solved numerically using the Velocity-Verlet and Forward Euler algorithms for systems governed by Newtonian gravity. Found that the Forward Euler method falls short compared to the Velocity-Verlet method as it is not conservative and requires a greater number of integration points to converge. There was also an unsuccessful attempt at reproducing the perihelion precession of mercury using a modified model in a 2-body system.
+  Looking at how n-coupled differential equations can be solved numerically using the Velocity-Verlet and Forward Euler algorithms for systems governed by Newtonian gravity. Found that the Forward Euler method falls short compared to the Velocity-Verlet method as it is non-conservative and requires a greater number of integration points to converge in the given system. There was also an unsuccessful attempt at reproducing the perihelion precession of mercury using a modified model in a 2-body system.
 \end{abstract}
 
 \maketitle
@@ -46,19 +46,19 @@
 
   In this report we will take a look at two methods for solving Ordinary differential equations numerically, which is of great interest in physics as a lot of physical systems are governed by such equations, most of which lack closed form analytical solutions. In particular, we will look closely at how these numerical methods can be used to solve multi-body systems governed by Newton's law of gravity, which has no exact analytical solutions for $n\geq3$ bodies, as well as looking at a slightly altered model, which accounts for relativistic effects, this time restricting ourselves to a 2-body system.
 
-  As such, i have developed a flexible object oriented class in python which solves systems of coupled differential equations using the Velocity-Verlet algorithm and the Forward Euler method, the source code of which can be found on my Github page at: \url{https://github.com/nicholaskarlsen/FYS3150}. 
+  Therefore, i have developed a flexible object oriented class in python which solves systems of coupled differential equations using the Velocity-Verlet algorithm and the Forward Euler method, the source code of which can be found on my Github page at: \url{https://github.com/nicholaskarlsen/FYS3150}. 
 
 \section{Theory, Algorithms and Methods}
   
   \subsection{Newton's law of universal gravitation}
-    Between every body, there is a force of attraction inversely proportional to the square of the separation, or more precisely, the force acting on some body with mass $m$ due to a mass $m'$ is
+    Between every body, there is a force of attraction inversely proportional to the square of their separation, or more precisely, the force acting on some body with mass $m$ due to a mass $m'$ is
     \begin{equation}
       \mathbf F = -G\frac{m m'}{|\mathbf r - \mathbf r'|^2}\mathbf{\hat{u}_{r-r'}}, \quad \mathbf{\hat{u}_{r-r'}} = \frac{\mathbf r - \mathbf r'}{\mathbf |\mathbf r - \mathbf r'|}
       \label{eqn:newton gravity}
     \end{equation}
     Where $G$ is the gravitational constant and $\mathbf r, \mathbf r'$ denote the position vectors of bodies with mass $m, m'$ respectively.
 
-    Chosing the the 2D cartesian coordinate system, let $\mathbf r - \mathbf r'= (x_{r}, y_{r})$, where the $r$ suffix denote that these coordinates are to be understood as the relative coordinates between bodies $m, m'$.
+    Choosing the the 2D Cartesian coordinate system, let $\mathbf r - \mathbf r'= (x_{r}, y_{r})$, where the $r$ suffix denote that these coordinates are to be understood as the relative coordinates between bodies $m, m'$.
     Further, $|\mathbf r - \mathbf r'| = \sqrt{x_r^2 + y_r^2} = r$ is the distance between the two bodies.
 
     By Newtons second law, the acceleration on body 1 due to the gravitational pull of body 2 can then be written as
@@ -95,18 +95,19 @@
       \\ v &= \sqrt{\frac{Gm'}{r}}
     \end{split}
     \end{align}
+    where in this case, the speed $v$, as well as $r$ are expected to be constant quantities.
 
       \begin{figure}[h!]
         \center
         \includegraphics[width=4cm]{figs/486px-Perihelion-Aphelion.png}
-        \caption{In an eliptic orbit, the closest and farthest points in the orbit is defined as the Perhelion and Aphelion respectively [\href{https://en.wikipedia.org/wiki/Perihelion_and_aphelion}{Image source}]}
+        \caption{In an elliptic orbit, the closest and farthest points in the orbit is defined as the Perihelion and Aphelion respectively [\href{https://en.wikipedia.org/wiki/Perihelion_and_aphelion}{Image source}]}
         \label{fig:perhelion}
       \end{figure}
 
     
     \subsubsection{Relativistic Correction}
 
-      The aforementioned model of gravity fails to predict the perihelion (see fig. \ref{fig:perhelion}) precession of mercury, which is observed to be $43"$ (arcseconds) per century \cite{problem_set}. 
+      The aforementioned model of gravity fails to predict the perihelion (see fig. \ref{fig:perhelion}) precession of mercury, which is observed to be $43"$ (arc seconds) per century \cite{problem_set}. 
 
       That is, the closed, uniform elliptical orbits predicted by the Newtonian model for gravity does not match with observations in Astronomy, where the perihelion of Mercury seems to shift its location over time. In fact, the perihelion precession of mercury was the first experimental confirmation of General relativity, the model of gravity developed by Albert Einstein which accurately predicts this phenomena.
 
@@ -128,9 +129,9 @@
     \begin{equation}
       f(t + \delta t) = f(t) + f'(t)\delta t + \mathcal O(\delta t^2)
     \end{equation}
-    where the term $\mathcal O(\delta t^2)$ contains the numerical error associated by truncating the series early.
+    where the term $\mathcal O(\delta t^2)$ contains the error associated by terminating the series early.
 
-    Since $f(t), f'(t)$ are known, this allows us to find $f(t + \delta t)$, which is the basis of the Forward Euler algorithm. Following, i have written out in pseudocode how this algorithm can be used to solve a system governed by some known force $\mathbf F$ and initial conditions $\mathbf v(0) \simeq v_0, \mathbf r(0) \simeq r_0$.
+    If $f(t), f'(t)$ are known, this allows us to find $f(t + \delta t)$, which is the basis of the Forward Euler algorithm. Following, i have written out in pseudocode how this algorithm can be used to solve a system governed by some known force $\mathbf F$ and initial conditions $\mathbf v(0) \simeq \mathbf v_0,\, \mathbf r(0) \simeq \mathbf r_0$.
 
     \begin{lstlisting}[mathescape=true, language=python, title=Forward Euler Algorithm (4N FLOPS)]
   for $i = 0, \dots, N-1$
@@ -138,7 +139,7 @@
       $\mathbf r_{i + 1} = \mathbf r_{i} + \mathbf v_{i}\Delta t$
   \end{lstlisting}
 
-  Notice that the value of $\mathbf v_{i+1}$ is known when computing $\mathbf r_{i+1}$. By using this newly calculated velocity in the computation instead, we get the Euler-Cromer method, which wont be discussed further in this report.
+  Notice that the value of $\mathbf v_{i+1}$ is known when computing $\mathbf r_{i+1}$. By using this newly calculated velocity in the computation instead, we get the Euler-Cromer method, which wont be discussed further in this report, but is listed below for the sake of comparison.
 
   \begin{lstlisting}[mathescape=true, language=python, title=Euler-Cromer Algorithm (4N FLOPS)]
   for $i = 0, \dots, N-1$
@@ -155,7 +156,7 @@
         f'(t + \delta t) &= f'(t) + \frac{\left( f''(t + \delta t) + f''(t) \right)\delta t}{2} + \mathcal O(\delta t^3)
       \end{split}
     \end{align}
-    Which again, can be applied to solve a Physical system where $\mathbf F$ is known. The algorithm for doing this is written out below
+    Which again, can be applied to solve a Physical system where $\mathbf F$, and by extension $\mathbf a$ is known. The algorithm for doing this is written out below
   \begin{lstlisting}[mathescape=true, language=python, title=Velocity-Verlet Algorithm (10N FLOPS)]
   for $i = 0, \dots, N-1$
     $\mathbf r_{i+1} = \mathbf r_i + \mathbf v_i \Delta t + \frac{1}{2}\mathbf a_i(\Delta t)^2$
@@ -168,13 +169,13 @@
 
 \section{Results and Discussions}
   \subsection{Object orientation}
-    When designing the class \lstinline{n_solver}, i wanted to strike a balance between utilizing the benefits, and expandability you get from object orientation whilst also not abstracting the data too much. As such, the class simply manipulates arrays of a particular format in a particular way. Not abstracting the process by creating objects for each planet (or something else of that nature), which seems to be a pitfall of object orientation as i perceive it.
+    When designing the class \lstinline{n_solver}, i wanted to strike a balance between utilizing the benefits, and expandability you get from object orientation whilst also not abstracting the data too much. As such, the class simply manipulates arrays of a particular format in a particular way. Not abstracting the process by creating objects for each planet or something of that sort, which seems to be a pitfall\footnote{Within the context of scientific computation} of object orientation as i perceive it.
 
     As such, the class can easily be expanded by adding new solvers and differential equations, to solve similar multi-body problems governed by a different set of coupled differential equations.
 
     A particular benefit in the way i wrote my code, is that there is no difference if the input data is in 2 Dimensions or 3\footnote{Technically, it would work for any higher dimensions as well, provided the shape of the input arrays are compatible.}. The code will work just the same either way by making full use of the way Numpy arrays work.
 
-    I also made an attempt to utilize just-in-time (JIT) compilation by using jitclass from the Numba package, however, jitclass is poorly documented in its current state and imposes many restrictions as to what is permitted compared to regular python, or even the standard jit flag that is used for regular python functions. Eventually, i reached the point where i would have to sacrifice the modularity of my program in order to run it using jitclass, which obviously was not an option. So i gave up on the endeavor.
+    I also made an attempt to utilize just-in-time (JIT) compilation by using jitclass from the Numba package, however, jitclass is poorly documented in its current state and imposes many restrictions as to what is permitted compared to regular python, or even the standard jit\footnote{Which does not work for classes}. Eventually, i reached the point where i would have to sacrifice the modularity of my program in order to run it using jitclass, which obviously was not an option. So i gave up on the endeavor.
 
 
   \begin{figure*}[h!p]
@@ -219,7 +220,7 @@
     Working in units $M_\odot, AU, Years$ for mass, length and time respectively, i initialized a 2D system using the \lstinline{n_solver} class where the sun is fixed at the origin and the earth has initial velocity $\mathbf v_0 = (0, 2\pi)$ at position $\mathbf r_0 = (1, 0)$, corresponding to an orbit of eccentricity, $e=0$, a perfect circle.
     
 
-    The system was then simulated for a time period of $10$ years using a different number of integration points for both the Velocity-Verlet and Forward Euler algorithms. The resulting orbits shown in Fig. \ref{fig:3c_earthsun}, shows that the Velocity-Verlet solution yields a reasonable approximate orbit for $N=10^3$ integration points, whilst the Forward Euler algorithm doesn't produce a comparable orbit until $N=10^6$ integration points. In Fig. \ref{fig:timing} we see the time it took for my program to solve this system for a selection of $N$. These numbers apply of course, only to the system with a fixed sun with one planet orbiting, as calculating the acceleration on more than one planets adds to the number of FLOPS.
+    The system was then simulated for a time period of $10$ years using a different number of integration points for both the Velocity-Verlet and Forward Euler algorithms. The resulting orbits shown in Fig. \ref{fig:3c_earthsun}, shows that the Velocity-Verlet solution yields a reasonable approximate orbit for $N=10^3$ integration points, whilst the Forward Euler algorithm doesn't produce a comparable orbit until $N=10^6$ integration points. In Fig. \ref{fig:timing} we see the time it took for my program to solve this system for a selection of $N$. These numbers apply of course, only to the particular system with a fixed sun and one orbiting planet, as calculating the acceleration on more than one planets adds to the number of FLOPS.
 
     \begin{figure}[H]
       \center
@@ -252,7 +253,8 @@
     \end{figure*}
 
 \subsection{3-Body problem}
-  Fetching initial conditions from the Horizons\footnote{\url{https://ssd.jpl.nasa.gov/horizons.cgi}} system hosted by JPL at NASA, i simulated the trajectory of Earth and Jupiter orbiting around a fixed sun. As the data is in 3 dimensions, this also proved a great time to test flexibility of \lstinline{n_solver}, which as expected worked just as well when fed 3D data, without having to make any adjustments. The trajectory for a 30 Year simulation with $N=10^6$ integration points is presented in Fig \ref{fig:jupiter_1_30}.
+  Fetching initial conditions from the Horizons\footnote{\url{https://ssd.jpl.nasa.gov/horizons.cgi}, for which astroquery provides an easy way to import data into python, further simplified by my script \lstinline{get_initconds.py}} system hosted by JPL at NASA, i simulated the trajectory of Earth and Jupiter orbiting around a fixed sun. As the data is in 3 dimensions, this also proved a great time to test flexibility of \lstinline{n_solver}, which as expected worked just as well when fed 3D data, without having to make any adjustments to the way in which the code is called. The trajectory for a 30 Year simulation with $N=10^6$ integration points is presented in Fig \ref{fig:jupiter_1_30}.
+  The resultant orbits are seemingly uniform, and stable within the time frame of the solution.
 
   \begin{figure}[H]
     \center
@@ -262,10 +264,10 @@
     \caption{Trajectories for earth and jupiter in the 3-body system with fixed sun at the origin, with the mass of jupiter multiplied by a factor 10 (b) and $10^3$ (c) solved with $N=10^6$ integration points}
     \label{fig:exe jupiter mass increase}
   \end{figure}
+  
+  \newpage
 
-  The resultant orbits are seemingly uniform, and stable within the time frame of the solution.
-
-  Now, we will look at what the system would look like if the mass of Jupiter was increased by a factor 10, and 1000, also presented in Fig. \ref{fig:exe jupiter mass increase}. We see that the resultant trajectory with the mass of Jupiter increased by a factor 10 looks much the same as what we saw in Fig. \ref{fig:jupiter_1_30}, but increasing the mass by a factor 1000 throws the system out of control and eventually slingshots the earth far away from the system, which can be seen in Fig. \ref{fig:ex_e earth slingshot}, after the main text has ended. Whilst a fun exercise, it is important to note that this simulation is not necessarily physically realistic, not because of the instantaneous mass increase of Jupiter, but because the planets are treated as point particles, which only interact via their gravitational attractions. A more realistic outcome of this scenario would be that earth crashes into either the sun and Jupiter in a terribly violent fashion.
+  Now, we will look at what the system would look like if the mass of Jupiter was increased by a factor 10, and 1000, also presented in Fig. \ref{fig:exe jupiter mass increase}. We see that the resultant trajectory with the mass of Jupiter increased by a factor 10 looks much the same as what we saw in Fig. \ref{fig:jupiter_1_30}, but increasing the mass by a factor 1000 throws the system out of control and eventually slingshots the earth far away from the system, which can be seen in \footnote{Again, after the main text has ended}Fig. \ref{fig:ex_e earth slingshot}. Whilst a fun exercise, it is important to note that this simulation is not necessarily physically realistic, not because of the instantaneous mass increase of Jupiter, but because the planets are treated as point particles, which only interact via gravity. A more realistic outcome of this scenario would be that earth crashes into either the sun and Jupiter in a horrid, and violent fashion.
 
 \subsection{Simulating the Solar system}
   As a final example of simulations using Newtonian gravity, i present a simulation of all the major bodies in the solar system in motion about the barycenter\footnote{Center of mass in an n-body system} in Fig \ref{fig:solarsystem}, once again having fetched the initial conditions from the Horizons system.
@@ -281,9 +283,9 @@
 
 
 \subsection{The perihelion precession of Mercury}
-  In order to test the relativistic correction proposed in Eqn. \ref{eqn:relativistic correction} i extended \lstinline{n_solver} by adding a method that solved the 2-body problem with a stationary sun. I then initialized the system with mercury at its perihelion, $0.3075\,\textup{AU}$ away from the sun with speed $12.44\, \textup{AU Yr}^{-1}$ \cite{problem_set}. I simulated the system for $100$ years with $N=10^8$ integration points, which took my computer $7131.14\,\textup s$, just under 2 hours to solve. I then found the radius between the sun and mercury for all $t$ and looped backwards, finding the first minima. Having found the index in which the mercury was previously at its perihelion I then found that the angle of precession to be $5.09\,\textup{rad}$, or $10.51"$, significantly lower than what is observed experimentally.
+  In order to test the relativistic correction proposed in Eqn. \ref{eqn:relativistic correction} i extended \lstinline{n_solver} by adding a method which solves the 2-body problem with a stationary sun. I then initialized the system with mercury at its perihelion, $0.3075\,\textup{AU}$ away from the sun with speed $12.44\, \textup{AU Yr}^{-1}$ \cite{problem_set}. I simulated the system for $100$ years with $N=10^8$ integration points, which took my computer $7131.14\,\textup s$, just under 2 hours to solve. I then found the radius between the sun and mercury for all $t$ and looped backwards, finding the first minima. Having found the index in which the mercury was previously at its perihelion I then found that the angle of precession to be $5.09\,\textup{rad}$, or $10.51"$, significantly lower than what is observed experimentally.
 
-  This could either be due to the simplification in the model, not including the other planets in the system, or it could simply be an error in my implementation of the system. As this simulation takes such a significant amount of time to run on my computer, it simply isn't feasible for me to explore this problem much further.
+  This could be due to either the simplification in the model, not including the other planets in the system, or it could simply be an error in my implementation of the system. As this simulation takes such a significant amount of time to run on my computer, it simply isn't feasible for me to explore this problem much further.
 
 
 \section{Conclusions}
@@ -302,9 +304,7 @@ ential equations - Project 3 (2018)
 \bibitem{elem} A.~Malthe-Sørenssen, Elementary Mechanics Using Python (2015)
 \end{thebibliography}
 
-\appendix
 
-\section{Earth goes on a journey \label{sect:slingshot}}
   \begin{figure*}[h!]
     \center
     \subfloat[][t=5 years]{\includegraphics[width=8cm]{figs/exe_earth_jupiter_1000_5yrs.pdf}}
