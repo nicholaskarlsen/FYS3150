@@ -7,6 +7,8 @@
 \usepackage{listings}
 \usepackage{subfig}
 \usepackage{float}
+\usepackage{tikz}
+  \usetikzlibrary{matrix}
 
 \lstset{ %
   basicstyle=\footnotesize,        % the size of the fonts that are used for the code
@@ -44,14 +46,107 @@
 
 \section{Introduction}
 \section{Theory, Algorithms and Methods}
+  \subsection{The Ising Model}
+    In its simplest case, a paramagnet is described as a lattice of noninteracting dipole moments, each in a state up or down. Where the energy of the system is proportional to the sum of the spins, up or down of each noninteracting constituent.
+
+    The Ising model is a natural extension to this, by adding local interaction between directly neighboring spins (See fig. \ref{fig:spinsites}), such that the energy of the system is instead proportional to the sum of each spin coupled with its nearest neighbors, which gives a much more accurate description of the system compared to the simple case of an ideal paramagnet.
+
+    Or more precisely, the energy is given by Eqn.~\ref{eqn:ising_energy}, where $s_i \in \{-1, 1\}$ and $J$ is a coupling constant.
+
+    \begin{equation}
+      E = -J\sum_{<kl>} s_ks_l
+      \label{eqn:ising_energy}
+    \end{equation}
+    In this summation, the notation $<kl>$ means that for each $k$, we take the sum over each direct neighbor.
+
+    We also have the magnetization, $\mathcal M$, which is simply the sum of all spins
+    \begin{equation*}
+      \mathcal M = \sum_i s_i
+    \end{equation*}
+
+    \begin{figure}[H]
+      \centering
+      \begin{tikzpicture}
+        [%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        dot/.style={circle,draw=black, fill,inner sep=1pt},
+        ]%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+        \foreach \x in {-1,...,3}{
+          \foreach \y in {-1,...,3}{
+            % Draw 3x3 dot lattice
+            \node[dot] at (\x,\y){};
+            \node[dot] at (\x,\y){};
+
+            % Draw lines inbetween each neighbouring ndoe
+            \foreach \i in {1, -1}{
+            }
+          }
+        }
+        \draw[thick, dashed] (1 + .1 , 1) -- (1 + 0.9, 1);
+        \draw[thick, dashed] (1 - .1 , 1) -- (1 - 0.9, 1);
+        \draw[thick, dashed] (1, 1 + .1) -- (1, 1 + 0.9);
+        \draw[thick, dashed] (1, 1 - .1) -- (1, 1 - 0.9);
+
+        \draw (1+.25, 1+.2) node{$s_{k}$};
+      \end{tikzpicture}
+      \caption{Section of a 2D lattice, where each spin-site is represented by a dot. In the Ising model, spin-site $k$ will only interact with its directly neighbouring spin-sites, connected by dotted lines in this diagram\label{fig:spinsites}}
+    \end{figure}
+
+      \begin{figure}[H]
+      \centering
+      \begin{tikzpicture}
+        [%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        dot/.style={circle,draw=black, fill,inner sep=1pt},
+        ]%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+        \foreach \x in {2,...,1}{
+          \foreach \y in {-1,...,1}{
+            % Draw 3x3 dot lattice
+            % LEFT LATTICE
+            \node[dot] at (-\x,\y){};
+            \node[dot] at (-\x,\y){};
+            % RIGHT LATTICE
+            \node[dot] at (\x,\y){};
+            \node[dot] at (\x,\y){};
+          }  
+        }    
+        %\draw[thick, dashed] (-2, 1 - .1) -- (-2, 1 - .1);
+        %\draw[thick, dashed] (-2, 1 - .1) -- (-2, -1 + .1 );
+        \draw[thick, dashed] (-2 + .1, 1) -- (-1 - .1, 1)
+
+        \draw (0, 0) node{$\dots$};
+
+      \end{tikzpicture}
+      \caption{Section of a 2D lattice, where each spin-site is represented by a dot. In the Ising model, spin-site $k$ will only interact with its directly neighbouring spin-sites, connected by dotted lines in this diagram\label{fig:spinsites}}
+    \end{figure}
+
+
+    \subsubsection{Boltzmann Statistics}
+      From Eqn.~\ref{eqn:ising_energy} we can derive many thermodynamic quantities using Boltzmann statistics, where we have the probability of the system being in some specific macro-state\footnote{Macroscopic states being characterized by their energy, meaning i could just as well have written "... the probability of the system having some speciffic energy"}
+      \begin{equation}
+        \mathcal P(E) = \frac{1}{Z} e^{-\beta E}
+      \end{equation}
+      With $\beta \equiv \frac{1}{k_B T}$, the thermodynamic beta and $Z$, the partition function, acting as a normalization factor given by\footnote{Strictly speaking, this is the partition function for a system with discrete macro-states. In the continuous case, simply replace sums with integrals.}
+
+      \begin{equation}
+        Z = \sum_i e^{-\beta E_i}
+      \end{equation}
+      Further, the exponential function $e^{-\beta E}$ is known as the Boltzmann factor.
+
+      Knowing the Boltzmann factors and partition function for a particular system, expectation value of some quantity $X$ can be computed by
+
+      \begin{equation}
+        \left<X\right> = \sum_i X_i \mathcal P(E_i) = \frac{1}{Z} \sum_i X_i e^{-\beta E_i} 
+      \end{equation}
+
+
+
+
+  \subsection{The Metropolis Algorithm}
+
 \section{Results and Discussions}
 
 \section{Conclusions}
 
-
-\begin{thebibliography}{99}
-\bibitem{lecture_notes} M.~Hjorth-Jensen, Computational Physics - Lecture Notes 2015, (2015).
-\end{thebibliography}
+\bibliography{../bibliography.bib}
 
 
 \end{document}  
