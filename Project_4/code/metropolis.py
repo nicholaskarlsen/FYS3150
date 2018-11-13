@@ -13,6 +13,16 @@ def generateState(N, spin=False):
 
     return array
 
+def montecarlo(initState, T, trials):
+    """
+    initState: Initial state of system, [N, N] array with entries +/-1
+    T: Temperature of the system
+    trials: Number of montecarlo cycles
+    """
+    spins = initState  
+
+    return
+
 
 def main():
 

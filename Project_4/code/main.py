@@ -24,3 +24,8 @@ def figsetup(title, xlab, ylab, fname, legend=True, show=False, tightlayout=True
     else:
         plt.show()
     return
+
+def prob_1():
+    
+
+    return
