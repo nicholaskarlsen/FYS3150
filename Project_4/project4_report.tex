@@ -7,8 +7,8 @@
 \usepackage{listings}
 \usepackage{subfig}
 \usepackage{float}
-\usepackage{tikz}
-  \usetikzlibrary{matrix}
+\usepackage{tikz} % Send help 
+\usepackage{physics}
 
 \lstset{ %
   basicstyle=\footnotesize,        % the size of the fonts that are used for the code
@@ -57,7 +57,7 @@
       E = -J\sum_{<kl>} s_ks_l
       \label{eqn:ising_energy}
     \end{equation}
-    In this summation, the notation $<kl>$ means that for each $k$, we take the sum over each direct neighbor.
+    In this summation, the notation $<kl>$ means that for each $k$, we take the sum over each direct neighbor. However, in this project the lattice will be treated as pseudo-continuous where any spin-sites located at an edge, will also interact with the spin-site on the opposing edge, illustrated in Fig.~\ref{fig:ising_periodic bounds}, which strictly speaking constitutes having periodic boundary conditions.
 
     We also have the magnetization, $\mathcal M$, which is simply the sum of all spins
     \begin{equation*}
@@ -75,22 +75,17 @@
             % Draw 3x3 dot lattice
             \node[dot] at (\x,\y){};
             \node[dot] at (\x,\y){};
-
-            % Draw lines inbetween each neighbouring ndoe
-            \foreach \i in {1, -1}{
-            }
           }
         }
         \draw[thick, dashed] (1 + .1 , 1) -- (1 + 0.9, 1);
         \draw[thick, dashed] (1 - .1 , 1) -- (1 - 0.9, 1);
         \draw[thick, dashed] (1, 1 + .1) -- (1, 1 + 0.9);
         \draw[thick, dashed] (1, 1 - .1) -- (1, 1 - 0.9);
-
+        % Text 
         \draw (1+.25, 1+.2) node{$s_{k}$};
       \end{tikzpicture}
       \caption{Section of a 2D lattice, where each spin-site is represented by a dot. In the Ising model, spin-site $k$ will only interact with its directly neighbouring spin-sites, connected by dotted lines in this diagram\label{fig:spinsites}}
     \end{figure}
-
       \begin{figure}[H]
       \centering
       \begin{tikzpicture}
@@ -108,37 +103,82 @@
             \node[dot] at (\x,\y){};
           }  
         }    
-        %\draw[thick, dashed] (-2, 1 - .1) -- (-2, 1 - .1);
-        %\draw[thick, dashed] (-2, 1 - .1) -- (-2, -1 + .1 );
-        \draw[thick, dashed] (-2 + .1, 1) -- (-1 - .1, 1)
+        % Lines
+        \draw[thick, dashed] (-2, 0 + .1) -- (-2, 1 - .1);
+        \draw[thick, dashed] (-2, 0 - .1) -- (-2, -1 + .1 );
+        \draw[thick, dashed] (-2 + .1, 0) -- (-1 - .1, 0);
 
+        \draw[color=blue] (-2.5,0) ellipse (0.25cm and .5cm);
+        % Portal lines
+        \draw[thick, dashed] (-2 - .1, 0) -- (-2.5 + .1, 0);
+        \draw[thick, dashed] (2 + .1, 0) -- (2.5 - .1, 0);
+        \draw[color=orange] (2.5,0) ellipse (0.25cm and .5cm);
+        % Text
         \draw (0, 0) node{$\dots$};
-
+        \draw (-1.5, 1.5) node{Left Edge};
+        \draw (1.5, 1.5) node{Right Edge};
+        \draw (0, 1.5) node{...};
+        \draw (-2+.25, 0+.2) node{$s_{k}$};
       \end{tikzpicture}
-      \caption{Section of a 2D lattice, where each spin-site is represented by a dot. In the Ising model, spin-site $k$ will only interact with its directly neighbouring spin-sites, connected by dotted lines in this diagram\label{fig:spinsites}}
+      \caption{Spin-site $k$, located at the left edge of the lattice interacting with its direct neighbors, as well as the spin site on the opposite edge of the lattice
+      \label{fig:ising_periodic bounds}}
     \end{figure}
-
 
     \subsubsection{Boltzmann Statistics}
       From Eqn.~\ref{eqn:ising_energy} we can derive many thermodynamic quantities using Boltzmann statistics, where we have the probability of the system being in some specific macro-state\footnote{Macroscopic states being characterized by their energy, meaning i could just as well have written "... the probability of the system having some speciffic energy"}
       \begin{equation}
-        \mathcal P(E) = \frac{1}{Z} e^{-\beta E}
+        \mathcal P(E_s) = \frac{1}{Z} e^{-\beta E_s}
       \end{equation}
       With $\beta \equiv \frac{1}{k_B T}$, the thermodynamic beta and $Z$, the partition function, acting as a normalization factor given by\footnote{Strictly speaking, this is the partition function for a system with discrete macro-states. In the continuous case, simply replace sums with integrals.}
 
       \begin{equation}
-        Z = \sum_i e^{-\beta E_i}
+        Z = \sum_s e^{-\beta E_s}
       \end{equation}
-      Further, the exponential function $e^{-\beta E}$ is known as the Boltzmann factor.
-
-      Knowing the Boltzmann factors and partition function for a particular system, expectation value of some quantity $X$ can be computed by
+      From this, the expectation value of some quantity $X$, with a set of known macrostates $X_s$ can be computed by
 
       \begin{equation}
-        \left<X\right> = \sum_i X_i \mathcal P(E_i) = \frac{1}{Z} \sum_i X_i e^{-\beta E_i} 
+        \left<X\right> = \sum_s X_s \mathcal P(E_s) = \frac{1}{Z} \sum_s X_s e^{-\beta E_s} 
+      \end{equation}
+      Using this, we can compute the specific heat capacity, $C_V$ by computing the expectation values of $E, E^2$ \cite{statmek_lecnotes}, related by the following expression
+
+      \begin{equation}
+        C_V = \frac{\left<E^2\right> - \left<E\right>^2}{k_B T^2}
+      \end{equation}
+      Where $\left<X^2\right> - \left<X\right>^2$ is recognized as the square of the standard deviation in the normal distribution, $\sigma_X^2$.
+
+      In a similar fashion, the magnetic susceptibility, $\chi$, is calculated from $\sigma_\mathcal M ^2$ \cite{statmek_lecnotes}
+
+      \begin{equation}
+        \chi = \frac{\sigma^2_\mathcal M}{k_B T}
       \end{equation}
 
+      For more details on the Ising model, or Boltzmann statistics refer to \textcite[Chapters~6, 8.2]{schroeder}, \textcite{statmek_lecnotes}, or similar introductory texts on the topic.
 
+  \subsubsection{Analytic solution of 2x2 Lattice}
+    Consider now a 2x2 lattice, each with spin $\pm 1$.
+    The energy of the system for a particular micro-state is given by Eqn.~\ref{eqn:ising_energy}.
 
+     \begin{figure}[H]
+      \centering
+      \begin{tikzpicture}
+        [%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        dot/.style={circle,draw=black, fill,inner sep=1pt},
+        ]%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+        \foreach \x in {0,...,1}{
+          \foreach \y in {0,...,1}{
+            % Draw 3x3 dot lattice
+            \node[dot] at (\x,\y){};
+            \node[dot] at (\x,\y){};
+          }
+        }
+        \draw (0+.25, 1+.2) node{$s_{1}$};
+        \draw (1+.25, 1+.2) node{$s_{2}$};
+        \draw (0+.25, 0+.2) node{$s_{3}$};
+        \draw (1+.25, 0+.2) node{$s_{4}$};
+
+      \end{tikzpicture}
+      \caption{A $2\times2$ lattice of spin-sites}
+    \end{figure}
 
   \subsection{The Metropolis Algorithm}
 
