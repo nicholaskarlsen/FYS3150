@@ -49,7 +49,7 @@
   \subsection{The Ising Model}
     In its simplest case, a paramagnet is described as a lattice of noninteracting dipole moments, each in a state up or down. Where the energy of the system is proportional to the sum of the spins, up or down of each noninteracting constituent.
 
-    The Ising model is a natural extension to this, by adding local interaction between directly neighboring spins (See fig. \ref{fig:spinsites}), such that the energy of the system is instead proportional to the sum of each spin coupled with its nearest neighbors, which gives a much more accurate description of the system compared to the simple case of an ideal paramagnet.
+    The Ising model is a natural extension to this, by adding local interaction between directly neighboring spins (See fig. \ref{fig:spinsites}), such that the energy of the system is instead proportional to the sum of the interactions of all coupled spins, which gives a much more accurate description of the system compared to the simple case of an ideal paramagnet.
 
     Or more precisely, the energy is given by Eqn.~\ref{eqn:ising_energy}, where $s_i \in \{-1, 1\}$ and $J$ is a coupling constant.
 
@@ -57,12 +57,7 @@
       E = -J\sum_{<kl>} s_ks_l
       \label{eqn:ising_energy}
     \end{equation}
-    In this summation, the notation $<kl>$ means that for each $k$, we take the sum over each direct neighbor. However, in this project the lattice will be treated as pseudo-continuous where any spin-sites located at an edge, will also interact with the spin-site on the opposing edge, illustrated in Fig.~\ref{fig:ising_periodic bounds}, which strictly speaking constitutes having periodic boundary conditions.
-
-    We also have the magnetization, $\mathcal M$, which is simply the sum of all spins
-    \begin{equation*}
-      \mathcal M = \sum_i s_i
-    \end{equation*}
+    In this summation, the notation $<kl>$ means that we take the sum over each direct interaction. Consider again Fig.\ref{eqn:ising_energy}. The contribution, $\epsilon_i$, to the total energy due the interactions at spin-site $i$ is the sum of its interactions, $\epsilon_i = s_i(s_\uparrow + s_\downarrow + s_\leftarrow + s_\rightarrow)$ where the arrows denote the spin-site directly neighboring site $i$ in the direction of the arrow. Now wish to compute the energy contribution due to the interactions at the spin-site left of site $i$. In this case, the interaction between it, and spin-site $i$ has already been computed, and must not be counted again. So in that sense, $\sum_{<kl>}s_ks_l$ should be thought of as a sum over interactions between spins, and not so much the interactions between neighboring spins at each spin-site, which is only strictly true when considering a single spin-site. 
 
     \begin{figure}[H]
       \centering
@@ -82,10 +77,17 @@
         \draw[thick, dashed] (1, 1 + .1) -- (1, 1 + 0.9);
         \draw[thick, dashed] (1, 1 - .1) -- (1, 1 - 0.9);
         % Text 
-        \draw (1+.25, 1+.2) node{$s_{k}$};
+        \draw (1+.25, 1+.2) node{$s_{i}$};
       \end{tikzpicture}
-      \caption{Section of a 2D lattice, where each spin-site is represented by a dot. In the Ising model, spin-site $k$ will only interact with its directly neighbouring spin-sites, connected by dotted lines in this diagram\label{fig:spinsites}}
+      \caption{Section of a 2D lattice, where each spin-site is represented by a dot. In the Ising model, spin-site $i$ will only interact with its directly neighbouring spin-sites, connected by dotted lines in this diagram\label{fig:spinsites}}
     \end{figure}
+
+    Further, in this project the lattice will be treated as pseudo-continuous where any spin-sites located at an edge, will also interact with the spin-site on the opposing edge, illustrated in Fig.~\ref{fig:ising_periodic bounds}, which strictly speaking constitutes having periodic boundary conditions. If instead we had fixed boundary conditions, there would simply be no such across-lattice interactions, and spin-sites located at the edges would then only interact with 3 other spin-sites (2 in the case of corner sites) in the 2D case.
+
+    Much simpler, the net magnetization, $\mathcal M$, of the system is taken as the sum over all spins
+    \begin{equation*}
+      \mathcal M = \sum_i s_i
+    \end{equation*}
       \begin{figure}[H]
       \centering
       \begin{tikzpicture}
@@ -118,14 +120,14 @@
         \draw (-1.5, 1.5) node{Left Edge};
         \draw (1.5, 1.5) node{Right Edge};
         \draw (0, 1.5) node{...};
-        \draw (-2+.25, 0+.2) node{$s_{k}$};
+        \draw (-2+.25, 0+.2) node{$s_{i}$};
       \end{tikzpicture}
-      \caption{Spin-site $k$, located at the left edge of the lattice interacting with its direct neighbors, as well as the spin site on the opposite edge of the lattice
+      \caption{Spin-site $i$, located at the left edge of the lattice interacting with its direct neighbors, as well as the spin site on the opposite edge of the lattice
       \label{fig:ising_periodic bounds}}
     \end{figure}
 
     \subsubsection{Boltzmann Statistics}
-      From Eqn.~\ref{eqn:ising_energy} we can derive many thermodynamic quantities using Boltzmann statistics, where we have the probability of the system being in some specific macro-state\footnote{Macroscopic states being characterized by their energy, meaning i could just as well have written "... the probability of the system having some speciffic energy"}
+      From this model we can derive many thermodynamic quantities by the use of Boltzmann statistics, where we have the probability of the system being in some specific macro-state\footnote{Macroscopic states being characterized by their energy, meaning i could just as well have written "... the probability of the system having some speciffic energy"} at temperature\footnote{Contained within $\beta$ in this notation}
       \begin{equation}
         \mathcal P(E_s) = \frac{1}{Z} e^{-\beta E_s}
       \end{equation}
@@ -144,7 +146,7 @@
       \begin{equation}
         C_V = \frac{\left<E^2\right> - \left<E\right>^2}{k_B T^2}
       \end{equation}
-      Where $\left<X^2\right> - \left<X\right>^2$ is recognized as the square of the standard deviation in the normal distribution, $\sigma_X^2$.
+      Where $\left<X^2\right> - \left<X\right>^2$ is recognized as the variance of a set of randomly distributed quantities, $\sigma_X^2$.
 
       In a similar fashion, the magnetic susceptibility, $\chi$, is calculated from $\sigma_\mathcal M ^2$ \cite{statmek_lecnotes}
 
@@ -156,7 +158,12 @@
 
   \subsubsection{Analytic solution of 2x2 Lattice}
     Consider now a 2x2 lattice, each with spin $\pm 1$.
-    The energy of the system for a particular micro-state is given by Eqn.~\ref{eqn:ising_energy}.
+    The energy of the system for a particular micro-state is given by Eqn.~\ref{eqn:ising_energy}, so for a $2\times2$ lattice we have
+
+    \begin{equation}
+      E = -J\sum_{<kl>}s_{kl} = -J\qty( 2s_1s_2 + 2s_1s_3 + 2s_2s_4 + 2s_3s_4)
+    \end{equation}
+    So in the micro-state where all the spins are aligned in parallel, we have $E=\pm J$
 
      \begin{figure}[H]
       \centering
@@ -181,6 +188,10 @@
     \end{figure}
 
   \subsection{The Metropolis Algorithm}
+
+\begin{lstlisting}[mathescape=true, language=python, title=Metropolis Algorithm]
+
+\end{lstlisting}
 
 \section{Results and Discussions}
 
