@@ -1,5 +1,8 @@
 from __future__ import division
+import numpy as np
 import matplotlib.pyplot as plt
+import metropolis as met
+from scipy.constants import k
 
 
 def figsetup(title, xlab, ylab, fname, legend=True, show=False, tightlayout=True):
@@ -25,7 +28,38 @@ def figsetup(title, xlab, ylab, fname, legend=True, show=False, tightlayout=True
         plt.show()
     return
 
+def E_mean(Temp):
+    beta = 1.0 / (k * Temp) 
+    return -8 * np.sinh(8 * beta) / (np.cosh(8 * beta) + 3) 
+
 def prob_1():
     
 
     return
+
+
+def prob_2():
+
+    L = 25
+    n_temps = 10
+    temps = np.linspace(2.2, 2.4, n_temps)
+    initstate = met.generateState(L, 1)
+    E = np.zeros(n_temps)
+    E2 = np.zeros(n_temps)
+    for i in range(n_temps):
+        E[i], E2[i] = met.montecarlo(spins=initstate, T=temps[i], trials=1e6)
+
+    plt.plot(temps, E / L**2)
+    plt.show()
+
+    return
+
+def main():
+
+    prob_2()
+    return
+
+
+
+if __name__ == '__main__':
+    main()

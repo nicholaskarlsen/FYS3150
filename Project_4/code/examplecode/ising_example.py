@@ -40,7 +40,8 @@ def monteCarlo(temp, size, trials):
 
     # Create and initialize variables
     E = 0
-    E_av = E2_av = 0
+    E_av = 0
+    E2_av = 0
 
     # Setup array for possible energy changes
     w = numpy.zeros(17, numpy.float64)
