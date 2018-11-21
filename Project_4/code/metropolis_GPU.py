@@ -41,7 +41,6 @@ def montecarlo(spins, T, trials):
     M_mean = 0      # ... Magnetization
     M2_mean = 0     # ... Magnetization^2
     M_abs_mean = 0  # ... Absolute Magnetization
-    M2_abs_mean = 0  # ... Absolute Magnetization
 
     # Compute initial energy of the system
     for j in xrange(N):
@@ -60,10 +59,9 @@ def montecarlo(spins, T, trials):
     for i in xrange(trials):
         # Perform metropolis algorithm
         for s in xrange(int(N**2)):     # Loop through N^2 randomly chosen spin-sites
-            # Generate random positions within lattice
             x = np.random.randint(0, N)
             y = np.random.randint(0, N)
-            # Compute change of energy
+
             dE = 2 * spins[x, y] *\
                 (spins[periodic(x, N, -1), y] +
                  spins[periodic(x, N, 1), y] +
@@ -81,7 +79,6 @@ def montecarlo(spins, T, trials):
         M_mean += M
         M2_mean += M**2
         M_abs_mean += abs(M)
-        M2_abs_mean += abs(M)**2
 
     # Normalize
     E_mean /= float(trials)         # Mean energy
@@ -89,24 +86,22 @@ def montecarlo(spins, T, trials):
     M_mean /= float(trials)         # ... Magnetic moment
     M2_mean /= float(trials)        # ... Magnetic moment^2
     M_abs_mean /= float(trials)     # ... Magnetization
-    M2_abs_mean /= float(trials)
     # Calculate variance and normalize to per-point and temp
     E_variance = (E2_mean - E_mean**2) / float(N**2 * T**2)
-    M_variance = (M2_mean - M_mean**2) / float(N**2 * T**2)
-    M_abs_variance = (M2_abs_mean - M_abs_mean**2) / float(N**2 * T**2)
+    M_variance = (E2_mean - E_mean**2) / float(N**2 * T**2)
     # Normalize returned averages to per-point
     E_mean /= float(N**2)       # Mean energy
     M_mean /= float(N**2)       # Mean magnetic moment
     M_abs_mean /= float(N**2)   # Mean magnetization
     # Compute derived values
     Cv = E_variance / T**2      # Speciffic Heat Capacitance
-    chi = M_abs_variance / T        # Magnetic Suceptibility
+    chi = M_variance / T        # Magnetic Suceptibility
 
     return E_mean, M_mean, M_abs_mean, Cv, chi
 
 
 def main():
-    initspins = generateState(2, 1)
+    initspins = generateState(2)
     print(montecarlo(spins=initspins, T=1, trials=1e7))
     return
 

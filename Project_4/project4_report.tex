@@ -9,6 +9,8 @@
 \usepackage{float}
 \usepackage{tikz} % Send help 
 \usepackage{physics}
+\usepackage{algorithmic}
+
 
 \lstset{ %
   basicstyle=\footnotesize,        % the size of the fonts that are used for the code
@@ -31,14 +33,14 @@
   tabsize=2,                       % sets default tabsize to 2 spaces
 }
 
-
+\newcommand{\lexp}{\ket{\downarrow}}
 \begin{document}
 \title{FYS3150 Computational Physics - Project 4}
 \author{Nicholas Karlsen}
 
 
 \begin{abstract}
-  This is an abstract
+  Using the Metropolis algorithm to study a system of weakly coupled paramagnets, the Ising model. Derived exact solutions of expectation values for a 2x2 lattice and found that the required $\sim10^5$ Monte-Carlo cycles to consistent results with $\sigma\sim10^{-3}$.
 \end{abstract}
 
 \maketitle
@@ -49,7 +51,7 @@
   \subsection{The Ising Model}
     In its simplest case, a paramagnet is described as a lattice of noninteracting dipole moments, each in a state up or down. Where the energy of the system is proportional to the sum of the spins, up or down of each noninteracting constituent.
 
-    The Ising model is a natural extension to this, by adding local interaction between directly neighboring spins (See fig. \ref{fig:spinsites}), such that the energy of the system is instead proportional to the sum of the interactions of all coupled spins, which gives a much more accurate description of the system compared to the simple case of an ideal paramagnet.
+    The Ising model is a natural extension to this, by adding local interaction between directly neighboring spins (See fig. \ref{fig:spinsites}), such that the energy of the system is instead proportional to the sum of the interactions of all coupled spins, which gives a more accurate description of the system compared to the simple case of an ideal paramagnet.
 
     Or more precisely, the energy is given by Eqn.~\ref{eqn:ising_energy}, where $s_i \in \{-1, 1\}$ and $J$ is a coupling constant.
 
@@ -57,7 +59,8 @@
       E = -J\sum_{<kl>} s_ks_l
       \label{eqn:ising_energy}
     \end{equation}
-    In this summation, the notation $<kl>$ means that we take the sum over each direct interaction. Consider again Fig.\ref{eqn:ising_energy}. The contribution, $\epsilon_i$, to the total energy due the interactions at spin-site $i$ is the sum of its interactions, $\epsilon_i = s_i(s_\uparrow + s_\downarrow + s_\leftarrow + s_\rightarrow)$ where the arrows denote the spin-site directly neighboring site $i$ in the direction of the arrow. Now wish to compute the energy contribution due to the interactions at the spin-site left of site $i$. In this case, the interaction between it, and spin-site $i$ has already been computed, and must not be counted again. So in that sense, $\sum_{<kl>}s_ks_l$ should be thought of as a sum over interactions between spins, and not so much the interactions between neighboring spins at each spin-site, which is only strictly true when considering a single spin-site. 
+    In this sum, the notation $<kl>$ means that we take the sum over each coupling $s_k s_l$.
+    Consider again Fig.\ref{eqn:ising_energy}. The contribution, $\epsilon_i$, to the total energy due the interactions at spin-site $i$ is the sum of its interactions, $\epsilon_i = s_i(s_\uparrow + s_\downarrow + s_\leftarrow + s_\rightarrow)$ where the arrows denote the spin-site directly neighboring site $i$ in the direction of the arrow. Now wish to compute the energy contribution due to the interactions at the spin-site left of site $i$. In this case, the interaction between it, and spin-site $i$ has already been computed, and must not be counted again.
 
     \begin{figure}[H]
       \centering
@@ -131,30 +134,33 @@
       \begin{equation}
         \mathcal P(E_s) = \frac{1}{Z} e^{-\beta E_s}
       \end{equation}
-      With $\beta \equiv \frac{1}{k_B T}$, the thermodynamic beta and $Z$, the partition function, acting as a normalization factor given by\footnote{Strictly speaking, this is the partition function for a system with discrete macro-states. In the continuous case, simply replace sums with integrals.}
+      With $\beta \equiv \frac{1}{k_B T}$, the thermodynamic beta and $Z$, the partition function, acting as a normalization factor given by
 
       \begin{equation}
         Z = \sum_s e^{-\beta E_s}
       \end{equation}
-      From this, the expectation value of some quantity $X$, with a set of known macrostates $X_s$ can be computed by
+      From this, the expectation value of some quantity $X$, with micro-states $X_s$ can be computed by
 
       \begin{equation}
         \left<X\right> = \sum_s X_s \mathcal P(E_s) = \frac{1}{Z} \sum_s X_s e^{-\beta E_s} 
+        \label{eqn:expecval}
       \end{equation}
       Using this, we can compute the specific heat capacity, $C_V$ by computing the expectation values of $E, E^2$ \cite{statmek_lecnotes}, related by the following expression
 
       \begin{equation}
         C_V = \frac{\left<E^2\right> - \left<E\right>^2}{k_B T^2}
+        \label{eqn:speciffic heat}
       \end{equation}
       Where $\left<X^2\right> - \left<X\right>^2$ is recognized as the variance of a set of randomly distributed quantities, $\sigma_X^2$.
 
-      In a similar fashion, the magnetic susceptibility, $\chi$, is calculated from $\sigma_\mathcal M ^2$ \cite{statmek_lecnotes}
+      In a similar fashion, the magnetic susceptibility\footnote{Using the absolute magnetization to compute $\chi$, in line with the problem text for 4e}, $\chi$, is calculated from $\sigma_{\mathcal |M|} ^2$ \cite{statmek_lecnotes}
 
       \begin{equation}
-        \chi = \frac{\sigma^2_\mathcal M}{k_B T}
+        \chi = \frac{\sigma^2_\mathcal{|M|}}{k_B T}
+        \label{eqn:suceptibility}
       \end{equation}
 
-      For more details on the Ising model, or Boltzmann statistics refer to \textcite[Chapters~6, 8.2]{schroeder}, \textcite{statmek_lecnotes}, or similar introductory texts on the topic.
+      For more details on the Ising model, or Boltzmann statistics refer to \textcite[Ch~6, 8.2]{schroeder}, \textcite{statmek_lecnotes}, or similar introductory texts on the topic.
 
   \subsubsection{Analytic solution of 2x2 Lattice}
     Consider now a 2x2 lattice, each with spin $\pm 1$.
@@ -163,7 +169,7 @@
     \begin{equation}
       E = -J\sum_{<kl>}s_{kl} = -J\qty( 2s_1s_2 + 2s_1s_3 + 2s_2s_4 + 2s_3s_4)
     \end{equation}
-    So in the micro-state where all the spins are aligned in parallel, we have $E=\pm J$
+    The multiplicity, that is number of possible combinations of micro-states for a system consisting of 4 spins is $2^4=16$.
 
      \begin{figure}[H]
       \centering
@@ -187,13 +193,120 @@
       \caption{A $2\times2$ lattice of spin-sites}
     \end{figure}
 
+    If we first consider the micro-state in which all the spins are in parallel, we get energy $E=-8J$. Thus, this particular macro-state is at least 2-fold degenerate\footnote{Two micro-states corresponds to the same observable macrso-state.}.
+    The different micro-states and their degeneracies are summed up in table \ref{tab:2x2energies} from \textcite{statmek_lecnotes}
+
+    \begin{table}[H]
+      \centering
+      \caption{\label{tab:2x2energies} Possible configurations of 2x2 lattice}
+      \begin{tabular}{llrr}
+        No. spin up & Degeneracy & $E$ & $\mathcal M$ \\ \hline
+        4 & 1 & -8J & 4 \\
+        3 & 4 & 0 & 2 \\
+        2 & 4 & 0 & 0 \\
+        2 & 2 & 8J & 0 \\
+        1 & 4 & 0 & -2 \\
+        0 & 1 & -8J & -4 \\ \hline
+      \end{tabular}
+    \end{table}
+
+    See that there are only 3 distinct energy macro-states, $E=-8J, 0, 8J$ corresponding to $2, 12$ and $2$ of the possible micro-states respectively.
+
+    It is then easy to see that the partition function for the system will take the following form
+    \begin{equation}
+      Z = 2e^{+8J\beta} + 2e^{-8J\beta} + 12 = 4\cosh(8J\beta) + 12
+    \end{equation}
+
+    From this, we derive analytic values for $\langle E \rangle, \langle |\mathcal M| \rangle , C_V$ and $\chi$. 
+
+    First, compute the expectation value of the energy using an alternate, simpler expression from \textcite[Ch~6.2]{schroeder}
+
+    \begin{equation}
+      \langle E \rangle = -\frac{1}{Z}\pderivative{\beta}Z = -\frac{8J\sinh(8J\beta)}{\cosh(8J\beta) + 3}
+    \end{equation}
+    Similarly, the expectation value of $E^2$ is computed easily by another expression found in \textcite[Ch~6.2]{schroeder}
+    \begin{equation}
+      \langle E^2 \rangle = -\frac{1}{Z}\frac{\partial^2}{\partial\beta^2}Z = - \frac{64J^2 \cosh(8J\beta)}{\cosh(8J\beta) + 3}
+    \end{equation}
+    From this, we compute the variance of $E$
+    \begin{align}
+      \begin{split}
+        \sigma_E^2 &= \langle E^2 \rangle - \langle E \rangle ^2 
+          \\
+        &= \frac{-64J^2}{\cosh(8J\beta)+3} \qty(\cosh(8J\beta) + \frac{\sinh^2(8J \beta)}{\cosh(8J\beta) + 3})
+      \end{split}
+    \end{align}
+    With which we can compute $C_V$ using Eqn.~\ref{eqn:speciffic heat}. Compute expectation values of $|\mathcal M|, |\mathcal M|^2$ using Eqn.~\ref{eqn:expecval} and Table~\ref{tab:2x2energies}
+
+    \begin{align}
+      \begin{split}
+        \langle |\mathcal M | \rangle &= \frac{1}{Z} \sum_s |\mathcal M_s | e^{-\beta E_s} 
+          \\
+        &= \frac{8e^{8J\beta} + 16e^0}{Z} = \frac{2e^{8J\beta} + 4}{\cosh(8J\beta) + 3}
+      \end{split}
+    \end{align}
+
+    \begin{align}
+      \begin{split}
+        \langle |\mathcal M |^2 \rangle &= \frac{1}{Z}\sum_s|\mathcal M_s|^2e^{-\beta E_s} 
+          \\
+        &= \frac{1}{Z}\qty(16e^{8J} + 32e^{0}) = \frac{4e^{8J\beta} + 8}{\cosh(8J\beta) + 3}
+      \end{split}
+    \end{align}
+    We then compute the variance of the net magnetization
+    \begin{align}
+      \begin{split}
+        \sigma_{\mathcal M}^2 &= \langle |\mathcal M|^2\rangle - \langle |\mathcal M|\rangle^2
+          \\
+        &= \frac{1}{\cosh(8J\beta) + 3}\qty(4e^{8J\beta} + 8 - \frac{4e^{16J\beta}+16}{\cosh(8J\beta) + 3})
+      \end{split}
+    \end{align}
+    Which can be used to compute the magnetic susceptibility using Eqn~\ref{eqn:suceptibility}.
   \subsection{The Metropolis Algorithm}
 
 \begin{lstlisting}[mathescape=true, language=python, title=Metropolis Algorithm]
+Initialize State 
 
 \end{lstlisting}
 
 \section{Results and Discussions}
+
+  See in Fig \ref{fig:convergence 2x2}
+
+  \begin{figure*}[h!t]
+    \center
+    \subfloat[][$\langle E \rangle$]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_E.pdf}
+      }
+    \subfloat[][$\langle |\mathcal M| \rangle$]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_M_abs.pdf}
+      }
+    \subfloat[][$\langle C_v \rangle$]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_Cv.pdf}
+      }
+    \subfloat[][$\langle \chi \rangle$]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_chi.pdf}
+      }
+      \\
+    \subfloat[][$\sigma_{\langle E \rangle}$]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_E_std.pdf}
+      }
+    \subfloat[][$\sigma_{\langle |\mathcal M| \rangle}$]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_M_abs_std.pdf}
+      }
+    \subfloat[][$\sigma_{\langle C_v \rangle}$]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_Cv_std.pdf}
+      }
+    \subfloat[][$\sigma_{\langle \chi \rangle}$]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_chi_std.pdf}
+      }
+    \caption{\label{fig:convergence 2x2} 
+      (a-d) Computed results from running the algorithm 3000 times per number of monte-carlo cycles for 
+      select expectation values with an ordered initial state of a 2x2 lattice of spin ups. (e-h) The standard deviation (Std.) of the computed results.
+    }
+  \end{figure*}
+
+
 
 \section{Conclusions}
 
