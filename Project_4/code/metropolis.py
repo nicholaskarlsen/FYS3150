@@ -3,8 +3,8 @@
 # Based on script from lecture notes
 from __future__ import division, print_function  # Nobody expects the integer division
 import numpy as np
-from numba import njit, prange
-import matplotlib.pyplot as plt
+from numba import njit
+
 
 def generateState(N, spin=False):
     # function wrapper which returns [N, N] array of random values in [-1, 1]
@@ -17,8 +17,8 @@ def generateState(N, spin=False):
     return array
 
 
-@njit
-def montecarlo(spins, T, trials):
+@njit   # JIT with enforced nopython=True
+def montecarlo(spins, T, trials, returnCounter=False):
     """
     N: size of square lattice
     initState: Initial state of system, [N, N] array with entries +/-1
@@ -33,9 +33,9 @@ def montecarlo(spins, T, trials):
 
     N = len(spins)                             # Ensure that N is int
     trials = int(trials)                       # ...           is int
+    counter = 0                                # For counting accepted flips
 
     # Initialize variables
-    E = 0           # Energy
     E_mean = 0      # Expectation value of Energy
     E2_mean = 0     # ... Energy^2
     M_mean = 0      # ... Magnetization
@@ -43,13 +43,16 @@ def montecarlo(spins, T, trials):
     M_abs_mean = 0  # ... Absolute Magnetization
     M2_abs_mean = 0  # ... Absolute Magnetization
 
+    E = np.zeros(trials)
+    M = np.zeros(trials)
+
     # Compute initial energy of the system
     for j in xrange(N):
         for i in xrange(N):
-            E -= spins[i, j] * (spins[periodic(i, N, -1), j] + spins[i, periodic(j, N, 1)])
+            E[0] -= spins[i, j] * (spins[periodic(i, N, -1), j] + spins[i, periodic(j, N, 1)])
 
     # And initial Magnetization
-    M = np.sum(spins)
+    M[0] = np.sum(spins)
 
     # Pre-compute possible change of energy
     w = np.zeros(17, dtype=np.float64)
@@ -57,8 +60,11 @@ def montecarlo(spins, T, trials):
         w[dE + 8] = np.exp(-dE / T)
 
     # Begin Monte-Carlo trials
-    for i in xrange(trials):
+    for i in xrange(1, trials + 1):
         # Perform metropolis algorithm
+        # Set current energy to previous final energy before sweeping lattice
+        E[i] = E[i - 1]
+        M[i] = M[i - 1]
         for s in xrange(int(N**2)):     # Loop through N^2 randomly chosen spin-sites
             # Generate random positions within lattice
             x = np.random.randint(0, N)
@@ -73,24 +79,27 @@ def montecarlo(spins, T, trials):
             if np.random.random() <= w[dE + 8]:
                 # Accept!
                 spins[x, y] *= -1
-                E += dE
-                M += 2 * spins[x, y]
+                E[i] += dE
+                M[i] += 2 * spins[x, y]
+                counter += 1
 
-        E_mean += E
-        E2_mean += E**2
-        M_mean += M
-        M2_mean += M**2
-        M_abs_mean += abs(M)
-        M2_abs_mean += abs(M)**2
+        # Slightly faster than taking sum outside, 0.3s for trials=1e7
+        E_mean += E[i]      # Expectation value of Energy
+        E2_mean += E[i]**2     # ... Energy^2
+        M_mean += M[i]      # ... Magnetization
+        M2_mean += M[i]**2     # ... Magnetization^2
+        M_abs_mean += abs(M[i])  # ... Absolute Magnetization
+        M2_abs_mean += abs(M[i])**2  # ... Absolute Magnetization
 
-    # Normalize
-    E_mean /= float(trials)         # Mean energy
-    E2_mean /= float(trials)        # ... energy^2
-    M_mean /= float(trials)         # ... Magnetic moment
-    M2_mean /= float(trials)        # ... Magnetic moment^2
-    M_abs_mean /= float(trials)     # ... Magnetization
-    M2_abs_mean /= float(trials)
-    # Calculate variance and normalize to per-point and temp
+    # Compute mean values
+    E_mean /= trials
+    E2_mean /= trials
+    M_mean /= trials
+    M2_mean /= trials
+    M_abs_mean /= trials
+    M2_abs_mean /= trials
+
+    # Compute variance and normalize to per-point and temp
     E_variance = (E2_mean - E_mean**2) / float(N**2 * T**2)
     M_variance = (M2_mean - M_mean**2) / float(N**2 * T**2)
     M_abs_variance = (M2_abs_mean - M_abs_mean**2) / float(N**2 * T**2)
@@ -102,12 +111,12 @@ def montecarlo(spins, T, trials):
     Cv = E_variance / T**2      # Speciffic Heat Capacitance
     chi = M_abs_variance / T        # Magnetic Suceptibility
 
-    return E_mean, M_mean, M_abs_mean, Cv, chi
+    return E, M, [E_mean, M_mean, M_abs_mean, Cv, chi], counter
 
 
 def main():
     initspins = generateState(2, 1)
-    print(montecarlo(spins=initspins, T=1, trials=1e7))
+    montecarlo(spins=initspins, T=1, trials=1e6)
     return
 
 

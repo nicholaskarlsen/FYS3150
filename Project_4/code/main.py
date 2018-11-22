@@ -2,7 +2,6 @@ from __future__ import division
 import numpy as np
 import matplotlib.pyplot as plt
 import metropolis as met
-from scipy.constants import k
 import time
 import os
 
@@ -37,7 +36,7 @@ def theoreticalVals(T):
     # Assumes J = 1
     # Expectation values
     E_theo = -8 * np.sinh(8 / T) / (3 + np.cosh(8 / T))
-    E2_theo = - (64 * np.cosh(8 / T)) / (np.cosh(8 / T) + 3)
+    E2_theo = (64 * np.cosh(8 / T)) / (np.cosh(8 / T) + 3)
     M_theo = 0
     M_abs_theo = (2 * np.exp(8 / T) + 4) / (np.cosh(8 / T) + 3)
     M2_abs_theo = (4 * np.exp(8 / T)) / (np.cosh(8 / T) + 3)
@@ -47,25 +46,12 @@ def theoreticalVals(T):
     # Derived variables
     C_v_theo = E_var / T**2
     chi_theo = M_abs_var / T
+    print chi_theo
+    chi_theo = (4 / (T * (np.cosh(8 / T) + 3))) * (2 * (np.exp(8 / T) + 1)
+                                                   - ((np.exp(8 / T) + 2)**2) / (np.cosh(8 / T) + 3))
+    print chi_theo
 
     return np.array([E_theo, M_theo, M_abs_theo, C_v_theo, chi_theo])
-
-
-def prob_2():
-
-    L = 25
-    n_temps = 10
-    temps = np.linspace(2.2, 2.4, n_temps)
-    initstate = met.generateState(L, 1)
-    E = np.zeros(n_temps)
-    E2 = np.zeros(n_temps)
-    for i in range(n_temps):
-        E[i], E2[i] = met.montecarlo(spins=initstate, T=temps[i], trials=1e6)
-
-    plt.plot(temps, E / L**2)
-    plt.show()
-
-    return
 
 
 def prob_b():
@@ -102,7 +88,7 @@ def prob_b():
         # if it is not, run algorithm (Which takes ~30-60 mins)
         for i in range(len(cycles)):              # For each cycles
             for j in range(n_samples):            # Run algorithm n_samples times & store results
-                E[i, j], M[i, j], M_abs[i, j], Cv[i, j], chi[i, j] = met.montecarlo(spins=initState_o, T=1, trials=cycles[i])
+                E[i, j], M[i, j], M_abs[i, j], Cv[i, j], chi[i, j] = met.montecarlo(spins=initState_o, T=1, trials=cycles[i])[-1]
                 print "Running: No. Trials - %.1e, Sample No. - %i/%i, <E> = %.3f, <M> = %.3f " % (cycles[i], j, n_samples, E[i, j], M[i, j])
         # Save data for future use
         np.save(relpath + fnames[0], E)
@@ -128,17 +114,12 @@ def prob_b():
     Cv_std = [np.std(Cv[i]) for i in range(len(cycles))]
     chi_std = [np.std(chi[i]) for i in range(len(cycles))]
 
-    # Mean difference from expectation value
-
-    ##################
-    # Generate plots #
-    ##################
-    # First plots for expectation values produced by algorithm for each parameter.
-    # Energy
-
+    # Generate plots
     width = 3
     height = 5
 
+    # Plots for expectation values produced by algorithm for each parameter.
+    # Energy
     plt.figure(figsize=[width, height])
     plt.axhline(theoVals[0], color="red", label="Theoretical Value", linestyle="--")
     for i in range(len(cycles)):
@@ -212,8 +193,122 @@ def prob_b():
 
 
 def prob_c():
+    n_samples = 100  # number of samples per cycle
+    T = [1, 2.4]
 
+    sec1 = np.linspace(1, 100, 100)
+    sec2 = np.linspace(int(1e2), int(1e3), 20)
+    sec3 = np.linspace(int(1e3), int(1e4), 10)
+    mc_trials = np.append(sec1, sec2, axis=0)
+    mc_trials = np.append(mc_trials, sec3, axis=0)
+    mc_trials = np.append(mc_trials, np.array([1e5, 1e6]))
+    num_trials = len(mc_trials)
+
+    E_mean_o = np.zeros([2, num_trials])
+    E_mean_d = np.zeros([2, num_trials])
+    M_mean_o = np.zeros([2, num_trials])
+    M_mean_d = np.zeros([2, num_trials])
+
+    # needs to store at most num_trials values in third nested array
+    counter_o = np.zeros([2, num_trials])
+    counter_d = np.zeros([2, num_trials])
+
+    relpath = "../data/"
+    fnames = [relpath + "prob_c_" + var + ".npy" for var in ["E_d_", "E_o_", "M_d_,", "M_o_", "c_d", "c_o"]]
+
+    if os.path.isfile(fnames[0]) is False:
+        # First ordered states
+        initState_o = met.generateState(20, -1)  # Re-use same ordered state for all computations
+        for i in range(len(T)):
+            for j, trials in enumerate(mc_trials):  # For each number of monte carlo cycles
+                print "Running trials:", j
+                for k in range(n_samples):  # Compute mean 100 times and return mean result
+                    # returns E, M, [E_mean, M_mean, M_abs_mean, Cv, chi], counter
+                    tmp_o = met.montecarlo(spins=initState_o, T=T[i], trials=trials)
+                    E_mean_o[i][j] += tmp_o[2][0]
+                    M_mean_o[i][j] += tmp_o[2][2]
+                    counter_o[i][j] += tmp_o[-1]
+                    # Dissordered state, with new one each sample!
+                    tmp_d = met.montecarlo(spins=met.generateState(20), T=T[i], trials=trials)
+                    E_mean_d[i, j] += tmp_d[2][0]
+                    M_mean_d[i, j] += tmp_d[2][2]
+                    counter_d[i, j] += tmp_d[-1]
+                # Normalize
+                E_mean_o[i][j] /= n_samples
+                M_mean_o[i][j] /= n_samples
+                counter_o[i][j] /= n_samples
+                E_mean_d[i][j] /= n_samples
+                M_mean_d[i][j] /= n_samples
+                counter_d[i][j] /= n_samples
+
+
+        np.save(fnames[0], E_mean_d)
+        np.save(fnames[1], E_mean_o)
+        np.save(fnames[2], M_mean_d)
+        np.save(fnames[3], M_mean_o)
+        np.save(fnames[4], counter_d)
+        np.save(fnames[5], counter_o)
+
+    else:
+        E_mean_d = np.load(fnames[0])
+        E_mean_o = np.load(fnames[1])
+        M_mean_d = np.load(fnames[2])
+        M_mean_o = np.load(fnames[3])
+        counter_d = np.load(fnames[4])
+        counter_o = np.load(fnames[5])
+
+    width = 4
+    height = 2.5
+
+    for i in range(2):
+        plt.figure(figsize=[width, height])
+        plt.plot(mc_trials, E_mean_o[i], "rx", label="Ordered", alpha=0.5)
+        plt.plot(mc_trials, E_mean_d[i], "bx", label="Dissordered", alpha=0.5)
+        figsetup(title="T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="Mean computed $\\left<E\\right>/L^2$",
+                 fname="exc_E_%i" % T[i], legend=True)
+
+        plt.figure(figsize=[width, height])
+        plt.plot(mc_trials, M_mean_o[i], "rx", label="Ordered", alpha=0.5)
+        plt.plot(mc_trials, M_mean_d[i], "bx", label="Dissordered", alpha=0.5)
+        figsetup(title="T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="Mean computed $\\left<|M|\\right>/L^2$",
+                 fname="exc_M_%i" % T[i], legend=True)
+
+        plt.figure(figsize=[width, height])
+        plt.plot(mc_trials, counter_o[i], "rx", label="Ordered", alpha=0.5)
+        plt.plot(mc_trials, counter_d[i], "bx", label="Dissordered", alpha=0.5)
+        figsetup(title="T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="No. accepted configs.",
+                 fname="exc_count_%i" % T[i], legend=True)
+
+    return
+
+
+def prob_d():
     initState = met.generateState(20)  # Random 20x20 state
+    trials = 1e7
+
+    relpath = "../data/"
+    fnames = [relpath + "prob_d_" + var + ".npy" for var in ["E", "M"]]
+
+    E = np.zeros([2, int(trials)])
+    M = np.zeros([2, int(trials)])
+    T = [1, 2.4]
+
+    if os.path.isfile(fnames[0]) is False:
+        for i in range(len(T)):
+            E[i], M[i] = met.montecarlo(spins=initState, T=T[i], trials=trials)[:2]
+        np.save(fnames[0], E)
+        np.save(fnames[1], M)
+    else:
+        E = np.load(fnames[0])
+        M = np.load(fnames[1])
+
+    print E, M
+    eq = int(1e4)
+    weight = lambda myarray: np.ones_like(myarray)/float(len(myarray))
+    plt.hist(E[0, eq:]/20**2, weights=weight(E[0, eq:]), bins=50)
+    plt.show()
+    plt.hist(E[1, eq:]/20**2, weights=weight(E[1, eq:]), bins=50)
+    plt.show()
 
     return
 
@@ -230,9 +325,8 @@ def prob_e():
     T = np.zeros(N1 + N2)
     T[:N1] = T1
     T[-N2:] = T2
-    print T
 
-    mc_cycles = 1e6
+    mc_cycles = 2e6
 
     # Set up arrays for storing results
     E = np.zeros([len(T), len(latSize)])
@@ -255,7 +349,7 @@ def prob_e():
             for j in xrange(len(latSize)):
                 print "-- L= %i" % latSize[j]
                 initState = met.generateState(latSize[j])
-                E[i, j], M[i, j], M_abs[i, j], Cv[i, j], chi[i, j] = met.montecarlo(spins=initState, T=T[i], trials=mc_cycles)
+                E[i, j], M[i, j], M_abs[i, j], Cv[i, j], chi[i, j] = met.montecarlo(spins=initState, T=T[i], trials=mc_cycles)[-1]
         # Save data for future use
         np.save(relpath + fnames[0], E)
         np.save(relpath + fnames[1], M)
@@ -271,36 +365,47 @@ def prob_e():
         chi = np.load(relpath + fnames[4])
         print "Found data, for n=%i cycles" % mc_cycles
 
-    width = 4
-    height = 4
+    # Sort arrays in ascending order of T
+    permute = T.argsort()
+    T = T[permute]
+    E = E[permute]
+    M = M[permute]
+    M_abs = M_abs[permute]
+    Cv = Cv[permute]
+    chi = chi[permute]
+
+    width = 9
+    height = 2.75
 
     plt.figure(figsize=[width, height])
-
     for i in range(len(latSize)):
         plt.plot(T, E[:, i], "x--", label="L=%i" % latSize[i])
-    plt.legend()
-    plt.show()
+    figsetup(title="", ylab="$E/L^2$", xlab="T", fname="ex_e_E")
 
+    plt.figure(figsize=[width, height])
     for i in range(len(latSize)):
         plt.plot(T, M_abs[:, i], "x--", label="L=%i" % latSize[i])
-    plt.legend()
-    plt.show()
+    figsetup(title="", ylab="$|M|/L^2$", xlab="T", fname="ex_e_M_abs")
 
+    plt.figure(figsize=[width, height])
     for i in range(len(latSize)):
         plt.plot(T, Cv[:, i], "x--", label="L=%i" % latSize[i])
-    plt.legend()
-    plt.show()
+    figsetup(title="", ylab="$C_v/L^2$", xlab="T", fname="ex_e_Cv")
+
+    plt.figure(figsize=[width, height])
     for i in range(len(latSize)):
         plt.plot(T, chi[:, i], "x--", label="L=%i" % latSize[i])
-    plt.legend()
-    plt.show()
+    figsetup(title="", ylab="$\\chi/L^2$", xlab="T", fname="ex_e_chi")
 
     return
 
 
 def main():
-    #prob_b()
-    prob_e()
+    # prob_b()
+    # prob_c()
+    #prob_c()
+    prob_d()
+    # prob_e()
     return
 
 

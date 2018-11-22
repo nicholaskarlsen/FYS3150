@@ -9,7 +9,6 @@
 \usepackage{float}
 \usepackage{tikz} % Send help 
 \usepackage{physics}
-\usepackage{algorithmic}
 
 
 \lstset{ %
@@ -226,14 +225,13 @@
     \end{equation}
     Similarly, the expectation value of $E^2$ is computed easily by another expression found in \textcite[Ch~6.2]{schroeder}
     \begin{equation}
-      \langle E^2 \rangle = -\frac{1}{Z}\frac{\partial^2}{\partial\beta^2}Z = - \frac{64J^2 \cosh(8J\beta)}{\cosh(8J\beta) + 3}
+      \langle E^2 \rangle = -\frac{1}{Z}\frac{\partial^2}{\partial\beta^2}Z = \frac{64J^2 \cosh(8J\beta)}{\cosh(8J\beta) + 3}
     \end{equation}
     From this, we compute the variance of $E$
     \begin{align}
       \begin{split}
         \sigma_E^2 &= \langle E^2 \rangle - \langle E \rangle ^2 
-          \\
-        &= \frac{-64J^2}{\cosh(8J\beta)+3} \qty(\cosh(8J\beta) + \frac{\sinh^2(8J \beta)}{\cosh(8J\beta) + 3})
+        = \frac{64J^2}{\cosh(8J\beta) + 3}
       \end{split}
     \end{align}
     With which we can compute $C_V$ using Eqn.~\ref{eqn:speciffic heat}. Compute expectation values of $|\mathcal M|, |\mathcal M|^2$ using Eqn.~\ref{eqn:expecval} and Table~\ref{tab:2x2energies}
@@ -269,42 +267,93 @@ Initialize State
 
 \end{lstlisting}
 
-\section{Results and Discussions}
 
-  See in Fig \ref{fig:convergence 2x2}
-
-  \begin{figure*}[h!t]
-    \center
-    \subfloat[][$\langle E \rangle$]{
-      \includegraphics[width=4.5cm]{figs/exb_convergencetest_E.pdf}
-      }
-    \subfloat[][$\langle |\mathcal M| \rangle$]{
-      \includegraphics[width=4.5cm]{figs/exb_convergencetest_M_abs.pdf}
-      }
-    \subfloat[][$\langle C_v \rangle$]{
-      \includegraphics[width=4.5cm]{figs/exb_convergencetest_Cv.pdf}
-      }
-    \subfloat[][$\langle \chi \rangle$]{
-      \includegraphics[width=4.5cm]{figs/exb_convergencetest_chi.pdf}
-      }
-      \\
-    \subfloat[][$\sigma_{\langle E \rangle}$]{
-      \includegraphics[width=4.5cm]{figs/exb_convergencetest_E_std.pdf}
-      }
-    \subfloat[][$\sigma_{\langle |\mathcal M| \rangle}$]{
-      \includegraphics[width=4.5cm]{figs/exb_convergencetest_M_abs_std.pdf}
-      }
-    \subfloat[][$\sigma_{\langle C_v \rangle}$]{
-      \includegraphics[width=4.5cm]{figs/exb_convergencetest_Cv_std.pdf}
-      }
-    \subfloat[][$\sigma_{\langle \chi \rangle}$]{
-      \includegraphics[width=4.5cm]{figs/exb_convergencetest_chi_std.pdf}
-      }
-    \caption{\label{fig:convergence 2x2} 
-      (a-d) Computed results from running the algorithm 3000 times per number of monte-carlo cycles for 
-      select expectation values with an ordered initial state of a 2x2 lattice of spin ups. (e-h) The standard deviation (Std.) of the computed results.
+  \begin{figure*}[h!p]
+    \centering
+    \subfloat[][]{
+      \includegraphics[width=8cm]{figs/exc_E_1.pdf}
+    }    
+    \subfloat[][]{
+      \includegraphics[width=8cm]{figs/exc_E_2.pdf}
     }
+    \\
+    \subfloat[][]{
+      \includegraphics[width=8cm]{figs/exc_M_1.pdf}
+    }    
+    \subfloat[][]{
+      \includegraphics[width=8cm]{figs/exc_M_2.pdf}
+    }
+    \\
+    \subfloat[][]{
+      \includegraphics[width=8cm]{figs/exc_count_1.pdf}
+    }    
+    \subfloat[][]{
+      \includegraphics[width=8cm]{figs/exc_count_2.pdf}
+    }
+    \caption{\label{fig:20x20 expecvals} Expectation values computed for different numbers of Monte Carlo cycles for an ordered initial state of spin-ups and random initial state, different for each computed expectation value.}
   \end{figure*}
+  \section{Results and Discussions}
+
+  In order to test the functionality, and consistency of the algorithm a $2\times2$ lattice with an initial state of all spin-ups was simulated 100 times each for a range of Monte-Carlo cycles. The results for which are shown in Fig.~\ref{fig:convergence 2x2}. If we disregard the results for $N=10$ Monte-carlo cycles, we see that the standard deviation of the output seems shrink in an approximately linear fashion with the logarithm of the number of Monte-Carlo cycles. In particular, we see that for $10^6$ monte-carlo cycles we have a standard deviation of $\sim10^{-4}$ meaning the algorithm outputs values consistent to the third decimal, and matches the theoretical result.
+
+  Then, moving on to a larger, $20\times20$ lattice we see in Fig.~\ref{fig:20x20 expecvals} the expectation values for a selection of different number of Monte Carlo cycles, where for each number of Monte-carlo cycles, the algorithm is ran 100 times and averaged for both $T=1$ and $T=2.4$. For $T=1$, we se that the acceptance rate for the initially dissordered states are on average much greater in the region of $>2000$ monte-carlo cycles, but seems to smooth out towards a similar rate for the initially orderd state, which follows a uniform rate. On the other hand, for $T=2.4$, a more energetic system, the acceptance rate is similar for both the dissordered, and ordered system all throughout, and is far greater than for $T=1$.
+
+  This is reflected in the mean energy and magnetization as well, which converge towards similar values at a greater rate for $T=2.4$. This suggests that there is a link between the equilibration time of the algorithm and the temperature of the system, which for $T=2.4$ seems to be $\sim 1000$ Monte Carlo cycles.
+
+
+
+
+
+  \begin{figure*}[h!p]
+    \center
+    \subfloat[][]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_E.pdf}
+    }
+    \subfloat[][]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_M_abs.pdf}
+    }
+    \subfloat[][]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_Cv.pdf}
+    }
+    \subfloat[][]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_chi.pdf}
+    }
+    \\
+    \subfloat[][]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_E_std.pdf}
+    }
+    \subfloat[][]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_M_abs_std.pdf}
+    }
+    \subfloat[][]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_Cv_std.pdf}
+    }
+    \subfloat[][]{
+      \includegraphics[width=4.5cm]{figs/exb_convergencetest_chi_std.pdf}
+    } 
+    \caption{(a-d) Computed results from running the algorithm 100 times per number of monte-carlo cycles for select expectation values with an ordered initial state of a 2x2 lattice of spin ups, where the theoretical value is indicated by the dashed red line. (e-h) The standard deviation (Std.) of the computed results.}
+    \label{fig:convergence 2x2} 
+  \end{figure*}
+
+
+  \begin{figure*}[h!p]
+    \center
+    \subfloat[][]{
+      \includegraphics[width=15cm]{figs/ex_e_E.pdf}
+    }\\
+    \subfloat[][]{
+      \includegraphics[width=15cm]{figs/ex_e_M_abs.pdf}
+    }\\
+    \subfloat[][]{
+      \includegraphics[width=15cm]{figs/ex_e_Cv.pdf}
+    }\\
+    \subfloat[][]{
+      \includegraphics[width=15cm]{figs/ex_e_chi.pdf}
+    }
+    \caption{\label{fig:phase transitions} Expectation values computed from $2\cdot10^6$ Monte Carlo cycles for $T \in [2, 2.3]$}
+  \end{figure*}
+
+  
 
 
 
