@@ -39,18 +39,13 @@ def theoreticalVals(T):
     E2_theo = (64 * np.cosh(8 / T)) / (np.cosh(8 / T) + 3)
     M_theo = 0
     M_abs_theo = (2 * np.exp(8 / T) + 4) / (np.cosh(8 / T) + 3)
-    M2_abs_theo = (4 * np.exp(8 / T)) / (np.cosh(8 / T) + 3)
+    M2_abs_theo = (8 * np.exp(8 / T) + 8) / (np.cosh(8 / T) + 3)
     # Variance
     E_var = E2_theo - E_theo**2
     M_abs_var = M2_abs_theo - M_abs_theo**2
     # Derived variables
     C_v_theo = E_var / T**2
     chi_theo = M_abs_var / T
-    print chi_theo
-    chi_theo = (4 / (T * (np.cosh(8 / T) + 3))) * (2 * (np.exp(8 / T) + 1)
-                                                   - ((np.exp(8 / T) + 2)**2) / (np.cosh(8 / T) + 3))
-    print chi_theo
-
     return np.array([E_theo, M_theo, M_abs_theo, C_v_theo, chi_theo])
 
 
@@ -124,35 +119,35 @@ def prob_b():
     plt.axhline(theoVals[0], color="red", label="Theoretical Value", linestyle="--")
     for i in range(len(cycles)):
         plt.semilogx(cycles[i] * np.ones(n_samples), E[i], "x", color="blue")
-    figsetup(title="Computed $\\left< E \\right>/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\left< E \\right>$",
+    figsetup(title="Computed $\\left< E \\right>/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\left< E \\right>/L^2$",
              fname="exb_convergencetest_E", legend=False)
     # Magnetic moment
     plt.figure(figsize=[width, height])
     plt.axhline(theoVals[1], color="red", label="Theoretical Value", linestyle="--")
     for i in range(len(cycles)):
         plt.semilogx(cycles[i] * np.ones(n_samples), M[i], "x", color="blue")
-    figsetup(title="Computed $\\left< M \\right>/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\left<M \\right>$",
+    figsetup(title="Computed $\\left< M \\right>/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\left<M \\right>/L^2$",
              fname="exb_convergencetest_M", legend=False)
     # Magnetization
     plt.figure(figsize=[width, height])
     plt.axhline(theoVals[2], color="red", label="Theoretical Value", linestyle="--")
     for i in range(len(cycles)):
         plt.semilogx(cycles[i] * np.ones(n_samples), M_abs[i], "x", color="blue")
-    figsetup(title="Computed $\\left< |M| \\right>/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\left< |M| \\right>$",
+    figsetup(title="Computed $\\left< |M| \\right>/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\left< |M| \\right>/L^2$",
              fname="exb_convergencetest_M_abs", legend=False)
     # Speciffic Heat Capacity
     plt.figure(figsize=[width, height])
     plt.axhline(theoVals[3], color="red", label="Theoretical Value", linestyle="--")
     for i in range(len(cycles)):
         plt.semilogx(cycles[i] * np.ones(n_samples), Cv[i], "x", color="blue")
-    figsetup(title="Computed $C_v/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\left< |M| \\right>$",
+    figsetup(title="Computed $C_v/L^2$", xlab="No. Monte Carlo cycles", ylab="$C_v/L^2$",
              fname="exb_convergencetest_Cv", legend=False)
     # Magnetic Suceptibility
     plt.figure(figsize=[width, height])
     plt.axhline(theoVals[4], color="red", label="Theoretical Value", linestyle="--")
     for i in range(len(cycles)):
         plt.semilogx(cycles[i] * np.ones(n_samples), chi[i], "x", color="blue")
-    figsetup(title="Computed $\\chi/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\left< |M| \\right>$",
+    figsetup(title="Computed $\\chi/L^2$", xlab="No. Monte Carlo cycles", ylab="$\\chi/L^2$",
              fname="exb_convergencetest_chi", legend=False)
     # Standard deviation of expectation values produced by algorithm
     # Energy
@@ -201,7 +196,6 @@ def prob_c():
     sec3 = np.linspace(int(1e3), int(1e4), 10)
     mc_trials = np.append(sec1, sec2, axis=0)
     mc_trials = np.append(mc_trials, sec3, axis=0)
-    mc_trials = np.append(mc_trials, np.array([1e5, 1e6]))
     num_trials = len(mc_trials)
 
     E_mean_o = np.zeros([2, num_trials])
@@ -241,7 +235,6 @@ def prob_c():
                 M_mean_d[i][j] /= n_samples
                 counter_d[i][j] /= n_samples
 
-
         np.save(fnames[0], E_mean_d)
         np.save(fnames[1], E_mean_o)
         np.save(fnames[2], M_mean_d)
@@ -264,25 +257,30 @@ def prob_c():
         plt.figure(figsize=[width, height])
         plt.plot(mc_trials, E_mean_o[i], "rx", label="Ordered", alpha=0.5)
         plt.plot(mc_trials, E_mean_d[i], "bx", label="Dissordered", alpha=0.5)
-        figsetup(title="T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="Mean computed $\\left<E\\right>/L^2$",
+        figsetup(title="$k_B$T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="Mean computed $\\left<E\\right>/L^2$",
                  fname="exc_E_%i" % T[i], legend=True)
 
         plt.figure(figsize=[width, height])
         plt.plot(mc_trials, M_mean_o[i], "rx", label="Ordered", alpha=0.5)
         plt.plot(mc_trials, M_mean_d[i], "bx", label="Dissordered", alpha=0.5)
-        figsetup(title="T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="Mean computed $\\left<|M|\\right>/L^2$",
+        figsetup(title="$k_B$T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="Mean computed $\\left<|M|\\right>/L^2$",
                  fname="exc_M_%i" % T[i], legend=True)
 
         plt.figure(figsize=[width, height])
         plt.plot(mc_trials, counter_o[i], "rx", label="Ordered", alpha=0.5)
         plt.plot(mc_trials, counter_d[i], "bx", label="Dissordered", alpha=0.5)
-        figsetup(title="T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="No. accepted configs.",
+        figsetup(title="$k_B$T = %.1f" % T[i], xlab="No. Monte Carlo cycles", ylab="No. accepted configs.",
                  fname="exc_count_%i" % T[i], legend=True)
 
     return
 
 
 def prob_d():
+    """
+    Finds P(E) by extracting the energies from algorithm and
+    plots them in a normalized histogram rather than adding counters etc to the
+    algorithm itself.
+    """
     initState = met.generateState(20)  # Random 20x20 state
     trials = 1e7
 
@@ -302,20 +300,27 @@ def prob_d():
         E = np.load(fnames[0])
         M = np.load(fnames[1])
 
-    print E, M
-    eq = int(1e4)
-    weight = lambda myarray: np.ones_like(myarray)/float(len(myarray))
-    plt.hist(E[0, eq:]/20**2, weights=weight(E[0, eq:]), bins=50)
-    plt.show()
-    plt.hist(E[1, eq:]/20**2, weights=weight(E[1, eq:]), bins=50)
-    plt.show()
+    eq = int(1e3)  # Equilisation period
 
+    # Normalize the plot
+    def weight(myarray): return np.ones_like(myarray) / float(len(myarray))
+    for i in range(2):
+        var = np.var(E[i, eq:])  # Variance
+        plt.figure(figsize=[4, 4])
+        plt.hist(E[i, eq:] / 20**2, weights=weight(E[i, eq:]), bins=50)
+        figsetup(title="$k_B$T = %.1f" % T[i], xlab="$E$", ylab="No. Relative occurances",
+                 fname="ex_d_histo_%i" % T[i], legend=False)
     return
 
 
 def prob_e():
-
+    # Calls code relevant to problem e
     latSize = [40, 60, 80, 100]
+
+    """Wish to perform two sweeps, one rough which covers 6 pts in the range 2->2.3
+    and a fine sweep, covering 10pts in the range 2.2 -> 2.3, where the phase transition
+    Is expected to occur"""
+
     # Rough sweep
     N1 = 6
     T1 = np.linspace(2.0, 2.3, N1)
@@ -377,35 +382,62 @@ def prob_e():
     width = 9
     height = 2.75
 
+    T_C = 2.269
+
     plt.figure(figsize=[width, height])
+    plt.axvline(T_C, color="black", alpha=0.3)
     for i in range(len(latSize)):
         plt.plot(T, E[:, i], "x--", label="L=%i" % latSize[i])
-    figsetup(title="", ylab="$E/L^2$", xlab="T", fname="ex_e_E")
+    plt.xlim(2.15, 2.3)
+    # Adds marker for T_C to xticks
+    plt.xticks(list(plt.xticks()[0]) + [T_C], list(["%.2f" % s for s in plt.xticks()[0]] + ["$T_C$"]))
+    figsetup(title="", ylab="$E/L^2$", xlab="$k_B$T", fname="ex_e_E")
 
     plt.figure(figsize=[width, height])
+    plt.axvline(T_C, color="black", alpha=0.3)
     for i in range(len(latSize)):
         plt.plot(T, M_abs[:, i], "x--", label="L=%i" % latSize[i])
-    figsetup(title="", ylab="$|M|/L^2$", xlab="T", fname="ex_e_M_abs")
+    plt.xlim(2.15, 2.3)
+    plt.xticks(list(plt.xticks()[0]) + [T_C], list(["%.2f" % s for s in plt.xticks()[0]] + ["$T_C$"]))
+    figsetup(title="", ylab="$|M|/L^2$", xlab="$k_B$T", fname="ex_e_M_abs")
+
+    plt.figure(figsize=[5, 2.5])
+    plt.axvline(T_C, color="black", alpha=0.3)
+    for i in range(len(latSize)):
+        plt.plot(T, M[:, i], "x--", label="L=%i" % latSize[i])
+    plt.xlim(2.15, 2.3)
+    plt.xticks(list(plt.xticks()[0]) + [T_C], list(["%.2f" % s for s in plt.xticks()[0]] + ["$T_C$"]))
+    figsetup(title="", ylab="$M/L^2$", xlab="$k_B$T", fname="ex_e_M")
 
     plt.figure(figsize=[width, height])
+    plt.axvline(T_C, color="black", alpha=0.3)
     for i in range(len(latSize)):
         plt.plot(T, Cv[:, i], "x--", label="L=%i" % latSize[i])
-    figsetup(title="", ylab="$C_v/L^2$", xlab="T", fname="ex_e_Cv")
+    plt.xlim(2.15, 2.3)
+    plt.xticks(list(plt.xticks()[0]) + [T_C], list(["%.2f" % s for s in plt.xticks()[0]] + ["$T_C$"]))
+    figsetup(title="", ylab="$C_v/L^2$", xlab="$k_B$T", fname="ex_e_Cv")
 
     plt.figure(figsize=[width, height])
+    plt.axvline(T_C, color="black", alpha=0.3)
     for i in range(len(latSize)):
         plt.plot(T, chi[:, i], "x--", label="L=%i" % latSize[i])
-    figsetup(title="", ylab="$\\chi/L^2$", xlab="T", fname="ex_e_chi")
+    plt.xlim(2.15, 2.3)
+    plt.xticks(list(plt.xticks()[0]) + [T_C], list(["%.2f" % s for s in plt.xticks()[0]] + ["$T_C$"]))
+    figsetup(title="", ylab="$\\chi/L^2$", xlab="$k_B$T", fname="ex_e_chi")
 
     return
 
 
 def main():
-    # prob_b()
-    # prob_c()
-    #prob_c()
+    # Uncomment the parts you wish to run
+    # Note that the program will take a LONG time to run in the absence of
+    # saved numpy arrays, which are not on github because of size limitations.
+
+    print theoreticalVals(1) / 4
+    prob_b()
+    prob_c()
     prob_d()
-    # prob_e()
+    prob_e()
     return
 
 

@@ -39,20 +39,25 @@
 
 
 \begin{abstract}
-  Using the Metropolis algorithm to study a system of weakly coupled paramagnets, the Ising model. Derived exact solutions of expectation values for a 2x2 lattice and found that the required $\sim10^5$ Monte-Carlo cycles to consistent results with $\sigma\sim10^{-3}$.
+  Using the Metropolis algorithm to study a system of coupled paramagnets, the Ising model. Derived exact solutions of expectation values for a 2 by 2 lattice and found the algorithm to make accurate predictions to the third decimal in $10^6$ Monte Carlo cycles. Further, looked at a 20 by 20 lattice and found a link between the equilibration time and the temperature of the system. Lastly, tried to observe the phase transition, and replicate the result produced by \textcite{PhysRev.65.117}, observed the expected behavior qualitatively, but failed to extract numbers.
 \end{abstract}
 
 \maketitle
 
 
 \section{Introduction}
+
+In this report, we will look at the Ising model, a model describing locally coupled paramagnets and how this model can be studied numerically using the Metropolis Monte Carlo algorithm, which in short emulates the time-development of the system using statistics and random numbers. 
+
+The model has analytic solutions for a 2-Dimensional lattice, which will be used as a way of testing the code. These analytic predictions include expectation values for the $2\times2$ lattice, as well as the critical temperature, when the system undergoes a phase transition which in the thermodynamic limit where $L\rightarrow \infty$ was first derived analytically by \textcite{PhysRev.65.117}
+
+The programs accompanying this report were written in python, and can be found on my github \url{https://github.com/nicholaskarlsen/FYS3150/tree/master/Project_4}.
+
 \section{Theory, Algorithms and Methods}
   \subsection{The Ising Model}
-    In its simplest case, a paramagnet is described as a lattice of noninteracting dipole moments, each in a state up or down. Where the energy of the system is proportional to the sum of the spins, up or down of each noninteracting constituent.
+    The Ising model aims to model a lattice of magnetic dipoles, and can be thought of as an extension to the ideal paramagnet, by looking at the local interaction between directly neighboring spins (See fig. \ref{fig:spinsites}), such that the energy of the system is instead proportional to the sum of the interactions of all coupled spins, which gives a more accurate description of the system compared to the simple case of an ideal paramagnet and makes predictions of phase transitions for dimensions greater than one.
 
-    The Ising model is a natural extension to this, by adding local interaction between directly neighboring spins (See fig. \ref{fig:spinsites}), such that the energy of the system is instead proportional to the sum of the interactions of all coupled spins, which gives a more accurate description of the system compared to the simple case of an ideal paramagnet.
-
-    Or more precisely, the energy is given by Eqn.~\ref{eqn:ising_energy}, where $s_i \in \{-1, 1\}$ and $J$ is a coupling constant.
+    The lattice energy in a system described by the Ising model with no external fields is given by Eqn.~\ref{eqn:ising_energy}, where $s_i \in \{-1, 1\}$ and $J$ is a coupling constant, within which is contained type of the coupling. For this project we will look at $J=1$, which corresponds to a ferromagnetic coupling.
 
     \begin{equation}
       E = -J\sum_{<kl>} s_ks_l
@@ -81,15 +86,10 @@
         % Text 
         \draw (1+.25, 1+.2) node{$s_{i}$};
       \end{tikzpicture}
-      \caption{Section of a 2D lattice, where each spin-site is represented by a dot. In the Ising model, spin-site $i$ will only interact with its directly neighbouring spin-sites, connected by dotted lines in this diagram\label{fig:spinsites}}
+      \caption{Section of a 2D lattice, where each spin-site is represented by a dot. In the Ising model, spin-site $i$ will only interact with its directly neighboring spin-sites, indicated by dotted lines in this diagram\label{fig:spinsites}}
     \end{figure}
 
     Further, in this project the lattice will be treated as pseudo-continuous where any spin-sites located at an edge, will also interact with the spin-site on the opposing edge, illustrated in Fig.~\ref{fig:ising_periodic bounds}, which strictly speaking constitutes having periodic boundary conditions. If instead we had fixed boundary conditions, there would simply be no such across-lattice interactions, and spin-sites located at the edges would then only interact with 3 other spin-sites (2 in the case of corner sites) in the 2D case.
-
-    Much simpler, the net magnetization, $\mathcal M$, of the system is taken as the sum over all spins
-    \begin{equation*}
-      \mathcal M = \sum_i s_i
-    \end{equation*}
       \begin{figure}[H]
       \centering
       \begin{tikzpicture}
@@ -128,8 +128,20 @@
       \label{fig:ising_periodic bounds}}
     \end{figure}
 
+    Much simpler, the net magnetization, $\mathcal M$, of the system is taken as the sum over all spins
+    \begin{equation*}
+      \mathcal M = \sum_i s_i
+    \end{equation*}
+    Howver, the magnetization, is quite unstable and will frequently oscillate about $0$ in the region of temperatures which will be studied, as seen in Fig.~\ref{fig:net_magnetization}, a select result from one of the simulations to be discussed later. As such, we will instead look at the absolute value of the net magnetization, as it will provide more stable results that are easier to interpret.
+    \begin{figure}[H]
+      \centering
+      \includegraphics[width=8cm]{figs/ex_e_M.pdf}
+      \caption{\label{fig:net_magnetization}Net magnetization as a function of temperature, simulated with $2\cdot10^6$ Monte Carlo cycles}
+    \end{figure}
+
+
     \subsubsection{Boltzmann Statistics}
-      From this model we can derive many thermodynamic quantities by the use of Boltzmann statistics, where we have the probability of the system being in some specific macro-state\footnote{Macroscopic states being characterized by their energy, meaning i could just as well have written "... the probability of the system having some speciffic energy"} at temperature\footnote{Contained within $\beta$ in this notation}
+      From this model we can derive many thermodynamic quantities by the use of Boltzmann statistics, where we have the probability of the system being in some specific state at temperature\footnote{Contained within $\beta$ in this notation}
       \begin{equation}
         \mathcal P(E_s) = \frac{1}{Z} e^{-\beta E_s}
       \end{equation}
@@ -137,6 +149,7 @@
 
       \begin{equation}
         Z = \sum_s e^{-\beta E_s}
+        \label{eqn:partition function}
       \end{equation}
       From this, the expectation value of some quantity $X$, with micro-states $X_s$ can be computed by
 
@@ -159,10 +172,10 @@
         \label{eqn:suceptibility}
       \end{equation}
 
-      For more details on the Ising model, or Boltzmann statistics refer to \textcite[Ch~6, 8.2]{schroeder}, \textcite{statmek_lecnotes}, or similar introductory texts on the topic.
+      For more details on the Ising model, or Boltzmann statistics refer to \textcite[Ch~6, 8.2]{schroeder}, \textcite{statmek_lecnotes}, or similar texts on the topic.
 
   \subsubsection{Analytic solution of 2x2 Lattice}
-    Consider now a 2x2 lattice, each with spin $\pm 1$.
+    Consider now a $2\times2$ lattice, each with spin $\pm 1$.
     The energy of the system for a particular micro-state is given by Eqn.~\ref{eqn:ising_energy}, so for a $2\times2$ lattice we have
 
     \begin{equation}
@@ -192,7 +205,7 @@
       \caption{A $2\times2$ lattice of spin-sites}
     \end{figure}
 
-    If we first consider the micro-state in which all the spins are in parallel, we get energy $E=-8J$. Thus, this particular macro-state is at least 2-fold degenerate\footnote{Two micro-states corresponds to the same observable macrso-state.}.
+    If we first consider the micro-state in which all the spins are in parallel, we get energy $E=-8J$. Thus, this particular macro-state is at least 2-fold degenerate\footnote{Two micro-states corresponds to the same observable macro-state.}.
     The different micro-states and their degeneracies are summed up in table \ref{tab:2x2energies} from \textcite{statmek_lecnotes}
 
     \begin{table}[H]
@@ -211,7 +224,7 @@
 
     See that there are only 3 distinct energy macro-states, $E=-8J, 0, 8J$ corresponding to $2, 12$ and $2$ of the possible micro-states respectively.
 
-    It is then easy to see that the partition function for the system will take the following form
+    It is then easy to see from Eqn.~\ref{eqn:partition function} that the partition function for the system will take the following form
     \begin{equation}
       Z = 2e^{+8J\beta} + 2e^{-8J\beta} + 12 = 4\cosh(8J\beta) + 12
     \end{equation}
@@ -227,11 +240,10 @@
     \begin{equation}
       \langle E^2 \rangle = -\frac{1}{Z}\frac{\partial^2}{\partial\beta^2}Z = \frac{64J^2 \cosh(8J\beta)}{\cosh(8J\beta) + 3}
     \end{equation}
-    From this, we compute the variance of $E$
+    From this, we can compute the variance of $E$
     \begin{align}
       \begin{split}
         \sigma_E^2 &= \langle E^2 \rangle - \langle E \rangle ^2 
-        = \frac{64J^2}{\cosh(8J\beta) + 3}
       \end{split}
     \end{align}
     With which we can compute $C_V$ using Eqn.~\ref{eqn:speciffic heat}. Compute expectation values of $|\mathcal M|, |\mathcal M|^2$ using Eqn.~\ref{eqn:expecval} and Table~\ref{tab:2x2energies}
@@ -240,7 +252,9 @@
       \begin{split}
         \langle |\mathcal M | \rangle &= \frac{1}{Z} \sum_s |\mathcal M_s | e^{-\beta E_s} 
           \\
-        &= \frac{8e^{8J\beta} + 16e^0}{Z} = \frac{2e^{8J\beta} + 4}{\cosh(8J\beta) + 3}
+        &= \frac{8e^{8J\beta} + 16e^0}{Z} 
+          \\
+        &= \frac{2e^{8J\beta} + 4}{\cosh(8J\beta) + 3}
       \end{split}
     \end{align}
 
@@ -248,24 +262,67 @@
       \begin{split}
         \langle |\mathcal M |^2 \rangle &= \frac{1}{Z}\sum_s|\mathcal M_s|^2e^{-\beta E_s} 
           \\
-        &= \frac{1}{Z}\qty(16e^{8J} + 32e^{0}) = \frac{4e^{8J\beta} + 8}{\cosh(8J\beta) + 3}
+        &= \frac{1}{Z}\qty(32e^{8J\beta} + 32e^{0}) 
+          \\
+        &= \frac{8e^{8J\beta} + 8}{\cosh(8J\beta) + 3}
       \end{split}
     \end{align}
-    We then compute the variance of the net magnetization
+    We can then compute the variance of the absolute net magnetization
     \begin{align}
       \begin{split}
-        \sigma_{\mathcal M}^2 &= \langle |\mathcal M|^2\rangle - \langle |\mathcal M|\rangle^2
-          \\
-        &= \frac{1}{\cosh(8J\beta) + 3}\qty(4e^{8J\beta} + 8 - \frac{4e^{16J\beta}+16}{\cosh(8J\beta) + 3})
+        \sigma_{|\mathcal M|}^2 &= \langle |\mathcal M|^2\rangle - \langle |\mathcal M|\rangle^2
       \end{split}
     \end{align}
     Which can be used to compute the magnetic susceptibility using Eqn~\ref{eqn:suceptibility}.
+
+    In table \ref{tab:2x2expec} we have the analytic results for the $2\times2$ lattice for $T=1$ in units where $J=1$, $k_B=1$.
+
+    \begin{table}[H]
+      \centering
+      \caption{\label{tab:2x2expec} Analytic values for $T=1$}
+      \begin{tabular}{r|r}
+        $\langle E \rangle / L^2$ & -1.99598209\\
+        $\langle |\mathcal M| \rangle / L^2$ & 0.9986607 \\
+        $ C_v / L^2$ &  0.03208233 \\
+        $\chi / L^2$ & 0.00401074 \\
+
+      \end{tabular}
+    \end{table}
+
+    \subsubsection{Phase Transitions}
+      As mentioned in the introduction, the 2-Dimensional Ising model was solved in the thermodynamic limit by \textcite{PhysRev.65.117}. Which predicts a phase-transition for a lattice of size $L\rightarrow \infty$ at curie temperature $T_C \approx 2.269$ in our dimensionless units \cite{project4}. 
+
+      This temperature, is related to a finitely sized lattice by the following \cite{project4}
+      \begin{equation}
+        T_C(L) - T_C(L=\infty) = aL^{-1/\nu}
+        \label{eqn:T_C(L) - T_C(L=infty)}
+      \end{equation}
+      Where $a$ is a constant of proportionality, and $\nu$ is a number related to the correlation length of the system \cite{project4}, which is set to $1$ for this project.
+
+      A simple property that will change after the phase transition, that is when $T > T_C$, is that a ferromagnet will no longer exhibit spontaneous magnetization, As such, the magnetization will go to $0$ when $T\geq T_C$ when there is no external field present.
+
+      For more, see \textcite{statmek_lecnotes}.
+
+
   \subsection{The Metropolis Algorithm}
+    The metropolis algorithm is a type of Monte Carlo simulation, that is an algorithm where the system is sampled in a random way. The metropolis algorithm belongs to a family of Markov Chain Monte carol methods which simulate the time-evolution of stochastic systems.
 
-\begin{lstlisting}[mathescape=true, language=python, title=Metropolis Algorithm]
-Initialize State 
+    Specifically, for our system we pick $L^2$ spin-sites in the lattice for each Monte Carlo cycle, or sweep of the lattice.
+    For each sample, we then perform the metropolis algorithm, which qualitatively evaluates the current state of the system, then evaluates the system if the spin of the current spin-site were to change. The likeliest state of the system is then chosen, and the energy and magnetization of the system is updated accordingly.
 
-\end{lstlisting}
+    Or more precisely
+
+    \begin{enumerate}
+      \item For each Monte Carlo cycle, sample $L^2$ random spin-sites.
+      \item Compute the change in energy $\Delta$E due to flipping the spin
+      \item If $\Delta E\leq 0$, set this as the new state of the system, and sample a new state.
+      \item Else, If $\Delta E < 0$ compute $w = e^{-\beta\Delta E}$, If $w \geq r$, where $r$ is a random number in the interval $[0, 1)$, accept the flipped state, and sample a new one.
+      \item If neither of the prior two statements are true, the system remains in its current state and a new sample is chosen.
+    \end{enumerate}
+
+    Afterwards, the expectation values are computed from the sums of all the states divided by the number of Monte Carlo cycles.
+
+    Further, because computing $w$ is expensive, this algorithm is effectivized by pre-computing the possible energy changes of the system of which there are only 5, as shown in \textcite{statmek_lecnotes}.
 
 
   \begin{figure*}[h!p]
@@ -294,14 +351,35 @@ Initialize State
   \end{figure*}
   \section{Results and Discussions}
 
-  In order to test the functionality, and consistency of the algorithm a $2\times2$ lattice with an initial state of all spin-ups was simulated 100 times each for a range of Monte-Carlo cycles. The results for which are shown in Fig.~\ref{fig:convergence 2x2}. If we disregard the results for $N=10$ Monte-carlo cycles, we see that the standard deviation of the output seems shrink in an approximately linear fashion with the logarithm of the number of Monte-Carlo cycles. In particular, we see that for $10^6$ monte-carlo cycles we have a standard deviation of $\sim10^{-4}$ meaning the algorithm outputs values consistent to the third decimal, and matches the theoretical result.
+  \subsection{Testing algorithm, L=2}
 
-  Then, moving on to a larger, $20\times20$ lattice we see in Fig.~\ref{fig:20x20 expecvals} the expectation values for a selection of different number of Monte Carlo cycles, where for each number of Monte-carlo cycles, the algorithm is ran 100 times and averaged for both $T=1$ and $T=2.4$. For $T=1$, we se that the acceptance rate for the initially dissordered states are on average much greater in the region of $>2000$ monte-carlo cycles, but seems to smooth out towards a similar rate for the initially orderd state, which follows a uniform rate. On the other hand, for $T=2.4$, a more energetic system, the acceptance rate is similar for both the dissordered, and ordered system all throughout, and is far greater than for $T=1$.
+  In order to test the functionality, and consistency of the algorithm a $2\times2$ lattice with an initial state of all spin-ups was simulated 100 times each for a range of Monte Carlo cycles. The results for which are shown\footnote{Had some issues with figure placements, and no time to redo the report in something simpler to deal with than Revtex, so please excuse the poor placement of the larger figures.} in Fig.~\ref{fig:convergence 2x2}. If we disregard the results for $N=10$ Monte Carlo cycles, we see that the standard deviation of the output seems shrink in an approximately linear fashion with the logarithm of the number of Monte Carlo cycles. In particular, we see that for $10^6$ Monte Carlo cycles we have a standard deviation of $\sim10^{-4}$ meaning the algorithm outputs values consistent to the third decimal, and matches the theoretical result.
+
+  \begin{figure}[H]
+    \centering
+    \subfloat[][]{
+      \includegraphics[width=7cm]{figs/ex_d_histo_1.pdf}
+    }
+
+    \subfloat[][]{
+      \includegraphics[width=7cm]{figs/ex_d_histo_2.pdf}
+    }
+    \caption{\label{fig:histo}Normalized histograms showing the relative no. occurrences of each energy in an equilibration time of $10^3$ Monte Carlo cycles for $T=\{1, 2.4\}$.}
+  \end{figure}
+  \subsection{Further investigations of the Ising model}
+
+  Then, moving on to a larger, $20\times20$ lattice we see in Fig.~\ref{fig:20x20 expecvals} the expectation values for a selection of different number of Monte Carlo cycles, where for each number of Monte Carlo cycles, the algorithm is ran 100 times and averaged for both $T=1$ and $T=2.4$. For $T=1$, we see that the acceptance rate for the initially disordered states are on average much greater in the region of $>2000$ Monte Carlo cycles, but seems to smooth out towards a similar rate for the initially ordered state, which follows a uniform rate. On the other hand, for $T=2.4$, a more energetic system, the acceptance rate is similar for both the disordered, and ordered system all throughout, and is far greater than for $T=1$.
 
   This is reflected in the mean energy and magnetization as well, which converge towards similar values at a greater rate for $T=2.4$. This suggests that there is a link between the equilibration time of the algorithm and the temperature of the system, which for $T=2.4$ seems to be $\sim 1000$ Monte Carlo cycles.
 
+  Now, we look at the distribution of energy in these systems given an equilibration time of $10^3$ Monte Carlo cycles, giving the system time to reach a steady-state. From Fig.~\ref{fig:histo} we see that the system at $T=1$ is very thinly distributed, corresponding to a small variance. As we move on to $T=2.4$, we see the energy of the system increasing and become more widely spread throughout a number of states, corresponding to a larger variance, and by extension, an increase in its heat capacity, as expected because $C_V \propto T^{-2}$.
 
+  \subsection{Phase transitions}
 
+  Finally, we look at Fig.~\ref{fig:phase transitions}, where we have simulated with $2\cdot10^6$ Monte Carlo cycles each for lattices of size $L \in \{40, 60, 80, 100\}$ for temperatures $T\in[2, 2.3]$. Note that temperatures $T<2.14$ are omitted from the figure as there was no interesting behavior observed in this region.
+  I first performed a rough sweep of $6$ evenly placed temperatures in in the range $T \in[2, 2.3]$, then another fine sweep in the region close to $T_C$ of 10 points for $T\in[2.2, 2.3]$.
+
+  Here, we observe traits indicative of a phase transition happening, and as the lattice size increases, this seems to tend toward the theoretical $T_C(L=\infty)$ as we expect from Eqn.~\ref{eqn:T_C(L) - T_C(L=infty)}, however, from these lattice sizes one can at best claim that $T_C$ exists somewhere in the range between $\sim 2.24, 2.3$ as it is difficult to approximate the critical temperature $T_C(L)$, from the resolution and accuracy of the data plotted in this figure.
 
 
   \begin{figure*}[h!p]
@@ -331,7 +409,7 @@ Initialize State
     \subfloat[][]{
       \includegraphics[width=4.5cm]{figs/exb_convergencetest_chi_std.pdf}
     } 
-    \caption{(a-d) Computed results from running the algorithm 100 times per number of monte-carlo cycles for select expectation values with an ordered initial state of a 2x2 lattice of spin ups, where the theoretical value is indicated by the dashed red line. (e-h) The standard deviation (Std.) of the computed results.}
+    \caption{(a-d) Computed results from running the algorithm 100 times per number of Monte Carlo cycles for select expectation values with an ordered initial state of a 2x2 lattice of spin ups at $k_BT = 1$, where the theoretical value is indicated by the dashed red line. (e-h) The standard deviation (Std.) of the computed results.}
     \label{fig:convergence 2x2} 
   \end{figure*}
 
@@ -354,10 +432,9 @@ Initialize State
   \end{figure*}
 
   
-
-
-
 \section{Conclusions}
+  We have seen how the metropolis algorithm can be used to study the Ising model numerically, and how it can successfully replicate theoretical results predicted by this model. We have further seen how the results produced by the algorithm will vary on a per-run basis, and that one can minimize this fluctuation by increasing the number of Monte Carlo cycles.
+  Found indications a phase transitions, and by extension the Curie temperature to a precision of $\sim 0.1$, but this result could be improved by running the algorithm for larger sizes, which could become feasible to compute if i were to parallelize the code to utilize multiple cores on my CPU, or perhaps my GPU. Sadly, development time was much more costly compared to runtime\footnote{The scripts were ran overnight} when working on this project, so i did not prioritize reducing the runtime by parallelization.
 
 \bibliography{../bibliography.bib}
 

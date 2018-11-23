@@ -101,7 +101,7 @@ def montecarlo(spins, T, trials, returnCounter=False):
 
     # Compute variance and normalize to per-point and temp
     E_variance = (E2_mean - E_mean**2) / float(N**2 * T**2)
-    M_variance = (M2_mean - M_mean**2) / float(N**2 * T**2)
+    #M_variance = (M2_mean - M_mean**2) / float(N**2 * T**2)
     M_abs_variance = (M2_abs_mean - M_abs_mean**2) / float(N**2 * T**2)
     # Normalize returned averages to per-point
     E_mean /= float(N**2)       # Mean energy
