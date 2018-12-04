@@ -34,7 +34,13 @@ class SIRS:
         self.R = np.zeros(N)
         self.t = np.linspace(0, tN, N)
         # Rate of; Transmission, Recovery and Immunity
-        self.a, self.b, self.c = a, b, c
+        self.b = b
+        self.c = c
+
+        if isinstance(a, (float, int)):
+            self.a = lambda t: a
+        elif callable(a):
+            self.a = a
 
         # Initial Conditions
         self.S[0] = S0
