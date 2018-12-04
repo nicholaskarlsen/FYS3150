@@ -46,6 +46,4 @@ def main(S0, I0, R0, a, b, c, N, tN):
 
         return np.array([dSdt, dIdt, dRdt])
 
-         
-
         return y_next
