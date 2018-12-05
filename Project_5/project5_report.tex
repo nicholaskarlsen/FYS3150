@@ -11,7 +11,6 @@
   \usetikzlibrary{automata, positioning}
 \usepackage{physics}
 
-
 \lstset{ %
   basicstyle=\footnotesize,        % the size of the fonts that are used for the code
   breakatwhitespace=false,         % sets if automatic breaks should only happen at whitespace
@@ -33,7 +32,8 @@
   tabsize=2,                       % sets default tabsize to 2 spaces
 }
 
-\newcommand{\lexp}{\ket{\downarrow}}
+\captionsetup[subfigure]{labelformat=brace}
+
 \begin{document}
 \title{Disease Modeling - FYS3150 Computational Physics}
 \author{Nicholas Karlsen}
@@ -62,6 +62,7 @@
       \begin{equation}
         M \vb x_k = \vb x_{k+1}
       \end{equation}
+
 
     From Theorem 18 in \textcite[p.~277]{linalg_lays}, if $M$ is a regular stochastic matrix there exists a unique steady state vector $\vb q$ which the system will converge towards as $k\rightarrow \infty$ characterized by
     \begin{equation}
@@ -144,6 +145,23 @@
 
 
 \section{Results and Discussions}
+
+\begin{figure*}[h!tb]
+  \centering
+  \subfloat[][ODE]{\includegraphics[width=\columnwidth]{figs/prob_a_varb_1.pdf}}
+  \subfloat[][MCMC]{\includegraphics[width=\columnwidth]{figs/prob_b_varb_1.pdf}}
+  \\
+  \subfloat[][ODE]{\includegraphics[width=\columnwidth]{figs/prob_a_varb_2.pdf}}
+  \subfloat[][MCMC]{\includegraphics[width=\columnwidth]{figs/prob_b_varb_2.pdf}}
+  \\
+  \subfloat[][ODE]{\includegraphics[width=\columnwidth]{figs/prob_a_varb_3.pdf}}
+  \subfloat[][MCMC]{\includegraphics[width=\columnwidth]{figs/prob_b_varb_3.pdf}}
+  \\
+  \subfloat[][ODE]{\includegraphics[width=\columnwidth]{figs/prob_a_varb_4.pdf}}
+  \subfloat[][MCMC]{\includegraphics[width=\columnwidth]{figs/prob_b_varb_4.pdf}}
+  \caption{\label{fig:ODE_prob_a}Solutions for SIRS model described by Eqn.~(REF TO EQN) (a - d) and Monte Carlo solution (e - h) for $b=1, 2, 3, 4$ (rate of recovery)}
+\end{figure*}
+
 
 \section{Conclusions}
 

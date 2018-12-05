@@ -34,22 +34,17 @@ class SIRS:
         self.R = np.zeros(N)
         self.t = np.linspace(0, tN, N)
         # Rate of; Transmission, Recovery and Immunity
+        self.a = a
         self.b = b
         self.c = c
 
-        if isinstance(a, (float, int)):
-            self.a = lambda t: a
-        elif callable(a):
-            self.a = a
-
-        # Initial Conditions
         self.S[0] = S0
         self.I[0] = I0
         self.R[0] = R0
 
         return
 
-    def diffeqs(self, t, S, I, R):
+    def sirs_basic(self, t, S, I, R):
         """
         Compute differentials for the SIRS system at a time t. Kept as a nested function
         to access the local namespace for a, b, c constants.
@@ -146,14 +141,12 @@ class SIRS:
 
         return next_val
 
-    def ODESolve(self, solverMethod, diffEq):
+    def solve(self, diffEq):
         """
         Parameters
         ----------
-        solverMethod : Method which computes the next time step with input (i, diffEq)
-                    and which outputs a len=3 array in the form (S, I, R)
         diffEq : Method which outputs derivative of system with input (t, S, I, R) and
-                and outputs satisfying requirements for solverMethod.
+                and outputs satisfying requirements for rk4 method.
 
         Returns
         -------
@@ -161,14 +154,25 @@ class SIRS:
 
         """
         for i in range(self.N - 1):
-            self.S[i + 1], self.I[i + 1], self.R[i + 1] = solverMethod(i, diffEq)
+            self.S[i + 1], self.I[i + 1], self.R[i + 1] = self.rk4(i, diffEq)
 
         return
 
-    def getData(self):
+    def get(self):
+        """
+        Method for extracting the arrays
+        Parameters
+        ----------
+        N/a
+
+        Returns
+        -------
+        list of numpy arrays
+        """
+
         return self.t, self.S, self.I, self.R
 
-    def plotSIR(self):  # Added SIR at end to avoid confusion with matplot
+    def plot(self):  # Added SIR at end to avoid confusion with matplot
         plt.plot(self.t, self.S, label="Suceptible", color="Blue")
         plt.plot(self.t, self.I, label="Infected", color="Red")
         plt.plot(self.t, self.R, label="Recovered", color="Green")
@@ -191,9 +195,9 @@ class SIRS:
 
 
 def main():
-    sys1 = SIRS(S0=300, I0=100, R0=0, a=4, b=4, c=0.5, N=100, tN=10)
-    sys1.ODESolve(sys1.rk4, sys1.diffeqs)
-    sys1.plotSIR()
+    sys1 = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=100, tN=10)
+    sys1.solve(sys1.sirs_basic)
+    sys1.plot()
     return
 
 
