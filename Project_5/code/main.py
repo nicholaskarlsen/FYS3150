@@ -10,6 +10,7 @@ import os
 
 import SIRS_ODE
 import SIRS_MCMC
+import SIRS_MCMC_new
 
 
 relpath = "../data/"  # Relative path to folder were data files are stored.
@@ -73,6 +74,17 @@ def part_a_b():
     c = 0.5
     stop = 15
 
+    # Colours used in plots
+    S_colour = "blue"
+    I_colour = "red"
+    R_colour = "green"
+    Mean_colour = "black"
+
+    fn_S = "../data/prob_b_S_"
+    fn_I = "../data/prob_I_I_"
+    fn_R = "../data/prob_b_R_"
+    fn_t = "../data/prob_b_t_"
+
     figdim = [4, 2.3]
     for b_i in [1, 2, 3, 4]:
         s, i, r = steadyState(a=4, b=b_i, c=0.5)  # Analytic steady state
@@ -87,16 +99,19 @@ def part_a_b():
 
         fig, ax = plt.subplots(figsize=figdim)
         # Main Figure
-        def tmp():
-            ax.plot(t, S, label="S", color="blue")
-            ax.plot(t, I, label="I", color="red")
-            ax.plot(t, R, label="R", color="green")
+
+        ax.plot(t, S, color=S_colour)
+        ax.plot(t, I, color=I_colour)
+        ax.plot(t, R, color=R_colour)
+
+        def plot_ab_settings():
+            "Calls that are common to generating both figs"
             ax.text(x=1, y=350, s="b=%i" % b_i)
             ax.set_ylim(0, S0 + I0 + R0 + 10)
             ax.set_xlim(0, stop)
             ax.set_xlabel("Time")
             ax.set_ylabel("No. People")
-            ax.legend(loc="upper right")
+            # ax.legend(loc="upper right")
             # Right y-axis s* i* r* ticks
             ax_ticks = ax.twinx()
             ax_ticks.figure.canvas.draw()
@@ -106,27 +121,74 @@ def part_a_b():
             ax_ticks.set_yticklabels(["$s^*$", "$i^*$", "$r^*$"])
             # Save
             plt.tight_layout()
-        tmp()
+
+        plot_ab_settings()  # Apply settings to ODE fig
         plt.savefig("../figs/prob_a_varb_%i.pdf" % b_i)
         plt.close()
 
         # ~~~ MCMC SOLUTION ~~~ #
-        t, S, I, R = SIRS_MCMC.main(S0=S0, I0=I0, R0=R0, a=a, b=b_i, c=c, stop_time=stop)
-        """
-        plt.plot(t, S, label="S", color="blue")
-        plt.plot(t, I, label="I", color="red")
-        plt.plot(t, R, label="R", color="green")
-        plt.text(x=1, y=350, s="b=%i" % b_i)
-        plt.ylim(0, S0 + I0 + R0 + 10)
-        plt.xlim(0, stop)
-        figsetup("MCMC", "Time", "No. People", "prob_b_varb_%i" % b_i, legend=False)
-        """
+        N_samples = 100
+
+        # Filenames for current b
+        fn_S_curr = fn_S + "%i.npy" % b_i
+        fn_I_curr = fn_I + "%i.npy" % b_i
+        fn_R_curr = fn_R + "%i.npy" % b_i
+        fn_t_curr = fn_t + "%i.npy" % b_i
+
+        # Initialize figure
         fig, ax = plt.subplots(figsize=figdim)
 
-        tmp()
+        # If one of the files dont exist, all of them probably dont
+        if os.path.isfile(fn_S_curr) is False:
+            # If they dont exist, compute & save
+            t, S, I, R = SIRS_MCMC.main(S0=S0, I0=I0, R0=R0, a=a, b=b_i, c=c, stop_time=stop, trials=100)
+            np.save(fn_t_curr, t)
+            np.save(fn_S_curr, S)
+            np.save(fn_I_curr, I)
+            np.save(fn_R_curr, R)
+        else:
+            # Load if they exist
+            t = np.load(fn_t_curr)
+            S = np.load(fn_S_curr)
+            I = np.load(fn_I_curr)
+            R = np.load(fn_R_curr)
+
+        # First plot all trials   
+        plt.plot(t, S, color=S_colour, alpha=.1)
+        plt.plot(t, I, color=I_colour, alpha=.1)
+        plt.plot(t, R, color=R_colour, alpha=.1)
+
+        # Then plot mean values
+        plt.plot(t, np.mean(S, axis=1), label="S", color="black")
+        plt.plot(t, np.mean(I, axis=1), label="I", color="black")
+        plt.plot(t, np.mean(R, axis=1), label="R", color="black")
+
+        plot_ab_settings()  # Apply same settings to MCMC fig
         plt.savefig("../figs/prob_b_varb_%i.pdf" % b_i)
         plt.close()
 
+    # --- Generate separate figure for common legend --- #
+    # First set up throw away figure with legend properties
+    fig = plt.figure()
+    ax = plt.gca()
+    plt.plot([1, 2], [1, 2], linestyle="-", color=S_colour, label="S")
+    plt.plot([1, 2], [1, 2], linestyle="-", color=I_colour, label="I")
+    plt.plot([1, 2], [1, 2], linestyle="-", color=R_colour, label="R")
+    plt.plot([1, 2], [1, 2], linestyle="-", color=Mean_colour, label="Mean")
+    # generate separate legend with properties from faux figure
+
+    legend = plt.legend(ncol=4)
+
+    def export_legend(legend, filename="../figs/prob_ab_legend.pdf", expand=[-5, -5, 5, 5]):
+        fig = legend.figure
+        fig.canvas.draw()
+        bbox = legend.get_window_extent()
+        bbox = bbox.from_extents(*(bbox.extents + np.array(expand)))
+        bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
+        fig.savefig(filename, dpi="figure", bbox_inches=bbox)
+
+    export_legend(legend)
+    plt.close()
 
     return
 
