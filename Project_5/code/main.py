@@ -87,9 +87,9 @@ def part_a_b():
 
     figdim = [4, 2.3]
 
-    list_of_bi = np.array([1,2,3,4])
+    list_of_bi = np.array([1, 2, 3, 4])
 
-    variance = np.zeros(len(list_of_bi)) # Store variance of result
+    variance = np.zeros(len(list_of_bi))  # Store variance of result
     # Alternatively look at difference between mean and  s*, i*, ... ?
 
     for b_i in list_of_bi:
@@ -159,7 +159,7 @@ def part_a_b():
             I = np.load(fn_I_curr)
             R = np.load(fn_R_curr)
 
-        # First plot all trials   
+        # First plot all trials
         plt.plot(t, S, color=S_colour, alpha=.1)
         plt.plot(t, I, color=I_colour, alpha=.1)
         plt.plot(t, R, color=R_colour, alpha=.1)
@@ -201,9 +201,27 @@ def part_a_b():
     return
 
 
+def part_b():
+
+    for i in range(1, 100):
+        for i in [1, 2, 3, 4]:
+            t = np.load("../data/prob_b/t_%i.npy" % i)
+            S = np.load("../data/prob_b/S_%i.npy" % i)
+            I = np.load("../data/prob_b/I_%i.npy" % i)
+            R = np.load("../data/prob_b/R_%i.npy" % i)
+
+        plt.plot(t, S, color="blue", alpha=.7)
+        plt.plot(t, I, color="red", alpha=.7)
+        plt.plot(t, R, color="green", alpha=.7)
+    plt.show()
+
+    return
+
+
 def main():
     # convergence_check()
-    part_a_b()
+    # part_a_b()
+    part_b()
     return
 
 

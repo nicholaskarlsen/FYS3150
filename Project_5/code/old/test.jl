@@ -1,12 +1,7 @@
 function f()
-    println(global x)
+    for i in 1:4
+        println(i)
+    end
 end
 
-
-function g()
-    x = 5
-    f()
-end
-
-
-g()
+f()
