@@ -37,6 +37,10 @@ class SIRS:
         self.a = a
         self.b = b
         self.c = c
+        self.d = d
+        self.d_I = d_I
+        self.e = e
+        self.f = f
 
         self.S[0] = S0
         self.I[0] = I0
@@ -49,7 +53,7 @@ class SIRS:
         Compute differentials for the SIRS system at a time t. Kept as a nested function
         to access the local namespace for a, b, c constants.
         ("Wasted" FLOPS by multiplying by variables which =0, but requires less methods.
-        If runtime becomes issue, add new method with only the speciffic trains)
+        If runtime becomes issue, add new method with only the speciffic traits)
 
         Parameters
         ----------
@@ -63,9 +67,10 @@ class SIRS:
         Numpy array
             (S', I', R')
         """
-        dSdt = self.c * R - self.a * S * I / (S + I + R)
-        dIdt = self.a * S * I / (S + I + R) - self.b * I
-        dRdt = self.b * I - self.c * R
+        N = S + I + R
+        dSdt = self.c * R - self.a * S * I / N - self.d * S + self.e * N - self.f
+        dIdt = self.a * S * I / N - self.b * I - self.d * I - self.d_I * I
+        dRdt = self.b * I - self.c * R - self.d * R + self.f
 
         return np.array([dSdt, dIdt, dRdt])
 
@@ -195,7 +200,7 @@ class SIRS:
 
 
 def main():
-    sys1 = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=100, tN=10)
+    sys1 = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, e=1, d=1, d_I=1, N=100, tN=20)
     sys1.solve(sys1.sirs_basic)
     sys1.plot()
     return

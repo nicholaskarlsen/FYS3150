@@ -72,7 +72,7 @@ def part_a_b():
     R0 = 0
     a = 4
     c = 0.5
-    stop = 15
+    stop = 30
 
     # Colours used in plots
     S_colour = "blue"
@@ -86,7 +86,13 @@ def part_a_b():
     fn_t = "../data/prob_b_t_"
 
     figdim = [4, 2.3]
-    for b_i in [1, 2, 3, 4]:
+
+    list_of_bi = np.array([1,2,3,4])
+
+    variance = np.zeros(len(list_of_bi)) # Store variance of result
+    # Alternatively look at difference between mean and  s*, i*, ... ?
+
+    for b_i in list_of_bi:
         s, i, r = steadyState(a=4, b=b_i, c=0.5)  # Analytic steady state
         s *= S0 + I0 + R0  # Scale up to match population size
         i *= S0 + I0 + R0
@@ -189,6 +195,8 @@ def part_a_b():
 
     export_legend(legend)
     plt.close()
+
+    # plot variace against dt
 
     return
 
