@@ -7,13 +7,18 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as tic
 import time
 import os
+from julia import Main as jcall  # Imports the main namespace of julia
 
 import SIRS_ODE
 import SIRS_MCMC
-import SIRS_MCMC_new
 
+jcall.include("SIRS_MCMC.jl")  # Imports the file
 
-relpath = "../data/"  # Relative path to folder were data files are stored.
+# Colours used in plots
+S_colour = "blue"
+I_colour = "red"
+R_colour = "green"
+Mean_colour = "black"
 
 
 def figsetup(title, xlab, ylab, fname, legend=True, show=False, tightlayout=True):
@@ -74,18 +79,12 @@ def part_a_b():
     c = 0.5
     stop = 30
 
-    # Colours used in plots
-    S_colour = "blue"
-    I_colour = "red"
-    R_colour = "green"
-    Mean_colour = "black"
-
     fn_S = "../data/prob_b_S_"
     fn_I = "../data/prob_I_I_"
     fn_R = "../data/prob_b_R_"
     fn_t = "../data/prob_b_t_"
 
-    figdim = [4, 2.3]
+    figdim = [5, 2.5]
 
     list_of_bi = np.array([1, 2, 3, 4])
 
@@ -130,6 +129,8 @@ def part_a_b():
 
         plot_ab_settings()  # Apply settings to ODE fig
         plt.savefig("../figs/prob_a_varb_%i.pdf" % b_i)
+        # Save as .png as well because pdf reader didnt like vector plots for large no. trials
+        plt.savefig("../figs/prob_a_varb_%i.png" % b_i)
         plt.close()
 
         # ~~~ MCMC SOLUTION ~~~ #
@@ -171,6 +172,7 @@ def part_a_b():
 
         plot_ab_settings()  # Apply same settings to MCMC fig
         plt.savefig("../figs/prob_b_varb_%i.pdf" % b_i)
+        plt.savefig("../figs/prob_b_varb_%i.png" % b_i)
         plt.close()
 
     # --- Generate separate figure for common legend --- #
@@ -201,19 +203,132 @@ def part_a_b():
     return
 
 
-def part_b():
+"""
+def part_c():
 
-    for i in range(1, 100):
-        for i in [1, 2, 3, 4]:
-            t = np.load("../data/prob_b/t_%i.npy" % i)
-            S = np.load("../data/prob_b/S_%i.npy" % i)
-            I = np.load("../data/prob_b/I_%i.npy" % i)
-            R = np.load("../data/prob_b/R_%i.npy" % i)
+    stop = 20
 
-        plt.plot(t, S, color="blue", alpha=.7)
-        plt.plot(t, I, color="red", alpha=.7)
-        plt.plot(t, R, color="green", alpha=.7)
-    plt.show()
+    no_sets = 4
+    no_trials = 100
+    fn_set = range(1, no_sets + 1)
+    fn_trials = range(1, no_trials + 1)
+
+    for i, dset in enumerate(fn_set):
+        plt.figure(figsize=[4, 2.3])
+        for j, trial in enumerate(fn_trials):
+            S_mc = np.load("../data/prob_c/c_%i/S_%i.npy" % (dset, trial))
+            I_mc = np.load("../data/prob_c/c_%i/I_%i.npy" % (dset, trial))
+            R_mc = np.load("../data/prob_c/c_%i/R_%i.npy" % (dset, trial))
+            t_mc = np.load("../data/prob_c/c_%i/t_%i.npy" % (dset, trial))
+
+            plt.plot(t_mc, S_mc, color="blue", alpha=.1)
+            plt.plot(t_mc, I_mc, color="red", alpha=.1)
+            plt.plot(t_mc, R_mc, color="green", alpha=.1)
+
+        inst = SIRS_ODE.SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, e=1, d=1, d_I=i, N=100, tN=20)
+        inst.solve(inst.sirs_basic)
+        t_ode, S_ode, I_ode, R_ode = inst.get()
+
+        plt.plot(t_ode, S_ode, color="black")
+        plt.plot(t_ode, I_ode, color="black")
+        plt.plot(t_ode, R_ode, color="black")
+        plt.xlabel("Time")
+        plt.ylabel("No. People")
+        plt.xlim(0, stop)
+        plt.tight_layout()
+        plt.savefig("../figs/prob_c_fig_%i.pdf" % i)
+        plt.savefig("../figs/prob_c_fig_%i.png" % i)
+        plt.close()
+
+    return
+"""
+
+
+def part_c():
+    S0 = 300
+    I0 = 100
+    R0 = 0
+    a = 4
+    b = 1
+    c = 0.5
+    d = [1, 1, 1, 1]
+    d_I = [1, 2, 0, 1]
+    e = [1, 1, 1, 2]
+    stop_time = 20
+    trials = 100
+
+    for i in range(4):
+        plt.figure(figsize=[5, 2.5])
+        for j in range(trials):
+            command = "SIRS_vitdyn(S0=%i, I0=%i, R0=%i, a=%i, b=%i, c=%i, d=%i, d_I=%i,\
+                e=%i, stop_time=%i)" % (S0, I0, R0, a, b, c, d[i], d_I[i], e[i], stop_time)
+            t, S, I, R = jcall.eval(command)
+
+            plt.plot(t, S, color=S_colour, alpha=0.1)
+            plt.plot(t, I, color=I_colour, alpha=0.1)
+            plt.plot(t, R, color=R_colour, alpha=0.1)
+        # Add ODE solution
+        inst = SIRS_ODE.SIRS(
+            S0=S0, I0=I0, R0=R0, N=1000, tN=stop_time, a=a, b=b, c=c, d=d[i], d_I=d_I[i], e=e[i]
+        )
+        inst.solve(inst.sirs_basic)
+        t, S, I, R = inst.get()
+        plt.plot(t, S, color="Black")
+        plt.plot(t, I, color="Black")
+        plt.plot(t, R, color="Black")
+        plt.xlim(0, stop_time)
+        plt.ylim(0, 400)
+        plt.xlabel("Time")
+        plt.ylabel("No. People")
+        plt.title("a=%i, b=%i, c=%.1f, d=%i, $d_I$=%i, e=%i" % (a, b, c, d[i], d_I[i], e[i]))
+        plt.savefig("../figs/prob_c_fig_%i.pdf" % i)
+        plt.savefig("../figs/prob_c_fig_%i.png" % i)
+        plt.close()
+
+    return
+
+
+def part_d():
+    S0 = 300
+    I0 = 100
+    R0 = 0
+    a0 = 4
+    b = 1
+    c = 0.5
+
+    percent_diff = [1.25, 1.25, 2, 2]
+    Amp = [diff * a0 for diff in percent_diff]
+    omega = [1, 2, 1, 2]
+    stop_time = 20
+    trials = 100
+
+    for i in range(4):
+        plt.figure(figsize=[5, 2.5])
+        for j in range(trials):
+            command = "SIRS_svar(S0=%i, I0=%i, R0=%i, a0=%i, A=%i, omega=%i, b=%i, c=%i, stop_time=%i)"\
+                % (S0, I0, R0, a0, Amp[i], omega[i], b, c, stop_time)
+            t, S, I, R = jcall.eval(command)
+
+            plt.plot(t, S, color=S_colour, alpha=0.1)
+            plt.plot(t, I, color=I_colour, alpha=0.1)
+            plt.plot(t, R, color=R_colour, alpha=0.1)
+        # Add ODE solution
+        inst = SIRS_ODE.SIRS(
+            S0=S0, I0=I0, R0=R0, N=1000, tN=stop_time, a=a0, b=b, c=c, Amplitude=Amp[i],
+            omega=omega[i]
+        )
+        inst.solve(inst.sir_svar)
+        t, S, I, R = inst.get()
+        plt.plot(t, S, color="Black")
+        plt.plot(t, I, color="Black")
+        plt.plot(t, R, color="Black")
+        plt.xlim(0, stop_time)
+        plt.ylim(0, 400)
+        plt.xlabel("Time")
+        plt.ylabel("No. People")
+        plt.savefig("../figs/prob_d_fig_%i.pdf" % i)
+        plt.savefig("../figs/prob_d_fig_%i.png" % i)
+        plt.close()
 
     return
 
@@ -221,7 +336,10 @@ def part_b():
 def main():
     # convergence_check()
     # part_a_b()
-    part_b()
+    # part_b()
+    # part_c()
+    part_d()
+    # part_e()
     return
 
 

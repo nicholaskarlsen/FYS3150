@@ -1,7 +1,3 @@
-function f()
-    for i in 1:4
-        println(i)
-    end
+function hello()
+    return [1, 2, 3]
 end
-
-f()

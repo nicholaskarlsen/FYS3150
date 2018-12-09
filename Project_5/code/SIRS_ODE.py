@@ -4,13 +4,17 @@ import matplotlib.pyplot as plt
 
 
 class SIRS:
-    def __init__(self, S0, I0, R0, N, tN, a=0, b=0, c=0, d=0, d_I=0, e=0, f=0):
+    def __init__(self, S0, I0, R0, N, tN, a=0, b=0, c=0, d=0, d_I=0, e=0, f=0,
+                 Amplitude=0, omega=0):
         """
-        Solves the SIRS model numerically as a differential equation using Runge-Kutta 4
-        or as a Monte-Carlo simulation using a Markov Chain Monte-Carlo method.
-
+        Solves the SIRS model numerically as a differential equation using Runge-Kutta 4,
+        or Euler forward (for checking correct implementation).
         (Originally planned to contian both ODE & MCMC Solvers, but turned out
-        to be impractical, hence 1 Class-based solution and one Function-based)
+        to be impractical, and slow, hence two wildy different aproaches)
+
+        Always initializing the a, b, ... variables makes it so that the class can be
+        called, and solved in a very similar fashion for all the different problems,
+        but detracts from the expandability.
 
         Parameters
         ----------
@@ -74,10 +78,20 @@ class SIRS:
 
         return np.array([dSdt, dIdt, dRdt])
 
+    def sirs_svar(self, t, S, I, R):
+        N = S + I + R
+        avar = self.Amplitude * np.cos(self.omega * t) + self.a
+
+        dSdt = self.c * R - avar * S * I / N
+        dIdt = self.a * S * I / N - self.b * I
+        dRdt = self.b * I - self.c * R
+
+        return np.array([dSdt, dIdt, dRdt])
+
     def euler_fw(self, i, diffEq):
         """
         Computes time-step using the Euler-Forward method
-        (used to test implementation of RK4. if both yield same result -> things 
+        (used to check implementation of RK4. if both yield same result -> things
         are working correclty, probably.)
 
         Parameters
@@ -200,7 +214,7 @@ class SIRS:
 
 
 def main():
-    sys1 = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, e=1, d=1, d_I=1, N=100, tN=20)
+    sys1 = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, e=1, d=1, d_I=0, N=100, tN=20)
     sys1.solve(sys1.sirs_basic)
     sys1.plot()
     return
