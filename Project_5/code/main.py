@@ -296,23 +296,23 @@ def part_d():
     b = 1
     c = 0.5
 
-    percent_diff = [1.25, 1.25, 2, 2]
+    percent_diff = [1, 1.25, 2, 2]
     Amp = [diff * a0 for diff in percent_diff]
     omega = [1, 2, 1, 2]
     stop_time = 20
-    trials = 100
+    trials = 10
 
-    for i in range(4):
+    for i in range(1):
         plt.figure(figsize=[5, 2.5])
         for j in range(trials):
-            command = "SIRS_svar(S0=%i, I0=%i, R0=%i, a0=%i, A=%i, omega=%i, b=%i, c=%i, stop_time=%i)"\
-                % (S0, I0, R0, a0, Amp[i], omega[i], b, c, stop_time)
+            command = "SIRS_svar(S0=300, I0=100, R0=0, a0=4, A=1, omega=1, b=1, c=0.5, stop_time=20)"
             t, S, I, R = jcall.eval(command)
 
             plt.plot(t, S, color=S_colour, alpha=0.1)
             plt.plot(t, I, color=I_colour, alpha=0.1)
             plt.plot(t, R, color=R_colour, alpha=0.1)
         # Add ODE solution
+        """
         inst = SIRS_ODE.SIRS(
             S0=S0, I0=I0, R0=R0, N=1000, tN=stop_time, a=a0, b=b, c=c, Amplitude=Amp[i],
             omega=omega[i]
@@ -322,13 +322,14 @@ def part_d():
         plt.plot(t, S, color="Black")
         plt.plot(t, I, color="Black")
         plt.plot(t, R, color="Black")
+        """
         plt.xlim(0, stop_time)
         plt.ylim(0, 400)
         plt.xlabel("Time")
         plt.ylabel("No. People")
         plt.savefig("../figs/prob_d_fig_%i.pdf" % i)
         plt.savefig("../figs/prob_d_fig_%i.png" % i)
-        plt.close()
+        plt.show()
 
     return
 
@@ -337,7 +338,7 @@ def main():
     # convergence_check()
     # part_a_b()
     # part_b()
-    # part_c()
+    #part_c()
     part_d()
     # part_e()
     return

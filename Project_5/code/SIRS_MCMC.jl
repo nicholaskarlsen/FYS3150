@@ -5,7 +5,6 @@ intended with the newly released (6 hours ago) Julia 1.1, though patch-notes sug
 problems. Yet i will not update & test before the deadline of this report.
 =#
 
-using NPZ  # Used for saving arrays as numpy array.
 #=
 function main(;trials::Int)
     S0 = 300
@@ -51,6 +50,8 @@ function main(;trials::Int)
 end
 =#
 
+using PyPlot
+
 function SIRS_basic(;S0::Int64, I0::Int64, R0::Int64, a, b, c, stop_time)
     #= Simulates the simplest case of the SIRS model with a Monte Carlo method
 
@@ -73,16 +74,13 @@ function SIRS_basic(;S0::Int64, I0::Int64, R0::Int64, a, b, c, stop_time)
     I = Int64[]
     R = Int64[]
     N = Int64[]
+    t = Float64[]
 
     append!(S, S0)
     append!(I, I0)
     append!(R, R0)
     append!(N, S0 + I0 + R0)
-
-    # Initialize time array
-    t = Float64[]
-    Δt = minimum([4.0 / (a*N[1]), 1.0 / (b * N[1]), 1.0 / (c * N[1])]) 
-    append!(t, Δt)
+    append!(t, 0)
 
     # Begin Monte Carlo Cycle
     i=1 # Initialize itteration variable
@@ -149,17 +147,15 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
     I = Int64[]
     R = Int64[]
     N = Int64[]
+    t = Float64[]
 
     append!(S, S0)
     append!(I, I0)
     append!(R, R0)
     append!(N, S0 + I0 + R0)
+    append!(t, 0)
 
     # Initialize time array
-    t = Float64[]
-    Δt = minimum([4.0 / (a*N[1]), 1.0 / (b * N[1]), 1.0 / (c * N[1])]) 
-    append!(t, Δt)
-
     # Begin Monte Carlo Cycle
     i=1 # Initialize itteration variable
     while t[i] <= stop_time
@@ -245,28 +241,29 @@ function SIRS_svar(;S0::Int64, I0::Int64, R0::Int64, a0, A, omega, b, c, stop_ti
         t, S, I, R : Arrays, containing the resulting data
     =#
 
-    a(t) = A * cos(omega * t) + a0  # function returning current rate of transmission
 
     # Initialize Arrays for storing population number
     S = Int64[]
     I = Int64[]
     R = Int64[]
     N = Int64[]
+    t = Float64[]
 
     append!(S, S0)
     append!(I, I0)
     append!(R, R0)
     append!(N, S0 + I0 + R0)
-
-    # Initialize time array
-    t = Float64[]
-    Δt = minimum([4.0 / (a(0)*N[1]), 1.0 / (b * N[1]), 1.0 / (c * N[1])]) 
-    append!(t, Δt)
+    append!(t, 0)
 
     # Begin Monte Carlo Cycle
-    i=1 # Initialize itteration variable
+    i=1 # Initialize iteration variable
     while t[i] <= stop_time
-        Δt = minimum([4.0 / (a(t[i])*N[i]), 1.0 / (b * N[i]), 1.0 / (c * N[i])]) 
+        if i > 100000
+            println("Broke early")
+            break
+        end
+        a = A * cos(omega * t[i]) + a0
+        Δt = minimum([4.0 / (a*N[i]), 1.0 / (b * N[i]), 1.0 / (c * N[i])]) 
         # Initialize [i+1]'th elements
         append!(S, S[i])
         append!(I, I[i])
@@ -274,7 +271,7 @@ function SIRS_svar(;S0::Int64, I0::Int64, R0::Int64, a0, A, omega, b, c, stop_ti
         append!(N, N[i])
         append!(t, t[i] + Δt)
         # Compute transition probabilities
-        S_I = (a(t[i]) * S[i] * I[i] * Δt) / (N[i])   # P(S->I)
+        S_I = (a * S[i] * I[i] * Δt) / (N[i])   # P(S->I)
         I_R = b * I[i] * Δt                     # P(I->R)
         R_S = c * R[i] * Δt                     # P(R->S)
         # Evaluate probabilities against random number, [0, 1)
@@ -375,4 +372,17 @@ function SIRS_vax(;S0::Int64, I0::Int64, R0::Int64, a, b, c, f, stop_time)
     end
 
     return t, S, I, R
+end
+
+
+function main()
+    t, S, I, R = SIRS_svar(S0=300, I0=100, R0=0, a0=4, A=0, omega=0, b=1, c=0.5, stop_time=20) 
+    plot(t, S)
+    plot(t, I)
+    plot(t, R)
+    savefig("tmp.png")
+end
+
+if PROGRAM_FILE == @__FILE__
+    main()
 end
