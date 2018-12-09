@@ -45,6 +45,8 @@ class SIRS:
         self.d_I = d_I
         self.e = e
         self.f = f
+        self.Amplitude = Amplitude
+        self.omega = omega
 
         self.S[0] = S0
         self.I[0] = I0
