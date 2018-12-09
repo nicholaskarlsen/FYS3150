@@ -300,7 +300,7 @@ def part_d():
     Amp = [diff * a0 for diff in percent_diff]
     omega = [2, 0.2, 2, 0.5]
     stop_time = 20
-    trials = 10
+    trials = 100
 
     for i in range(4):
         plt.figure(figsize=[5, 2.5])
@@ -322,7 +322,6 @@ def part_d():
         plt.plot(t, S, color="Black")
         plt.plot(t, I, color="Black")
         plt.plot(t, R, color="Black")
-        plt.plot(t, S + I + R, color="black", linestyle="--")
         plt.xlim(0, stop_time)
         plt.ylim(0, 400)
         plt.xlabel("Time")

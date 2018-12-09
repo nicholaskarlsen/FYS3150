@@ -85,7 +85,7 @@ class SIRS:
         avar = self.Amplitude * np.cos(self.omega * t) + self.a
 
         dSdt = self.c * R - avar * S * I / N
-        dIdt = self.a * S * I / N - self.b * I
+        dIdt = avar * S * I / N - self.b * I
         dRdt = self.b * I - self.c * R
 
         return np.array([dSdt, dIdt, dRdt])
