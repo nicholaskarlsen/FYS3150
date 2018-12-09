@@ -376,4 +376,3 @@ function SIRS_vax(;S0::Int64, I0::Int64, R0::Int64, a, b, c, f, stop_time)
 
     return t, S, I, R
 end
-
