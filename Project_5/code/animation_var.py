@@ -9,10 +9,10 @@ import matplotlib.animation as animation
 from SIRS_ODE import SIRS
 
 omegas_A = np.linspace(4, 1, 50)
-omegas_B = np.linspace(1, 1e-5, 80)
+omegas_B = np.linspace(1, 1e-5, 100)
 omegas = np.append(omegas_A, omegas_B)
 NO_FRAMES = len(omegas)
-inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=1000, tN=50, Amplitude=4, omega=omegas[0])
+inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=10000, tN=204, Amplitude=4, omega=omegas[0])
 inst.solve(inst.sirs_svar)
 t, S, I, R = inst.get()
 
@@ -38,7 +38,7 @@ def init():  # only required for blitting to give a clean slate.
 
 
 def animate(i):
-    inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=1000, tN=50, Amplitude=2, omega=omegas[i])
+    inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=10000, tN=204, Amplitude=2, omega=omegas[i])
     inst.solve(inst.sirs_svar)
     t, S, I, R = inst.get()
     lineS.set_ydata(S)  # update the data.
