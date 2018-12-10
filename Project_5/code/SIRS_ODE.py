@@ -56,8 +56,8 @@ class SIRS:
 
     def sirs_basic(self, t, S, I, R):
         """
-        Compute differentials for the SIRS system at a time t. Kept as a nested function
-        to access the local namespace for a, b, c constants.
+        Compute derivatives for the basic SIRS model
+
         Parameters
         ----------
         t: Time
@@ -71,14 +71,39 @@ class SIRS:
             (S', I', R')
         """
         N = S + I + R
-        dSdt = self.c * R - self.a * S * I / N - self.d * S + self.e * N - self.f
+        dSdt = self.c * R - self.a * S * I / N
+        dIdt = self.a * S * I / N - self.b * I
+        dRdt = self.b * I - self.c * R
+
+        return np.array([dSdt, dIdt, dRdt])
+
+    def sirs_vitdyn(self, t, S, I, R):
+        """
+        Computes derivative for the SIRS model with vital dynamics
+
+        Parameters
+        ----------
+        t: Time
+        S: Suceptibles
+        I: Infected
+        R: Recovered
+
+        Returns
+        -------
+        Numpy array
+            (S', I', R')
+        """
+        N = S + I + R
+        dSdt = self.c * R - self.a * S * I / N - self.d * S + self.e * N
         dIdt = self.a * S * I / N - self.b * I - self.d * I - self.d_I * I
-        dRdt = self.b * I - self.c * R - self.d * R + self.f
+        dRdt = self.b * I - self.c * R - self.d * R
 
         return np.array([dSdt, dIdt, dRdt])
 
     def sirs_vax(self, t, S, I, R):
         """
+        Computes derivatives for the SIRS model with vaccinations
+
         Parameters
         ----------
         t: Time
@@ -99,6 +124,21 @@ class SIRS:
         return np.array([dSdt, dIdt, dRdt])
 
     def sirs_svar(self, t, S, I, R):
+        """
+        Computes derivatives for the SIRS model with seasonal variation
+
+        Parameters
+        ----------
+        t: Time
+        S: Suceptibles
+        I: Infected
+        R: Recovered
+
+        Returns
+        -------
+        Numpy array
+            (S', I', R')
+        """
         N = S + I + R
         avar = self.Amplitude * np.cos(self.omega * t) + self.a
 

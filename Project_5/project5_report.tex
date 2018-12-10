@@ -207,6 +207,16 @@
 
 \section{Conclusions}
 
+  The obvious next step in the analysis of the SIRS model, and the different features we have discussed is to consider the combination of all of these added features, described by
+
+  \begin{align}
+     \begin{split}
+        S' &= cR - \qty(A\cos(\omega t) + a_0)\frac{SI}{N} - dS + eN - f \\
+        I' &= \qty(A\cos(\omega t)+a_0)\frac{SI}{N} - bI  - (d + d_I)I \\
+        R' &= bI - cR - dR + f
+     \end{split}
+  \end{align} 
+   Whilst the implementation of this model trivial\footnote{Armed with the experience of implementing, and understanding the individual features}, the analysis of it is likely a much more complicated due to how the different features will interact with each other. 
 
 \bibliography{../bibliography.bib}
 
