@@ -60,5 +60,5 @@ ani = animation.FuncAnimation(
 # from matplotlib.animation import FFMpegWriter
 # writer = FFMpegWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 # ani.save("movie.mp4", writer=writer)
-ani.save("../figs/SIRS_svar.gif", dpi=80, writer='imagemagick')
+ani.save("../figs/SIRS_seasonal_var.gif", dpi=80, writer='imagemagick')
 plt.close()
