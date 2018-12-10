@@ -203,47 +203,6 @@ def part_a_b():
     return
 
 
-"""
-def part_c():
-
-    stop = 20
-
-    no_sets = 4
-    no_trials = 100
-    fn_set = range(1, no_sets + 1)
-    fn_trials = range(1, no_trials + 1)
-
-    for i, dset in enumerate(fn_set):
-        plt.figure(figsize=[4, 2.3])
-        for j, trial in enumerate(fn_trials):
-            S_mc = np.load("../data/prob_c/c_%i/S_%i.npy" % (dset, trial))
-            I_mc = np.load("../data/prob_c/c_%i/I_%i.npy" % (dset, trial))
-            R_mc = np.load("../data/prob_c/c_%i/R_%i.npy" % (dset, trial))
-            t_mc = np.load("../data/prob_c/c_%i/t_%i.npy" % (dset, trial))
-
-            plt.plot(t_mc, S_mc, color="blue", alpha=.1)
-            plt.plot(t_mc, I_mc, color="red", alpha=.1)
-            plt.plot(t_mc, R_mc, color="green", alpha=.1)
-
-        inst = SIRS_ODE.SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, e=1, d=1, d_I=i, N=100, tN=20)
-        inst.solve(inst.sirs_basic)
-        t_ode, S_ode, I_ode, R_ode = inst.get()
-
-        plt.plot(t_ode, S_ode, color="black")
-        plt.plot(t_ode, I_ode, color="black")
-        plt.plot(t_ode, R_ode, color="black")
-        plt.xlabel("Time")
-        plt.ylabel("No. People")
-        plt.xlim(0, stop)
-        plt.tight_layout()
-        plt.savefig("../figs/prob_c_fig_%i.pdf" % i)
-        plt.savefig("../figs/prob_c_fig_%i.png" % i)
-        plt.close()
-
-    return
-"""
-
-
 def part_c():
     S0 = 300
     I0 = 100
@@ -338,12 +297,58 @@ def part_d():
     return
 
 
+def part_e():
+    # Keep following parameters constant
+    S0 = 300
+    I0 = 100
+    R0 = 0
+    a = 4
+    b = 1
+    c = 0.5
+    # But change the following
+    f = [50, 100, 150, 200]
+    stop = [100, 100, 100, 100]  # Simulation time
+    trials = 100  # No. times to run MC simulation
+
+    for i in range(len(f)):
+        plt.figure(figsize=[5, 2.5])
+
+        for j in range(trials):
+            # Get MC data from julia program (SIRS_MCMC.jl)
+            command = "SIRS_vax(S0=%i, I0=%i, R0=%i, a=%i, b=%i, c=%.2f, f=%.2f, stop_time=%i)"\
+                % (S0, I0, R0, a, b, c, f[i], stop[i])
+            t, S, I, R = jcall.eval(command)
+
+            plt.plot(t, S, color=S_colour, alpha=0.1)
+            plt.plot(t, I, color=I_colour, alpha=0.1)
+            plt.plot(t, R, color=R_colour, alpha=0.1)
+        # Plot ODE solution on top
+        inst = SIRS_ODE.SIRS(
+            S0=S0, I0=I0, R0=R0, N=int(1e3), tN=stop[i], a=a, b=b, c=c, f=f[i]
+        )
+        inst.solve(inst.sirs_vax)
+        t, S, I, R = inst.get()
+        plt.plot(t, S, color="Black")
+        plt.plot(t, I, color="Black")
+        plt.plot(t, R, color="Black")
+        plt.xlim(0, stop[i])
+        plt.ylim(-10, 410)
+        plt.title("f=%.2f" % f[i])
+        plt.xlabel("Time")
+        plt.ylabel("No. People")
+        plt.savefig("../figs/prob_e_fig_%i.pdf" % i)
+        plt.savefig("../figs/prob_e_fig_%i.png" % i)
+        plt.close()
+
+    return
+
+
 def main():
     # convergence_check()
     # part_a_b()
     # part_b()
     # part_c()
-    #part_d()
+    # part_d()
     part_e()
     return
 

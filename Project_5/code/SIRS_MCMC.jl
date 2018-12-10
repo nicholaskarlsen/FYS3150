@@ -178,7 +178,8 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
         B_S = e * N[i]                          # P(B->S)
 
         # Evaluate probabilities against random number, [0, 1)
-        if rand(Float64) < S_I  # Transition S -> I
+        # NOTE: Mersenne Twister
+        if rand(Float64) < S_I  # Transition S -> I  
             # Accept & update arrays accordingly
             S[i+1] -= 1
             I[i+1] += 1

@@ -12,40 +12,61 @@ omegas_A = np.linspace(4, 1, 50)
 omegas_B = np.linspace(1, 1e-5, 100)
 omegas = np.append(omegas_A, omegas_B)
 NO_FRAMES = len(omegas)
-inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=10000, tN=204, Amplitude=4, omega=omegas[0])
+inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=10000, tN=204, Amplitude=1, omega=omegas[0])
 inst.solve(inst.sirs_svar)
 t, S, I, R = inst.get()
 
-fig, ax = plt.subplots()
+fig, (ax1, ax2) = plt.subplots(2,1)
 
-ax.set_ylim(0, 400)
-ax.set_xlim(t[0], t[-1])
+ax1.set_ylim(0, 400)
+ax1.set_xlim(t[0], t[-1])
 
-lineS, = ax.plot(t, S, label="S")
-lineI, = ax.plot(t, I, label="I")
-lineR, = ax.plot(t, R, label="R")
-text = ax.text(0.25, (S[0] + I[0] + R[0]) * .95, "")
+lineS1, = ax1.plot(t, S, label="S")
+lineI1, = ax1.plot(t, I, label="I")
+lineR1, = ax1.plot(t, R, label="R")
+text1 = ax1.text(0.25, (S[0] + I[0] + R[0]) * .95, "")
 
-ax.legend(loc="upper right")
+ax2.set_ylim(0, 400)
+ax2.set_xlim(t[0], t[-1])
+
+lineS2, = ax2.plot(t, S, label="S")
+lineI2, = ax2.plot(t, I, label="I")
+lineR2, = ax2.plot(t, R, label="R")
+text2 = ax2.text(0.25, (S[0] + I[0] + R[0]) * .95, "")
+
+ax1.legend(loc="upper right")
+ax2.legend(loc="upper right")
 
 
 def init():  # only required for blitting to give a clean slate.
-    lineS.set_ydata([np.nan] * len(t))
-    lineI.set_ydata([np.nan] * len(t))
-    lineR.set_ydata([np.nan] * len(t))
+    lineS1.set_ydata([np.nan] * len(t))
+    lineI1.set_ydata([np.nan] * len(t))
+    lineR1.set_ydata([np.nan] * len(t))
 
-    return (lineS, lineI, lineR) + (text,)
+    lineS2.set_ydata([np.nan] * len(t))
+    lineI2.set_ydata([np.nan] * len(t))
+    lineR2.set_ydata([np.nan] * len(t))
+
+
+    return (lineS1, lineI1, lineR1, lineS2, lineI2, lineR2) + (text1, text2)
 
 
 def animate(i):
-    inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=10000, tN=204, Amplitude=2, omega=omegas[i])
+    inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=10000, tN=204, Amplitude=1, omega=omegas[i])
     inst.solve(inst.sirs_svar)
     t, S, I, R = inst.get()
-    lineS.set_ydata(S)  # update the data.
-    lineI.set_ydata(I)  # update the data.
-    lineR.set_ydata(R)  # update the data.
-    text.set_text("$\\omega$ = %.2f" % omegas[i])
-    return (lineS, lineI, lineR) + (text,)
+    lineS1.set_ydata(S)  # update the data.
+    lineI1.set_ydata(I)  # update the data.
+    lineR1.set_ydata(R)  # update the data.
+    text1.set_text("A=1, $\\omega$ = %.2f" % omegas[i])
+    inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=10000, tN=204, Amplitude=4, omega=omegas[i])
+    inst.solve(inst.sirs_svar)
+    t, S, I, R = inst.get()
+    lineS2.set_ydata(S)  # update the data.
+    lineI2.set_ydata(I)  # update the data.
+    lineR2.set_ydata(R)  # update the data.
+    text2.set_text("A=4, $\\omega$ = %.2f" % omegas[i])
+    return (lineS1, lineI1, lineR1) + (text1,)
 
 
 ani = animation.FuncAnimation(

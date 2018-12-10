@@ -58,9 +58,6 @@ class SIRS:
         """
         Compute differentials for the SIRS system at a time t. Kept as a nested function
         to access the local namespace for a, b, c constants.
-        ("Wasted" FLOPS by multiplying by variables which =0, but requires less methods.
-        If runtime becomes issue, add new method with only the speciffic traits)
-
         Parameters
         ----------
         t: Time
@@ -77,6 +74,27 @@ class SIRS:
         dSdt = self.c * R - self.a * S * I / N - self.d * S + self.e * N - self.f
         dIdt = self.a * S * I / N - self.b * I - self.d * I - self.d_I * I
         dRdt = self.b * I - self.c * R - self.d * R + self.f
+
+        return np.array([dSdt, dIdt, dRdt])
+
+    def sirs_vax(self, t, S, I, R):
+        """
+        Parameters
+        ----------
+        t: Time
+        S: Suceptibles
+        I: Infected
+        R: Recovered
+
+        Returns
+        -------
+        Numpy array
+            (S', I', R')
+        """
+        N = S + I + R
+        dSdt = self.c * R - self.a * S * I / N - self.f
+        dIdt = self.a * S * I / N - self.b * I
+        dRdt = self.b * I - self.c * R + self.f
 
         return np.array([dSdt, dIdt, dRdt])
 
