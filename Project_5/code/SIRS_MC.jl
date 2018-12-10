@@ -4,19 +4,6 @@ Contains all different versions of the SIRS MC implementations.
 Written for, and tested to work on Julia v1.0.2.
 =#
 
-using PyPlot
-using BenchmarkTools
-
-function main()
-    for i in 1:100
-        t, S, I, R = SIRS_basic(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, stop_time=10)
-        plot(t, S, color="blue", alpha=.1)
-        plot(t, I, color="red", alpha=.1)
-        plot(t, R, color="green", alpha=.1)
-    end
-    savefig("../figs/julia_sirs_basic.png")
-end
-
 
 function SIRS_basic(;S0::Int64, I0::Int64, R0::Int64, a, b, c, stop_time)
     #= Simulates the simplest case of the SIRS model with a Monte Carlo method

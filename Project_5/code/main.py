@@ -365,9 +365,9 @@ def part_e():
 def main():
     # convergence_check()
     part_a_b()
-    part_c()
-    part_d()
-    # part_e()
+    #part_c()
+    #part_d()
+    #part_e()
     return
 
 
