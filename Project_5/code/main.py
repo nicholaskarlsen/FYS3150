@@ -289,32 +289,36 @@ def part_c():
 
 
 def part_d():
+    # Keep following parameters constant
     S0 = 300
     I0 = 100
     R0 = 0
     a0 = 4
     b = 1
     c = 0.5
+    # But change the following
+    percent_diff = [1, 1, .5, .5]  # maximum percent deviation from a0
+    Amp = [diff * a0 for diff in percent_diff]  # Amplitude of deviation from a0
+    omega = [4, 0.25, 2, 0.25]  # Frequency of deviation from a0
+    stop = [10, 70, 10, 70]  # Simulation time
 
-    percent_diff = [0.25, 0.25, 1, 1]
-    Amp = [diff * a0 for diff in percent_diff]
-    omega = [2, 0.2, 2, 0.5]
-    stop_time = 20
-    trials = 100
+    trials = 100  # No. times to run MC simulation
 
-    for i in range(4):
+    for i in range(len(percent_diff)):
         plt.figure(figsize=[5, 2.5])
+
         for j in range(trials):
+            # Get MC data from julia program (SIRS_MCMC.jl)
             command = "SIRS_svar(S0=%i, I0=%i, R0=%i, a0=%i, A=%.2f, omega=%.2f, b=%i, c=%.2f, stop_time=%i)"\
-                % (S0, I0, R0, a0, Amp[i], omega[i], b, c, stop_time)
+                % (S0, I0, R0, a0, Amp[i], omega[i], b, c, stop[i])
             t, S, I, R = jcall.eval(command)
 
             plt.plot(t, S, color=S_colour, alpha=0.1)
             plt.plot(t, I, color=I_colour, alpha=0.1)
             plt.plot(t, R, color=R_colour, alpha=0.1)
-        # Add ODE solution
+        # Plot ODE solution on top
         inst = SIRS_ODE.SIRS(
-            S0=S0, I0=I0, R0=R0, N=int(1e3), tN=stop_time, a=a0, b=b, c=c, Amplitude=Amp[i],
+            S0=S0, I0=I0, R0=R0, N=int(1e3), tN=stop[i], a=a0, b=b, c=c, Amplitude=Amp[i],
             omega=omega[i]
         )
         inst.solve(inst.sirs_svar)
@@ -322,8 +326,9 @@ def part_d():
         plt.plot(t, S, color="Black")
         plt.plot(t, I, color="Black")
         plt.plot(t, R, color="Black")
-        plt.xlim(0, stop_time)
-        plt.ylim(0, 400)
+        plt.xlim(0, stop[i])
+        plt.ylim(-10, 410)
+        plt.title("A=%.2f, $\\omega$=%.2f" % (Amp[i], omega[i]))
         plt.xlabel("Time")
         plt.ylabel("No. People")
         plt.savefig("../figs/prob_d_fig_%i.pdf" % i)
@@ -337,7 +342,7 @@ def main():
     # convergence_check()
     # part_a_b()
     # part_b()
-    #part_c()
+    # part_c()
     part_d()
     # part_e()
     return

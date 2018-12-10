@@ -258,7 +258,7 @@ function SIRS_svar(;S0::Int64, I0::Int64, R0::Int64, a0, A, omega, b, c, stop_ti
     # Begin Monte Carlo Cycle
     i=1 # Initialize iteration variable
     while t[i] <= stop_time
-        if i > 100000
+        if i > 1000000
             println("Broke early")
             break
         end
