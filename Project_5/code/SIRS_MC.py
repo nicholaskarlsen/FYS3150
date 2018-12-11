@@ -34,19 +34,19 @@ def main(S0, I0, R0, a, b, c, trials=10, stop_time=10):
 
             # if lt <= S[i]:
             # (S -> I)
-            if np.random.random() < S_I:
+            if np.random.random() < S_I and S[i + 1, j] > 0:
                 S[i + 1, j] -= 1
                 I[i + 1, j] += 1
 
             # elif lt > S[i] + I[i]:
                 # (R -> S)
-            if np.random.random() < R_S:
+            if np.random.random() < R_S and R[i + 1, j] > 0:
                 R[i + 1, j] -= 1
                 S[i + 1, j] += 1
 
             # else:
                 # (I -> R)
-            if np.random.random() < I_R:
+            if np.random.random() < I_R and I[i + 1, j] > 0:
                 I[i + 1, j] -= 1
                 R[i + 1, j] += 1
 

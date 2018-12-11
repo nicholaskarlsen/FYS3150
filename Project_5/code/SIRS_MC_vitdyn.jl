@@ -6,14 +6,14 @@ function main()
     # Test functionality, not report material
     # Note : import guard @ bottom of file
     for i in 1:100
-        t, S, I, R = SIRS_vitdyn(S0=300, I0=0, R0=0, a=4, b=1, c=0.5, d=4, d_I=0, e=0.5, stop_time=1,
+        t, S, I, R = SIRS_vitdyn(S0=300, I0=0, R0=0, a=4, b=1, c=0.5, d=4, d_I=0, e=0.1, stop_time=1,
                                 limit=100000)
         plot(t, S, color="blue", alpha=.1)
         plot(t, I, color="red", alpha=.1)
         plot(t, R, color="green", alpha=.1)
         plot(t, S + I + R, color="black", alpha=.1)
     end
-    savefig("../figs/julia_sirs_vitdyn1.png")
+    savefig("../figs/julia_sirs_vitdyn3.png")
 end
 
 function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_time, 
@@ -34,19 +34,13 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
         d_I       : death rate of the infected, additive to d. (Any group -> )
         e         : Birth Rate (-> S)
         stop_time : Time at which the loop is terminated
-        limit     ; limit number of loops incase N grows too large (causing Δt to become smaller)
+        limit     : limit number of loops incase N grows too large (causing Δt to become smaller)
+                    Note: when producing averages, RAISE limit or lower stop_time untill 
+                    there are no early breaks!!
     Returns
     -------
         t, S, I, R : Arrays, containing the resulting data
     =#
-
-    for var in [e, d]
-        if var <= 0
-            println("e=$e, d=$d, .. exiting")
-            return 0, 0, 0, 0
-        end
-    end
-
 
     # Initialize Arrays for storing population number
     S = Int64[]
@@ -66,7 +60,7 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
     i=1 # Initialize itteration variable
 
     while t[i] <= stop_time
-        # birthrate may cause N -> large, => Δt -> small. Terminate at limit, 1e5 by default
+        # birthrate may cause N -> large, => Δt -> small. Terminate at limit.
         if i > limit
             println("Broke SIRS_MC_vitdyn early: i > $limit")
             break
@@ -80,6 +74,7 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
         append!(I, 0)
         append!(R, 0)
         append!(t, 0)
+        append!(N, 0)
         # Appending directly caused issues with scope inside of IF statements???
         S[i + 1] = S[i]
         I[i + 1] = I[i]
@@ -95,7 +90,7 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
         I_D = (d + d_I) * I[i] * Δt             # P(I->DEAD)
         R_D = d * R[i] * Δt                     # P(R->DEAD)
         # Probability of birth
-        B_S = e * N[i]                          # P(BIRTH->S)
+        B_S = e * N[i] * Δt                     # P(BIRTH->S)
 
         # Evaluate probabilities against random number, (0, 1)
         if rand(Float64) < S_I  # Transition S -> I  
@@ -122,9 +117,7 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
 
         if rand(Float64) < S_D  # Death in S group
             if S[i + 1] > 0
-                println(S[i + 1])
                 S[i + 1] -= 1
-                println(S[i + 1])
             end
         end
 
@@ -144,9 +137,7 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
             S[i + 1] += 1
         end
 
-        append!(N, 0)
-        N[i + 1] = S[i+1] + I[i+1] + R[i+1]
-        println(" N:", N[i+1], " S:", S[i+1], " I:", I[i+1], " R: ", R[i+1])
+        N[i+1] = S[i+1] + I[i+1] + R[i+1]
 
         i+=1
     end

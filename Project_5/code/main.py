@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as tic
 import time
 import os
+import scipy.interpolate
 from julia import Main as jcall  # Imports the main namespace of julia
 
 import SIRS_ODE
@@ -18,32 +19,37 @@ import SIRS_MC
 S_colour = "blue"
 I_colour = "red"
 R_colour = "green"
-Mean_colour = "black"
+Mean_colour = "orange"
+ODE_colour = "black"
+SIR_alpha = 0.05
 
 
-def figsetup(title, xlab, ylab, fname, legend=True, show=False, tightlayout=True):
-    """
-    Sets up and saves figure for usage in report
-    usage:
-    plt.figure(figsize=[x, y])
-    plot(...)
-    ...
-    plot(...)
-    figsetup(title="filename", ...)
-    """
-    plt.xlabel(xlab)
-    plt.ylabel(ylab)
-    plt.title(fname)
-    plt.title(title)
-    if tightlayout is True:
-        plt.tight_layout()
-    if legend is True:
-        plt.legend(loc="best")
-    plt.savefig("../figs/" + fname + ".pdf")
-    if show is False:
-        plt.close()
-    else:
-        plt.show()
+def common_legend():
+    # Generates common legend for plots as separate figure.
+    # First set up throw away figure with legend properties
+    fig = plt.figure()
+    ax = plt.gca()
+    # Multiply normal alpha by 10 to make it readable in legend.
+    plt.plot([1, 2], [1, 2], linestyle="-", color=S_colour, label="S", alpha=SIR_alpha * 10)
+    plt.plot([1, 2], [1, 2], linestyle="-", color=I_colour, label="I", alpha=SIR_alpha * 10)
+    plt.plot([1, 2], [1, 2], linestyle="-", color=R_colour, label="R", alpha=SIR_alpha * 10)
+    plt.plot([1, 2], [1, 2], linestyle="--", color=Mean_colour, label="Mean")
+    plt.plot([1, 2], [1, 2], linestyle="-", color=ODE_colour, label="ODE")
+    # generate separate legend with properties from faux figure
+
+    legend = plt.legend(ncol=5)  # Make the legend expand horizontally
+
+    def export_legend(legend, filename="../figs/prob_ab_legend.pdf", expand=[-5, -5, 5, 5]):
+        fig = legend.figure
+        fig.canvas.draw()
+        bbox = legend.get_window_extent()
+        bbox = bbox.from_extents(*(bbox.extents + np.array(expand)))
+        bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
+        fig.savefig(filename, dpi="figure", bbox_inches=bbox)
+
+    export_legend(legend)
+    plt.close()
+
     return
 
 
@@ -111,14 +117,14 @@ def part_a_b():
         # ~~~ ODE SOLUTIONS ~~~ #
         inst = SIRS_ODE.SIRS(S0=S0, I0=I0, R0=R0, a=a, b=b_i, c=c, N=1000, tN=stop)
         inst.solve(inst.sirs_basic)
-        t, S, I, R = inst.get()
+        t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
 
         fig, ax = plt.subplots(figsize=figdim)
         # Main Figure
 
-        ax.plot(t, S, color=S_colour)
-        ax.plot(t, I, color=I_colour)
-        ax.plot(t, R, color=R_colour)
+        ax.plot(t_ODE, S_ODE, color=S_colour)
+        ax.plot(t_ODE, I_ODE, color=I_colour)
+        ax.plot(t_ODE, R_ODE, color=R_colour)
 
         def plot_ab_settings():
             "Calls that are common to generating both figs"
@@ -159,58 +165,37 @@ def part_a_b():
         # If one of the files dont exist, all of them probably dont
         if os.path.isfile(fn_S_curr) is False:
             # If they dont exist, compute & save
-            t, S, I, R = SIRS_MC.main(S0=S0, I0=I0, R0=R0, a=a, b=b_i, c=c, stop_time=stop, trials=100)
-            np.save(fn_t_curr, t)
-            np.save(fn_S_curr, S)
-            np.save(fn_I_curr, I)
-            np.save(fn_R_curr, R)
+            t_MC, S_MC, I_MC, R_MC = SIRS_MC.main(S0=S0, I0=I0, R0=R0, a=a, b=b_i, c=c, stop_time=stop, trials=100)
+            np.save(fn_t_curr, t_MC)
+            np.save(fn_S_curr, S_MC)
+            np.save(fn_I_curr, I_MC)
+            np.save(fn_R_curr, R_MC)
         else:
             # Load if they exist
-            t = np.load(fn_t_curr)
-            S = np.load(fn_S_curr)
-            I = np.load(fn_I_curr)
-            R = np.load(fn_R_curr)
+            t_MC = np.load(fn_t_curr)
+            S_MC = np.load(fn_S_curr)
+            I_MC = np.load(fn_I_curr)
+            R_MC = np.load(fn_R_curr)
 
         # First plot all trials
-        plt.plot(t, S, color=S_colour, alpha=.1)
-        plt.plot(t, I, color=I_colour, alpha=.1)
-        plt.plot(t, R, color=R_colour, alpha=.1)
+        ax.plot(t_MC, S_MC, color=S_colour, alpha=SIR_alpha)
+        ax.plot(t_MC, I_MC, color=I_colour, alpha=SIR_alpha)
+        ax.plot(t_MC, R_MC, color=R_colour, alpha=SIR_alpha)
+
+        # Then ODE solutions
+        ax.plot(t_ODE, S_ODE, color=ODE_colour)
+        ax.plot(t_ODE, I_ODE, color=ODE_colour)
+        ax.plot(t_ODE, R_ODE, color=ODE_colour)
 
         # Then plot mean values
-        plt.plot(t, np.mean(S, axis=1), label="S", color="black")
-        plt.plot(t, np.mean(I, axis=1), label="I", color="black")
-        plt.plot(t, np.mean(R, axis=1), label="R", color="black")
+        ax.plot(t_MC, np.mean(S_MC, axis=1), label="S", color=Mean_colour, linestyle="--")
+        ax.plot(t_MC, np.mean(I_MC, axis=1), label="I", color=Mean_colour, linestyle="--")
+        ax.plot(t_MC, np.mean(R_MC, axis=1), label="R", color=Mean_colour, linestyle="--")
 
         plot_ab_settings()  # Apply same settings to MCMC fig
         plt.savefig("../figs/prob_b_varb_%i.pdf" % b_i)
         plt.savefig("../figs/prob_b_varb_%i.png" % b_i)
         plt.close()
-
-    # --- Generate separate figure for common legend --- #
-    # First set up throw away figure with legend properties
-    fig = plt.figure()
-    ax = plt.gca()
-    plt.plot([1, 2], [1, 2], linestyle="-", color=S_colour, label="S")
-    plt.plot([1, 2], [1, 2], linestyle="-", color=I_colour, label="I")
-    plt.plot([1, 2], [1, 2], linestyle="-", color=R_colour, label="R")
-    plt.plot([1, 2], [1, 2], linestyle="-", color=Mean_colour, label="Mean")
-    # generate separate legend with properties from faux figure
-
-    legend = plt.legend(ncol=4)
-
-    def export_legend(legend, filename="../figs/prob_ab_legend.pdf", expand=[-5, -5, 5, 5]):
-        fig = legend.figure
-        fig.canvas.draw()
-        bbox = legend.get_window_extent()
-        bbox = bbox.from_extents(*(bbox.extents + np.array(expand)))
-        bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
-        fig.savefig(filename, dpi="figure", bbox_inches=bbox)
-
-    export_legend(legend)
-    plt.close()
-
-    # plot variace against dt
-
     return
 
 
@@ -227,9 +212,9 @@ def part_c():
     b = 1
     c = 0.5
     d = [1, 1, 1, 1]
-    d_I = [0, 1, 1, 0.1]
-    e = [1, 1, 1.1, 1]
-    stop_time = 20
+    d_I = [0, 1, 1, 2]
+    e = [1, 1, 1.2, 1.2]
+    stop_time = [10, 60, 30, 7]
     trials = 100
 
     num_steps = np.zeros(trials)  # Used to store number of steps performed in MC algorithm
@@ -237,39 +222,62 @@ def part_c():
     for i in range(4):
         plt.figure(figsize=[5, 2.5])
 
+        # Compute ODE solution (Need t_ODE to compute interpolations)
+        inst = SIRS_ODE.SIRS(
+            S0=S0, I0=I0, R0=R0, N=1000, tN=stop_time[i], a=a, b=b, c=c, d=d[i], d_I=d_I[i], e=e[i]
+        )
+        inst.solve(inst.sirs_vitdyn)
+        t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
+
+        S_mean = np.zeros(len(t_ODE))
+        I_mean = np.zeros(len(t_ODE))
+        R_mean = np.zeros(len(t_ODE))
+
         # Compute MC solutions
         for j in range(trials):
-            command = "SIRS_vitdyn(S0=%i, I0=%i, R0=%i, a=%.2f, b=%.2f, c=%.2f, d=%.2f, d_I=%.2f, e=%.2f, stop_time=%i)"\
-                % (S0, I0, R0, a, b, c, d[i], d_I[i], e[i], stop_time)
+            command = "SIRS_vitdyn(S0=%i, I0=%i, R0=%i, a=%.2f, b=%.2f, c=%.2f, d=%.2f, \
+                d_I=%.2f, e=%.2f, stop_time=%i)" % (S0, I0, R0, a, b, c, d[i], d_I[i], e[i], stop_time[i])
             t, S, I, R = jcall.eval(command)
-            """
-            Note: This way of using PyJulia may not be the most efficient/proper way?
-                The package lacks any meaningfull documentation by the looks of it, so
-                this way of doing things will have to do.
-            """
 
-            plt.plot(t, S, color=S_colour, alpha=0.1)
-            plt.plot(t, I, color=I_colour, alpha=0.1)
-            plt.plot(t, R, color=R_colour, alpha=0.1)
+            """ Note: This way of using PyJulia may not be the most efficient/proper way?
+                The package lacks any meaningfull documentation by the looks of it, so
+                this way of doing things will have to do. """
+
+            plt.plot(t, S, color=S_colour, alpha=SIR_alpha)
+            plt.plot(t, I, color=I_colour, alpha=SIR_alpha)
+            plt.plot(t, R, color=R_colour, alpha=SIR_alpha)
+
+            interpolated_S = scipy.interpolate.interp1d(t, S, kind="linear")
+            interpolated_I = scipy.interpolate.interp1d(t, I, kind="linear")
+            interpolated_R = scipy.interpolate.interp1d(t, R, kind="linear")
+
+            t_ODE_valid = t_ODE[t_ODE < t[-1]]
+
+            # Get interpolations at same pts as t_ODE is solved
+            S_mean[:len(t_ODE_valid)] += interpolated_S(t_ODE_valid)
+            I_mean[:len(t_ODE_valid)] += interpolated_I(t_ODE_valid)
+            R_mean[:len(t_ODE_valid)] += interpolated_R(t_ODE_valid)
 
             if i == 1:
                 # Sufficient to look at length of data sets for only one of the cycles
                 num_steps[j] = len(t)
 
             # TODO : Add interpolation at points t_ODE using scipy.interpolate.inerp1d()
-
-        # Compute ODE solution
-        inst = SIRS_ODE.SIRS(
-            S0=S0, I0=I0, R0=R0, N=1000, tN=stop_time, a=a, b=b, c=c, d=d[i], d_I=d_I[i], e=e[i]
-        )
-        inst.solve(inst.sirs_vitdyn)
-        t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
+        S_mean /= float(trials)
+        I_mean /= float(trials)
+        R_mean /= float(trials)
 
         # Add ODE solution on top of MC solutions
-        plt.plot(t_ODE, S_ODE, color="Black")
-        plt.plot(t_ODE, I_ODE, color="Black")
-        plt.plot(t_ODE, R_ODE, color="Black")
-        plt.xlim(0, stop_time)
+        plt.plot(t_ODE, S_ODE, color=ODE_colour)
+        plt.plot(t_ODE, I_ODE, color=ODE_colour)
+        plt.plot(t_ODE, R_ODE, color=ODE_colour)
+
+        # Dotted mean values on top of ODE
+        plt.plot(t_ODE, S_mean, color=Mean_colour, linestyle="--")
+        plt.plot(t_ODE, I_mean, color=Mean_colour, linestyle="--")
+        plt.plot(t_ODE, R_mean, color=Mean_colour, linestyle="--")
+
+        plt.xlim(0, stop_time[i])
         plt.ylim(-10, 450)
         plt.xlabel("Time")
         plt.ylabel("No. People")
@@ -319,20 +327,24 @@ def part_d():
         t, S, I, R = jcall.eval(command)
 
         for j in range(trials):
-            plt.plot(t, S[j], color=S_colour, alpha=0.1)
-            plt.plot(t, I[j], color=I_colour, alpha=0.1)
-            plt.plot(t, R[j], color=R_colour, alpha=0.1)
+            plt.plot(t, S[j], color=S_colour, alpha=SIR_alpha)
+            plt.plot(t, I[j], color=I_colour, alpha=SIR_alpha)
+            plt.plot(t, R[j], color=R_colour, alpha=SIR_alpha)
 
         # Plot ODE solution on top
         inst = SIRS_ODE.SIRS(
             S0=S0, I0=I0, R0=R0, N=int(1e3), tN=stop[i], a=a0, b=b, c=c, Amplitude=Amp[i],
-            omega=omega[i]
-        )
+            omega=omega[i])
         inst.solve(inst.sirs_svar)
-        t, S, I, R = inst.get()
-        plt.plot(t, S, color="Black")
-        plt.plot(t, I, color="Black")
-        plt.plot(t, R, color="Black")
+        t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
+        plt.plot(t_ODE, S_ODE, color="Black")
+        plt.plot(t_ODE, I_ODE, color="Black")
+        plt.plot(t_ODE, R_ODE, color="Black")
+        # Mean MC on top of ODE
+        plt.plot(t, np.mean(S, axis=0), linestyle="--", color=Mean_colour)
+        plt.plot(t, np.mean(I, axis=0), linestyle="--", color=Mean_colour)
+        plt.plot(t, np.mean(R, axis=0), linestyle="--", color=Mean_colour)
+
         plt.xlim(0, stop[i])
         plt.ylim(-10, 410)
         plt.title("A=%.2f, $\\omega$=%.2f" % (Amp[i], omega[i]))
@@ -371,18 +383,18 @@ def part_e():
         t, S, I, R = jcall.eval(command)
 
         for j in range(trials):
-            plt.plot(t, S[j], color=S_colour, alpha=0.1)
-            plt.plot(t, R[j], color=R_colour, alpha=0.1)
-            plt.plot(t, I[j], color=I_colour, alpha=0.1)
+            plt.plot(t, S[j], color=S_colour, alpha=0.001)
+            plt.plot(t, R[j], color=R_colour, alpha=SIR_alpha)
+            plt.plot(t, I[j], color=I_colour, alpha=SIR_alpha)
         # Plot ODE solution on top
         inst = SIRS_ODE.SIRS(
             S0=S0, I0=I0, R0=R0, N=int(1e6), tN=stop[i], a=a, b=b, c=c, f=f[i]
         )
         inst.solve(inst.sirs_vax)
         t, S, I, R = inst.get()
-        plt.plot(t, S, color="Black")
-        plt.plot(t, I, color="Black")
-        plt.plot(t, R, color="Black")
+        plt.plot(t, S, color=ODE_colour)
+        plt.plot(t, I, color=ODE_colour)
+        plt.plot(t, R, color=ODE_colour)
         plt.xlim(0, stop[i])
         plt.ylim(-10, 800)
         plt.title("f=%.2f" % f[i])
@@ -397,8 +409,9 @@ def part_e():
 
 def main():
     # convergence_check()
+    common_legend()
     # part_a_b()
-    part_c()
+    # part_c()
     # part_d()
     # part_e()
     return
