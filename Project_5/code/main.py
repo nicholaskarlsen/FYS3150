@@ -30,9 +30,12 @@ def common_legend():
     fig = plt.figure()
     ax = plt.gca()
     # Multiply normal alpha by 10 to make it readable in legend.
-    plt.plot([1, 2], [1, 2], linestyle="-", color=S_colour, label="S", alpha=SIR_alpha * 10)
-    plt.plot([1, 2], [1, 2], linestyle="-", color=I_colour, label="I", alpha=SIR_alpha * 10)
-    plt.plot([1, 2], [1, 2], linestyle="-", color=R_colour, label="R", alpha=SIR_alpha * 10)
+    plt.plot([1, 2], [1, 2], linestyle="-", color=S_colour,
+             label="S", alpha=SIR_alpha * 10)
+    plt.plot([1, 2], [1, 2], linestyle="-", color=I_colour,
+             label="I", alpha=SIR_alpha * 10)
+    plt.plot([1, 2], [1, 2], linestyle="-", color=R_colour,
+             label="R", alpha=SIR_alpha * 10)
     plt.plot([1, 2], [1, 2], linestyle="--", color=Mean_colour, label="Mean")
     plt.plot([1, 2], [1, 2], linestyle="-", color=ODE_colour, label="ODE")
     # generate separate legend with properties from faux figure
@@ -115,7 +118,8 @@ def part_a_b():
         r *= S0 + I0 + R0
 
         # ~~~ ODE SOLUTIONS ~~~ #
-        inst = SIRS_ODE.SIRS(S0=S0, I0=I0, R0=R0, a=a, b=b_i, c=c, N=1000, tN=stop)
+        inst = SIRS_ODE.SIRS(S0=S0, I0=I0, R0=R0, a=a,
+                             b=b_i, c=c, N=1000, tN=stop)
         inst.solve(inst.sirs_basic)
         t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
 
@@ -165,7 +169,8 @@ def part_a_b():
         # If one of the files dont exist, all of them probably dont
         if os.path.isfile(fn_S_curr) is False:
             # If they dont exist, compute & save
-            t_MC, S_MC, I_MC, R_MC = SIRS_MC.main(S0=S0, I0=I0, R0=R0, a=a, b=b_i, c=c, stop_time=stop, trials=100)
+            t_MC, S_MC, I_MC, R_MC = SIRS_MC.main(
+                S0=S0, I0=I0, R0=R0, a=a, b=b_i, c=c, stop_time=stop, trials=100)
             np.save(fn_t_curr, t_MC)
             np.save(fn_S_curr, S_MC)
             np.save(fn_I_curr, I_MC)
@@ -188,9 +193,12 @@ def part_a_b():
         ax.plot(t_ODE, R_ODE, color=ODE_colour)
 
         # Then plot mean values
-        ax.plot(t_MC, np.mean(S_MC, axis=1), label="S", color=Mean_colour, linestyle="--")
-        ax.plot(t_MC, np.mean(I_MC, axis=1), label="I", color=Mean_colour, linestyle="--")
-        ax.plot(t_MC, np.mean(R_MC, axis=1), label="R", color=Mean_colour, linestyle="--")
+        ax.plot(t_MC, np.mean(S_MC, axis=1), label="S",
+                color=Mean_colour, linestyle="--")
+        ax.plot(t_MC, np.mean(I_MC, axis=1), label="I",
+                color=Mean_colour, linestyle="--")
+        ax.plot(t_MC, np.mean(R_MC, axis=1), label="R",
+                color=Mean_colour, linestyle="--")
 
         plot_ab_settings()  # Apply same settings to MCMC fig
         plt.savefig("../figs/prob_b_varb_%i.pdf" % b_i)
@@ -217,7 +225,8 @@ def part_c():
     stop_time = [10, 60, 30, 7]
     trials = 100
 
-    num_steps = np.zeros(trials)  # Used to store number of steps performed in MC algorithm
+    # Used to store number of steps performed in MC algorithm
+    num_steps = np.zeros(trials)
 
     for i in range(4):
         plt.figure(figsize=[5, 2.5])
@@ -281,7 +290,8 @@ def part_c():
         plt.ylim(-10, 450)
         plt.xlabel("Time")
         plt.ylabel("No. People")
-        plt.title("a=%.2f, b=%.2f, c=%.2f, d=%.2f, $d_I$=%.2f, e=%.2f" % (a, b, c, d[i], d_I[i], e[i]))
+        plt.title("a=%.2f, b=%.2f, c=%.2f, d=%.2f, $d_I$=%.2f, e=%.2f" %
+                  (a, b, c, d[i], d_I[i], e[i]))
         plt.savefig("../figs/prob_c_fig_%i.pdf" % i)
         plt.savefig("../figs/prob_c_fig_%i.png" % i)
         plt.close()
@@ -312,7 +322,8 @@ def part_d():
     c = 0.5
     # But change the following
     percent_diff = [1, 1, .5, .5]  # maximum percent deviation from a0
-    Amp = [diff * a0 for diff in percent_diff]  # Amplitude of deviation from a0
+    # Amplitude of deviation from a0
+    Amp = [diff * a0 for diff in percent_diff]
     omega = [4, 0.25, 2, 0.25]  # Frequency of deviation from a0
     stop = [10, 70, 10, 70]  # Simulation time
 
@@ -404,7 +415,7 @@ def part_e():
         plt.close()
 
         # NOTE: System poorly modeled by ODE because the "f" term is not
-        # Population conservative. Will continue to "transfer" from 
+        # Population conservative. Will continue to "transfer" from
         # I -> S even if I >= 0
 
     return
@@ -412,10 +423,10 @@ def part_e():
 
 def main():
     # convergence_check()
-    #common_legend()
-    # part_a_b()
-    #part_c()
-    #part_d()
+    common_legend()
+    part_a_b()
+    part_c()
+    part_d()
     part_e()
     return
 
