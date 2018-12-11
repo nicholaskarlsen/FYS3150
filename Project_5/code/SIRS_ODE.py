@@ -117,8 +117,8 @@ class SIRS:
             (S', I', R')
         """
         N = S + I + R
-        dSdt = self.c * R - self.a * S * I / N - self.f
-        dIdt = self.a * S * I / N - self.b * I
+        dSdt = self.c * R - (self.a * S * I) / N - self.f
+        dIdt = (self.a * S * I) / N - self.b * I
         dRdt = self.b * I - self.c * R + self.f
 
         return np.array([dSdt, dIdt, dRdt])
@@ -151,8 +151,8 @@ class SIRS:
     def euler_fw(self, i, diffEq):
         """
         Computes time-step using the Euler-Forward method
-        (used to check implementation of RK4. if both yield same result -> things
-        are working correclty, probably.)
+        (used to initially check implementation of RK4. if both yield similar 
+        result -> things are working correclty, probably.)
 
         Parameters
         ----------

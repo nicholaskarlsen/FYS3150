@@ -372,7 +372,7 @@ def part_e():
     c = 0.5
     # But change the following
     f = [50, 100, 200, 300]
-    stop = [20, 20, 20, 20]  # Simulation time
+    stop = [4, 4, 4, 4]  # Simulation time
     trials = 100  # No. times to run MC simulation
 
     for i in range(len(f)):
@@ -380,21 +380,20 @@ def part_e():
 
         command = "SIRS_vax(S0=%i, I0=%i, R0=%i, a=%.2f, b=%.2f, c=%.2f, f=%.2f, stop_time=%i, trials=%i)"\
             % (S0, I0, R0, a, b, c, f[i], stop[i], trials)
-        t, S, I, R = jcall.eval(command)
-
+        t_MC, S_MC, I_MC, R_MC = jcall.eval(command)
         for j in range(trials):
-            plt.plot(t, S[j], color=S_colour, alpha=0.001)
-            plt.plot(t, R[j], color=R_colour, alpha=SIR_alpha)
-            plt.plot(t, I[j], color=I_colour, alpha=SIR_alpha)
+            plt.plot(t_MC, S_MC[j], color=S_colour, alpha=SIR_alpha)
+            plt.plot(t_MC, I_MC[j], color=I_colour, alpha=SIR_alpha)
+            plt.plot(t_MC, R_MC[j], color=R_colour, alpha=SIR_alpha)
         # Plot ODE solution on top
         inst = SIRS_ODE.SIRS(
-            S0=S0, I0=I0, R0=R0, N=int(1e6), tN=stop[i], a=a, b=b, c=c, f=f[i]
+            S0=S0, I0=I0, R0=R0, N=int(1e5), tN=stop[i], a=a, b=b, c=c, f=f[i]
         )
         inst.solve(inst.sirs_vax)
-        t, S, I, R = inst.get()
-        plt.plot(t, S, color=ODE_colour)
-        plt.plot(t, I, color=ODE_colour)
-        plt.plot(t, R, color=ODE_colour)
+        t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
+        plt.plot(t_ODE, S_ODE, color=ODE_colour)
+        plt.plot(t_ODE, I_ODE, color=ODE_colour)
+        plt.plot(t_ODE, R_ODE, color=ODE_colour)
         plt.xlim(0, stop[i])
         plt.ylim(-10, 800)
         plt.title("f=%.2f" % f[i])
@@ -404,16 +403,20 @@ def part_e():
         plt.savefig("../figs/prob_e_fig_%i.png" % i)
         plt.close()
 
+        # NOTE: System poorly modeled by ODE because the "f" term is not
+        # Population conservative. Will continue to "transfer" from 
+        # I -> S even if I >= 0
+
     return
 
 
 def main():
     # convergence_check()
-    common_legend()
+    #common_legend()
     # part_a_b()
-    # part_c()
-    # part_d()
-    # part_e()
+    #part_c()
+    #part_d()
+    part_e()
     return
 
 
