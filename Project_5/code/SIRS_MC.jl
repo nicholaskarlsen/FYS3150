@@ -116,6 +116,17 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
     # Begin Monte Carlo Cycle
     i=1 # Initialize itteration variable
     while t[i] <= stop_time
+
+        # Ensure we dont get negative population groups
+        for list in [S, I, R]
+            if list[i] < 0
+                list[i] = 0
+            end
+        end
+
+        # Update current population after population check due to deaths etc.
+        N[i] = S[i] + I[i] + R[i]
+
         Δt = minimum([4.0 / (a*N[i]), 1.0 / (b * N[i]), 1.0 / (c * N[i])]) 
         # Initialize [i+1]'th elements
         append!(S, S[i])
@@ -154,22 +165,18 @@ function SIRS_vitdyn(;S0::Int64, I0::Int64, R0::Int64, a, b, c, d, d_I, e, stop_
 
         if rand(Float64) < S_D  # Death in S group
             S[i+1] -= 1
-            N[i+1] -= 1
         end
 
         if rand(Float64) < I_D  # Death in I group
             I[i+1] -= 1
-            N[i+1] -= 1
         end
 
         if rand(Float64) < R_D  # Death in R group
             R[i+1] -= 1
-            N[i+1] -= 1
         end
 
         if rand(Float64) < B_S  # Birth to S group
             S[i+1] += 1
-            N[i+1] += 1
         end
 
         i+=1
@@ -219,6 +226,12 @@ function SIRS_svar(;S0::Int64, I0::Int64, R0::Int64, a0, A, omega, b, c, stop_ti
         if i > 1000000
             println("Broke early")
             break
+        end
+        # Ensure that we don't get negative population
+        for list in [S, I, R]
+            if list[i] < 0
+                list[i] = 0
+            end
         end
         a = A * cos(omega * t[i]) + a0
         Δt = minimum([4.0 / (a*N[i]), 1.0 / (b * N[i]), 1.0 / (c * N[i])]) 
@@ -332,6 +345,10 @@ function SIRS_vax(;S0::Int64, I0::Int64, R0::Int64, a, b, c, f, stop_time)
     return t, S, I, R
 end
 
+
+function main()
+    #function body
+end
 
 if PROGRAM_FILE == @__FILE__
     main()

@@ -12,7 +12,7 @@ from julia import Main as jcall  # Imports the main namespace of julia
 import SIRS_ODE
 import SIRS_MC
 
-jcall.include("SIRS_MC.jl")  # Imports the file
+# jcall.include("SIRS_MC.jl")  # Imports the file
 
 # Colours used in plots
 S_colour = "blue"
@@ -72,11 +72,15 @@ def convergence_check():
 
 
 def part_a_b():
+
+    print "Running a & b"
+
     """
     Produces plots etc relevant to question a and b.
 
     Note : All of the following was done before i wrote the julia MC solver,
-    hence why the python MC solver is used in producing these plots.
+    but since i saved .npy files after running code, theres no point in changing this
+    to use julia version.
     """
 
     S0 = 300
@@ -211,41 +215,59 @@ def part_a_b():
 
 
 def part_c():
+
+    print "Running c"
+
+    jcall.include("SIRS_MC_vitdyn.jl")  # Import Julia program
+
     S0 = 300
     I0 = 100
     R0 = 0
     a = 4
     b = 1
     c = 0.5
-    d = [1, 1, 1, 1]
-    d_I = [1, 2, 0, 1]
-    e = [1, 1, 1, 2]
+    d = [1, 1, 1, 0]
+    d_I = [1, 2, 0, 0]
+    e = [1, 1, 1, 1.1]
     stop_time = 20
     trials = 100
 
-    num_steps = np.zeros(trials)
+    num_steps = np.zeros(trials)  # Used to store number of steps performed in MC algorithm
 
     for i in range(4):
-        plt.figure(figsize=[5, 2.5])
-        for j in range(trials):
-            command = "SIRS_vitdyn(S0=%i, I0=%i, R0=%i, a=%i, b=%i, c=%i, d=%i, d_I=%i,\
-                e=%i, stop_time=%i)" % (S0, I0, R0, a, b, c, d[i], d_I[i], e[i], stop_time)
-            t, S, I, R = jcall.eval(command)
-
-            plt.plot(t, S, color=S_colour, alpha=0.1)
-            plt.plot(t, I, color=I_colour, alpha=0.1)
-            plt.plot(t, R, color=R_colour, alpha=0.1)
-            if i == 1:
-                num_steps[j] = len(t)
-        # Add ODE solution
+        # Compute ODE solution
         inst = SIRS_ODE.SIRS(
             S0=S0, I0=I0, R0=R0, N=1000, tN=stop_time, a=a, b=b, c=c, d=d[i], d_I=d_I[i], e=e[i]
         )
         inst.solve(inst.sirs_vitdyn)
-        t, S, I, R = inst.get()
-        plt.plot(t, S, color="Black")
-        plt.plot(t, I, color="Black")
-        plt.plot(t, R, color="Black")
+        t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
+        plt.figure(figsize=[5, 2.5])
+
+        # Compute MC solutions
+        for j in range(trials):
+            command = "SIRS_vitdyn(S0=%i, I0=%i, R0=%i, a=%i, b=%i, c=%i, d=%i, d_I=%i, e=%i, stop_time=%i)"\
+                % (S0, I0, R0, a, b, c, d[i], d_I[i], e[i], stop_time)
+            t, S, I, R = jcall.eval(command)
+            """
+            Note: This way of using PyJulia may not be the most efficient/proper way?
+                The package lacks any meaningfull documentation by the looks of it, so
+                this way of doing things will have to do.
+            """
+
+            plt.plot(t, S, color=S_colour, alpha=0.1)
+            plt.plot(t, I, color=I_colour, alpha=0.1)
+            plt.plot(t, R, color=R_colour, alpha=0.1)
+
+            if i == 1:
+                # Sufficient to look at length of data sets for only one of the cycles
+                num_steps[j] = len(t)
+
+            # TODO : Add interpolation at points t_ODE using scipy.interpolate.inerp1d()
+
+        # Add ODE solution on top of MC solutions
+        plt.plot(t_ODE, S_ODE, color="Black")
+        plt.plot(t_ODE, I_ODE, color="Black")
+        plt.plot(t_ODE, R_ODE, color="Black")
         plt.xlim(0, stop_time)
         plt.ylim(0, 400)
         plt.xlabel("Time")
@@ -255,6 +277,7 @@ def part_c():
         plt.savefig("../figs/prob_c_fig_%i.png" % i)
         plt.close()
 
+    # Plot number of data points for cycles in one of the runs
     plt.figure(figsize=[5, 5])
     plt.hist(num_steps, bins=40)
     plt.xlabel("Number of steps in trial")
@@ -266,6 +289,11 @@ def part_c():
 
 
 def part_d():
+
+    print "Running d"
+
+    jcall.include("SIRS_MC_svar.jl")  # Import Julia program
+
     # Keep following parameters constant
     S0 = 300
     I0 = 100
@@ -284,15 +312,15 @@ def part_d():
     for i in range(len(percent_diff)):
         plt.figure(figsize=[5, 2.5])
 
-        for j in range(trials):
-            # Get MC data from julia program (SIRS_MC.jl)
-            command = "SIRS_svar(S0=%i, I0=%i, R0=%i, a0=%i, A=%.2f, omega=%.2f, b=%i, c=%.2f, stop_time=%i)"\
-                % (S0, I0, R0, a0, Amp[i], omega[i], b, c, stop[i])
-            t, S, I, R = jcall.eval(command)
+        # Get MC data from julia program (SIRS_MC.jl)
+        command = "SIRS_svar(S0=%i, I0=%i, R0=%i, a0=%i, A=%.2f, omega=%.2f, b=%i, c=%.2f, stop_time=%i, trials=%i)"\
+            % (S0, I0, R0, a0, Amp[i], omega[i], b, c, stop[i], trials)
+        t, S, I, R = jcall.eval(command)
 
-            plt.plot(t, S, color=S_colour, alpha=0.1)
-            plt.plot(t, I, color=I_colour, alpha=0.1)
-            plt.plot(t, R, color=R_colour, alpha=0.1)
+        for j in range(trials):
+            plt.plot(t, S[j], color=S_colour, alpha=0.1)
+            plt.plot(t, I[j], color=I_colour, alpha=0.1)
+            plt.plot(t, R[j], color=R_colour, alpha=0.1)
 
         # Plot ODE solution on top
         inst = SIRS_ODE.SIRS(
@@ -317,6 +345,11 @@ def part_d():
 
 
 def part_e():
+
+    print "Running e"
+
+    jcall.include("SIRS_MC_vax.jl")  # Include Julia program
+
     # Keep following parameters constant
     S0 = 300
     I0 = 100
@@ -326,24 +359,23 @@ def part_e():
     c = 0.5
     # But change the following
     f = [50, 100, 200, 300]
-    stop = [100, 100, 100, 100]  # Simulation time
+    stop = [20, 20, 20, 20]  # Simulation time
     trials = 100  # No. times to run MC simulation
 
     for i in range(len(f)):
         plt.figure(figsize=[5, 2.5])
 
-        for j in range(trials):
-            # Get MC data from julia program (SIRS_MC.jl)
-            command = "SIRS_vax(S0=%i, I0=%i, R0=%i, a=%i, b=%i, c=%.2f, f=%.2f, stop_time=%i)"\
-                % (S0, I0, R0, a, b, c, f[i], stop[i])
-            t, S, I, R = jcall.eval(command)
+        command = "SIRS_vax(S0=%i, I0=%i, R0=%i, a=%i, b=%i, c=%.2f, f=%.2f, stop_time=%i, trials=%i)"\
+            % (S0, I0, R0, a, b, c, f[i], stop[i], trials)
+        t, S, I, R = jcall.eval(command)
 
-            plt.plot(t, S, color=S_colour, alpha=0.1)
-            plt.plot(t, I, color=I_colour, alpha=0.1)
-            plt.plot(t, R, color=R_colour, alpha=0.1)
+        for j in range(trials):
+            plt.plot(t, S[j], color=S_colour, alpha=0.1)
+            plt.plot(t, R[j], color=R_colour, alpha=0.1)
+            plt.plot(t, I[j], color=I_colour, alpha=0.1)
         # Plot ODE solution on top
         inst = SIRS_ODE.SIRS(
-            S0=S0, I0=I0, R0=R0, N=int(1e3), tN=stop[i], a=a, b=b, c=c, f=f[i]
+            S0=S0, I0=I0, R0=R0, N=int(1e6), tN=stop[i], a=a, b=b, c=c, f=f[i]
         )
         inst.solve(inst.sirs_vax)
         t, S, I, R = inst.get()
@@ -351,7 +383,7 @@ def part_e():
         plt.plot(t, I, color="Black")
         plt.plot(t, R, color="Black")
         plt.xlim(0, stop[i])
-        plt.ylim(-10, 450)
+        plt.ylim(-10, 800)
         plt.title("f=%.2f" % f[i])
         plt.xlabel("Time")
         plt.ylabel("No. People")
@@ -364,8 +396,8 @@ def part_e():
 
 def main():
     # convergence_check()
-    part_a_b()
-    #part_c()
+    #part_a_b()
+    part_c()
     #part_d()
     #part_e()
     return

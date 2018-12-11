@@ -145,12 +145,41 @@
        \caption{The SIRS Model\label{fig:SIRS diagram}}
     \end{figure}
 
+  \subsection{Monte-Carlo Algorithm}
+
+  The Monte-Carlo way of simulating the various SIRS-Models are outlined in the following
+  for the simplest case
+\begin{lstlisting}[mathescape=true, language=python, title=SIRS Monte-Carlo]
+for each $\textbf{MC-Cycle}$:
+  for each $t_i$:
+    Compute $P(S\rightarrow I)$
+    Compute $P(I\rightarrow R)$
+    Compute $P(R\rightarrow S)$
+
+    if $P(S\rightarrow I)> r$ and $S_i > 0$:
+      $S_{i+1}$ -= 1
+      $I_{i+1}$ += 1
+
+    if $P(I\rightarrow R)> r$ and $I_i > 0$:
+      $I_{i+1}$ -= 1
+      $R_{i+1}$ += 1
+
+    if $P(R\rightarrow S)> r$ and $R_i > 0$:
+      $R_{i+1}$ -= 1
+      $S_{i+1}$ += 1
+\end{lstlisting}
+  
+  We note here, a problem in the algorithm. That is; in what order do we evaluate the probabilities?
+  Whether to consider $P(S\rightarrow I)$ or P$(R\rightarrow S)$ first is completely arbitrary, but may lead to a certain bias in smaller populations or when a group is nearing the lower limit of 0.
+
+  Another important issue, that is dealt with in the IF statements is the potential of negative population groups. Whilst the overall net population is easily conserved\footnote{Mathematically, anyway.}, we have to ensure that no groups goes below 0. This can be done in one of two ways. 1. By checking if any of the groups is $>0$ after updating all the values. This is sufficient in an entirely cyclical SIRS-model, but for any of the non-cyclical model, it is not sufficient as we may have multiple movements from the same group per cycle. Therefore, the more robust method is to always check if the group that is being deducted is $<0$, as seen in the IF statements above.
+  
 
 \section{Results and Discussions}
   \subsection{Implementation}
     
 
-\begin{figure*}[h!tb]
+\begin{figure}
   \centering
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_ab_legend.pdf}}\\
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_a_varb_1.png}}
@@ -165,9 +194,9 @@
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_a_varb_4.png}}
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_b_varb_4.png}}
   \caption{\label{fig:prob_ab}Solutions for SIRS model described by Eqn.~(REF TO EQN) (a - d) and Monte Carlo solution (e - h) for $b=1, 2, 3, 4$ (rate of recovery)}
-\end{figure*}
+\end{figure}
 
-\begin{figure*}[h!tb]
+\begin{figure*}
   \centering
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_c_fig_0.png}}
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_c_fig_1.png}}
@@ -180,7 +209,7 @@
 \end{figure*}
 
 
-\begin{figure*}[h!tb]
+\begin{figure*}
   \centering
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_d_fig_0.png}}
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_d_fig_1.png}}
@@ -193,7 +222,7 @@
 \end{figure*}
 
 
-\begin{figure*}[h!tb]
+\begin{figure*}
   \centering
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_e_fig_0.png}}
   \subfloat{\includegraphics[width=\columnwidth]{figs/prob_e_fig_1.png}}
