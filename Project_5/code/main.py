@@ -226,26 +226,20 @@ def part_c():
     a = 4
     b = 1
     c = 0.5
-    d = [1, 1, 1, 0]
-    d_I = [1, 2, 0, 0]
-    e = [1, 1, 1, 1.1]
+    d = [1, 1, 1, 1]
+    d_I = [0, 1, 1, 0.1]
+    e = [1, 1, 1.1, 1]
     stop_time = 20
     trials = 100
 
     num_steps = np.zeros(trials)  # Used to store number of steps performed in MC algorithm
 
     for i in range(4):
-        # Compute ODE solution
-        inst = SIRS_ODE.SIRS(
-            S0=S0, I0=I0, R0=R0, N=1000, tN=stop_time, a=a, b=b, c=c, d=d[i], d_I=d_I[i], e=e[i]
-        )
-        inst.solve(inst.sirs_vitdyn)
-        t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
         plt.figure(figsize=[5, 2.5])
 
         # Compute MC solutions
         for j in range(trials):
-            command = "SIRS_vitdyn(S0=%i, I0=%i, R0=%i, a=%i, b=%i, c=%i, d=%i, d_I=%i, e=%i, stop_time=%i)"\
+            command = "SIRS_vitdyn(S0=%i, I0=%i, R0=%i, a=%.2f, b=%.2f, c=%.2f, d=%.2f, d_I=%.2f, e=%.2f, stop_time=%i)"\
                 % (S0, I0, R0, a, b, c, d[i], d_I[i], e[i], stop_time)
             t, S, I, R = jcall.eval(command)
             """
@@ -264,15 +258,22 @@ def part_c():
 
             # TODO : Add interpolation at points t_ODE using scipy.interpolate.inerp1d()
 
+        # Compute ODE solution
+        inst = SIRS_ODE.SIRS(
+            S0=S0, I0=I0, R0=R0, N=1000, tN=stop_time, a=a, b=b, c=c, d=d[i], d_I=d_I[i], e=e[i]
+        )
+        inst.solve(inst.sirs_vitdyn)
+        t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
+
         # Add ODE solution on top of MC solutions
         plt.plot(t_ODE, S_ODE, color="Black")
         plt.plot(t_ODE, I_ODE, color="Black")
         plt.plot(t_ODE, R_ODE, color="Black")
         plt.xlim(0, stop_time)
-        plt.ylim(0, 400)
+        plt.ylim(-10, 450)
         plt.xlabel("Time")
         plt.ylabel("No. People")
-        plt.title("a=%i, b=%i, c=%.1f, d=%i, $d_I$=%i, e=%i" % (a, b, c, d[i], d_I[i], e[i]))
+        plt.title("a=%.2f, b=%.2f, c=%.2f, d=%.2f, $d_I$=%.2f, e=%.2f" % (a, b, c, d[i], d_I[i], e[i]))
         plt.savefig("../figs/prob_c_fig_%i.pdf" % i)
         plt.savefig("../figs/prob_c_fig_%i.png" % i)
         plt.close()
@@ -313,7 +314,7 @@ def part_d():
         plt.figure(figsize=[5, 2.5])
 
         # Get MC data from julia program (SIRS_MC.jl)
-        command = "SIRS_svar(S0=%i, I0=%i, R0=%i, a0=%i, A=%.2f, omega=%.2f, b=%i, c=%.2f, stop_time=%i, trials=%i)"\
+        command = "SIRS_svar(S0=%i, I0=%i, R0=%i, a0=%.2f, A=%.2f, omega=%.2f, b=%.2f, c=%.2f, stop_time=%i, trials=%i)"\
             % (S0, I0, R0, a0, Amp[i], omega[i], b, c, stop[i], trials)
         t, S, I, R = jcall.eval(command)
 
@@ -365,7 +366,7 @@ def part_e():
     for i in range(len(f)):
         plt.figure(figsize=[5, 2.5])
 
-        command = "SIRS_vax(S0=%i, I0=%i, R0=%i, a=%i, b=%i, c=%.2f, f=%.2f, stop_time=%i, trials=%i)"\
+        command = "SIRS_vax(S0=%i, I0=%i, R0=%i, a=%.2f, b=%.2f, c=%.2f, f=%.2f, stop_time=%i, trials=%i)"\
             % (S0, I0, R0, a, b, c, f[i], stop[i], trials)
         t, S, I, R = jcall.eval(command)
 
@@ -396,10 +397,10 @@ def part_e():
 
 def main():
     # convergence_check()
-    #part_a_b()
+    # part_a_b()
     part_c()
-    #part_d()
-    #part_e()
+    # part_d()
+    # part_e()
     return
 
 

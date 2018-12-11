@@ -38,6 +38,7 @@ function SIRS_vax(;S0::Int64, I0::Int64, R0::Int64, a, b, c, f, stop_time, trial
         t, S, I, R : Arrays, containing the resulting data
     =#
     # Initialize Arrays for storing population number
+
     N = S0 + I0 + R0 # Population number, for computing step size & probabilities
 
     Δt = minimum([4.0 / (a*N), 1.0 / (b * N), 1.0 / (c * N), f]) 
