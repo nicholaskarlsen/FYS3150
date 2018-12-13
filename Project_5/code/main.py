@@ -1,7 +1,7 @@
 # Python V2.7.15
 # Contains all the calls to generate plots and other data for the report
 
-from __future__ import division
+from __future__ import division     # No body expects the integer division
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as tic
@@ -13,8 +13,6 @@ from julia import Main as jcall  # Imports the main namespace of julia
 import SIRS_ODE
 import SIRS_MC
 
-# jcall.include("SIRS_MC.jl")  # Imports the file
-
 # Colours used in plots
 S_colour = "blue"
 I_colour = "red"
@@ -24,33 +22,50 @@ ODE_colour = "black"
 SIR_alpha = 0.05
 
 
-def common_legend():
+def export_legend(legend, filename="../figs/prob_ab_legend.pdf", expand=[-5, -5, 5, 5]):
+    # full credits to some stack overflow post for this & most of common_legends()
+    fig = legend.figure
+    fig.canvas.draw()
+    bbox = legend.get_window_extent()
+    bbox = bbox.from_extents(*(bbox.extents + np.array(expand)))
+    bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
+    fig.savefig(filename, dpi="figure", bbox_inches=bbox)
+
+
+def common_legends():
     # Generates common legend for plots as separate figure.
     # First set up throw away figure with legend properties
     fig = plt.figure()
     ax = plt.gca()
-    # Multiply normal alpha by 10 to make it readable in legend.
     plt.plot([1, 2], [1, 2], linestyle="-", color=S_colour,
-             label="S", alpha=SIR_alpha * 10)
+             label="S")
     plt.plot([1, 2], [1, 2], linestyle="-", color=I_colour,
-             label="I", alpha=SIR_alpha * 10)
+             label="I")
     plt.plot([1, 2], [1, 2], linestyle="-", color=R_colour,
-             label="R", alpha=SIR_alpha * 10)
-    plt.plot([1, 2], [1, 2], linestyle="--", color=Mean_colour, label="Mean")
+             label="R")
+    plt.plot([1, 2], [1, 2], linestyle="--",
+             color=Mean_colour, label="Mean MC")
     plt.plot([1, 2], [1, 2], linestyle="-", color=ODE_colour, label="ODE")
     # generate separate legend with properties from faux figure
 
     legend = plt.legend(ncol=5)  # Make the legend expand horizontally
 
-    def export_legend(legend, filename="../figs/prob_ab_legend.pdf", expand=[-5, -5, 5, 5]):
-        fig = legend.figure
-        fig.canvas.draw()
-        bbox = legend.get_window_extent()
-        bbox = bbox.from_extents(*(bbox.extents + np.array(expand)))
-        bbox = bbox.transformed(fig.dpi_scale_trans.inverted())
-        fig.savefig(filename, dpi="figure", bbox_inches=bbox)
-
     export_legend(legend)
+    plt.close()
+
+    fig = plt.figure()
+    ax = plt.gca()
+    # Multiply normal alpha by 10 to make it readable in legend.
+    plt.plot([1, 2], [1, 2], linestyle="-", color=S_colour,
+             label="S")
+    plt.plot([1, 2], [1, 2], linestyle="-", color=I_colour,
+             label="I")
+    plt.plot([1, 2], [1, 2], linestyle="-", color=R_colour,
+             label="R")
+    # generate separate legend with properties from faux figure
+    legend = plt.legend(ncol=3)  # Make the legend expand horizontally
+
+    export_legend(legend, filename="../figs/prob_b_std_legend.pdf")
     plt.close()
 
     return
@@ -112,6 +127,7 @@ def part_a_b():
     # Alternatively look at difference between mean and  s*, i*, ... ?
 
     for b_i in list_of_bi:
+        print b_i
         s, i, r = steadyState(a=4, b=b_i, c=0.5)  # Analytic steady state
         s *= S0 + I0 + R0  # Scale up to match population size
         i *= S0 + I0 + R0
@@ -123,17 +139,17 @@ def part_a_b():
         inst.solve(inst.sirs_basic)
         t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
 
-        fig, ax = plt.subplots(figsize=figdim)
         # Main Figure
+        #fig, ax = plt.subplots(figsize=figdim)
 
-        ax.plot(t_ODE, S_ODE, color=S_colour)
-        ax.plot(t_ODE, I_ODE, color=I_colour)
-        ax.plot(t_ODE, R_ODE, color=R_colour)
+        #ax.plot(t_ODE, S_ODE, color=S_colour)
+        #ax.plot(t_ODE, I_ODE, color=I_colour)
+        #ax.plot(t_ODE, R_ODE, color=R_colour)
 
         def plot_ab_settings():
             "Calls that are common to generating both figs"
             ax.text(x=1, y=350, s="b=%i" % b_i)
-            ax.set_ylim(0, S0 + I0 + R0 + 10)
+            ax.set_ylim(-50, S0 + I0 + R0 + 50)
             ax.set_xlim(0, stop)
             ax.set_xlabel("Time")
             ax.set_ylabel("No. People")
@@ -148,11 +164,11 @@ def part_a_b():
             # Save
             plt.tight_layout()
 
-        plot_ab_settings()  # Apply settings to ODE fig
-        plt.savefig("../figs/prob_a_varb_%i.pdf" % b_i)
+        # plot_ab_settings()  # Apply settings to ODE fig
+        #plt.savefig("../figs/prob_a_varb_%i.pdf" % b_i)
         # Save as .png as well because pdf reader didnt like vector plots for large no. trials
-        plt.savefig("../figs/prob_a_varb_%i.png" % b_i)
-        plt.close()
+        #plt.savefig("../figs/prob_a_varb_%i.png" % b_i)
+        # plt.close()
 
         # ~~~ MCMC SOLUTION ~~~ #
         N_samples = 100
@@ -165,7 +181,6 @@ def part_a_b():
 
         # Initialize figure
         fig, ax = plt.subplots(figsize=figdim)
-
         # If one of the files dont exist, all of them probably dont
         if os.path.isfile(fn_S_curr) is False:
             # If they dont exist, compute & save
@@ -183,6 +198,7 @@ def part_a_b():
             R_MC = np.load(fn_R_curr)
 
         # First plot all trials
+
         ax.plot(t_MC, S_MC, color=S_colour, alpha=SIR_alpha)
         ax.plot(t_MC, I_MC, color=I_colour, alpha=SIR_alpha)
         ax.plot(t_MC, R_MC, color=R_colour, alpha=SIR_alpha)
@@ -202,8 +218,42 @@ def part_a_b():
 
         plot_ab_settings()  # Apply same settings to MCMC fig
         plt.savefig("../figs/prob_b_varb_%i.pdf" % b_i)
-        plt.savefig("../figs/prob_b_varb_%i.png" % b_i)
+        # NOTE : .pdf figs cause MAJOR stutter when viewing report. likely due to num. of pts.
+        plt.savefig("../figs/prob_b_varb_%i.png" % b_i, dpi=600)
         plt.close()
+
+    # Plot standard deviation for each b
+    for b_i in list_of_bi:
+        fn_S_curr = fn_S + "%i.npy" % b_i
+        fn_I_curr = fn_I + "%i.npy" % b_i
+        fn_R_curr = fn_R + "%i.npy" % b_i
+        fn_t_curr = fn_t + "%i.npy" % b_i
+
+        t_MC = np.load(fn_t_curr)
+        S_MC = np.load(fn_S_curr)
+        I_MC = np.load(fn_I_curr)
+        R_MC = np.load(fn_R_curr)
+
+        plt.figure(figsize=[5, 2])
+
+        S_std = np.std(S_MC, axis=1)
+        I_std = np.std(I_MC, axis=1)
+        R_std = np.std(R_MC, axis=1)
+
+        plt.plot(t_MC, S_std,
+                 label="S", color=S_colour)
+        plt.plot(t_MC, I_std,
+                 label="I", color=I_colour)
+        plt.plot(t_MC, R_std,
+                 label="R", color=R_colour)
+
+        plt.xlabel("Time")
+        plt.ylabel("Standard Deviation")
+        plt.title("b=%i" % b_i)
+        plt.xlim(0, 30)
+        plt.savefig("../figs/prob_b_std_%i.pdf" % b_i)
+        plt.close()
+
     return
 
 
@@ -383,7 +433,7 @@ def part_e():
     c = 0.5
     # But change the following
     f = [50, 100, 200, 300]
-    stop = [4, 4, 4, 4]  # Simulation time
+    stop = [20, 20, 20, 20]  # Simulation time
     trials = 100  # No. times to run MC simulation
 
     for i in range(len(f)):
@@ -405,8 +455,15 @@ def part_e():
         plt.plot(t_ODE, S_ODE, color=ODE_colour)
         plt.plot(t_ODE, I_ODE, color=ODE_colour)
         plt.plot(t_ODE, R_ODE, color=ODE_colour)
+        # And finally MC mean on top of that.
+        plt.plot(t_MC, np.mean(S_MC, axis=0),
+                 linestyle="--", color=Mean_colour)
+        plt.plot(t_MC, np.mean(I_MC, axis=0),
+                 linestyle="--", color=Mean_colour)
+        plt.plot(t_MC, np.mean(R_MC, axis=0),
+                 linestyle="--", color=Mean_colour)
+
         plt.xlim(0, stop[i])
-        plt.ylim(-10, 800)
         plt.title("f=%.2f" % f[i])
         plt.xlabel("Time")
         plt.ylabel("No. People")
@@ -423,11 +480,11 @@ def part_e():
 
 def main():
     # convergence_check()
-    common_legend()
-    part_a_b()
+    common_legends()
+    # part_a_b()
     part_c()
-    part_d()
-    part_e()
+    # part_d()
+    # part_e()
     return
 
 

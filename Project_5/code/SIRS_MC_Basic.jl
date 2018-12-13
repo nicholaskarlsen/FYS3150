@@ -1,23 +1,22 @@
 # tested to work on Julia v1.0.2
-
+#=
 using PyPlot
 
 function main()
-    # Test functionality, not report material
-    # Note : import guard @ bottom of file
-    for i in 1:100
-        t, S, I, R = SIRS_basic(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, stop_time=10, trials=10)
-        for i in 1:10
-            plot(t, S[i, :], color="blue", alpha=.1)
-            plot(t, I[i, :], color="red", alpha=.1)
-            plot(t, R[i, :], color="green", alpha=.1)
-        end
+    # check functionality, not report material
+    println("Running main()")
+    ntr = 100
+    t, S, I, R = SIRS_basic(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, stop_time=10, trials=ntr)
+    for i in 1:ntr
+        plot(t, S[i, :], color="blue", alpha=.1)
+        plot(t, I[i, :], color="red", alpha=.1)
+        plot(t, R[i, :], color="green", alpha=.1)
     end
     savefig("../figs/julia_sirs_basic_pylike.png")
 end
+=#
 
-
-function SIRS_basic(;S0::Int64, I0::Int64, R0::Int64, a, b, c, stop_time, trials)
+function SIRS_basic(;S0::Int64, I0::Int64, R0::Int64, a, b, c, stop_time, trials::Int64)
     #= Simulates the simplest case of the SIRS model with a Monte Carlo method
 
     Note: Written to mirror the program in SIRS_MCMC.py
@@ -92,8 +91,4 @@ function SIRS_basic(;S0::Int64, I0::Int64, R0::Int64, a, b, c, stop_time, trials
     end
 
     return t, S, I, R
-end
-
-if PROGRAM_FILE == @__FILE__
-    main()
 end

@@ -1,9 +1,15 @@
-function f()
-i=1
-while (i < 10) | (i < 5);
-    println(i)
-    i+=1
-end
+
+function main()
+
+    x = true
+    y = true
+
+    if (x == true & y == true);
+        println("yes")
+    end
+
+    return 0;
 end
 
-f()
+
+main()
