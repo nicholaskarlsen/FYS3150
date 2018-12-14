@@ -1,3 +1,5 @@
+# Check how much PyJulia affects execution time
+
 import numpy as np
 import time
 from julia import Main as jcall

@@ -1,0 +1,1 @@
+In this directory recides various bits and pieces of code that were written along the way, but ultimately not used in the final report.

@@ -1,5 +1,5 @@
 # tested to work on Julia v1.0.2
-#=
+
 using PyPlot
 
 function main()
@@ -14,7 +14,7 @@ function main()
     end
     savefig("../figs/julia_sirs_basic_pylike.png")
 end
-=#
+
 
 function SIRS_basic(;S0::Int64, I0::Int64, R0::Int64, a, b, c, stop_time, trials::Int64)
     #= Simulates the simplest case of the SIRS model with a Monte Carlo method
