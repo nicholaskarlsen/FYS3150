@@ -40,18 +40,21 @@
 
 
 \begin{abstract}
-  This is an abstract
+  We developed a Monte Carlo (MC) method for simulating the SIRS model, and several extensions to it. The method was based on a sets of coupled ordinary differential equations (ODE) and we observe a mostly good correspondence between the two models, with the exception of a few boundary cases, where we see local peaks in the standard deviation of the MC simulations. When modeling the effects of vaccinations we see that the MC simulation is much more robust, and reflects reality in a better way than the differential equation from which it is based.
 \end{abstract}
 
 \maketitle
 
 
 \section{Introduction}
+  In this report we will develop a Monte-Carlo method for studying the SIRS model, an epidemological model used to study infectious disease. The Monte-Carlo method is based on a set of coupled differential equations, and aims to improve their description of reality by firstly, capturing the discrete nature of how members of the population might transition between groups but also allows us to impose certain extra conditions for when a transition can take place in order to better reflect reality. 
+
+  All of the algorithms and data discussed in this report can be found in the following github repository: \url{https://github.com/nicholaskarlsen/FYS3150}
 
 \section{Theory, Algorithms and Methods}
   \subsection{SIRS Model}
 
-    The SIRS model is a mathematical model from epidemiology describing how infectious disease evolves within a population, and is a part of a family of similar models in epidemiology with various different features. In the SIRS model, the total population (N) is divided into three groups
+    The SIRS model is a mathematical model from epidemiology describing how a infectious disease might evolve within a population, and is one, of similar models in epidemiology with various different features. In the SIRS model, the total population (N) is divided into three groups
 
     \begin{itemize}
       \item Susceptible (S) : People who do not have the disease, and are not immune to it.
@@ -79,7 +82,7 @@
       \item rate of immunity loss
     \end{itemize}
 
-    respectively, with dimension inverse time. For the purposes of this report, we will not consider any particular unit of time, but rather the dynamics of the system, as the timescales at which different diseases operate on vary. However, based on data (INSERT CITATIONS) a lot of common diseases are observed to operate on a scale of days, whilst some operate on a scale of years. 
+    respectively, with dimension inverse time. For the purposes of this report, we will not consider any particular unit of time, but rather the dynamics of the system, as the timescales at which different diseases operate on vary. However, a lot of common diseases are observed to operate on a scale of days, whilst some operate on a scale of years.
 
     We note here that each term in the system of equations is reflected in opposite, for a different group. For example, the $cR$ term in $S'$ is mirrored in opposite in $R'$ as $-cR$. As defined earlier, $c$ denotes the rate of immunity loss, so these terms essentially moves people in the R group to the S group.
     The result of this is that that the total population is conserved in this system, such that we have a constant $N = S(t) + I(t) + R(t)$.
@@ -137,7 +140,7 @@
       \end{split}
     \end{align}
 
-    where $d$ denotes the death rate of the population, and $d_I$ the added death rate of the Infected group of the population. We see here that the new terms are not mirrored in the same way as that constitute the basic model such that the system is generally speaking no longer population conservative if any of these terms are non-zero. With a possible exception being for example if $d=0,\enspace a=0,\enspace d_I>0$ and $I_0 = 0$, in which case the population would be conserved.
+    where $d$ denotes the death rate of the population, and $d_I$ the added death rate of the Infected group of the population. We see here that the new terms are not mirrored in the same way as the ones which constitute the basic model such that the system is generally speaking no longer population conservative if any of these terms are non-zero. With a possible exception being for example if $d=0,\enspace a=0,\enspace d_I>0$ and $I_0 = 0$, in which case the population would be conserved.
 
 
     Seasonal variation, or simply a periodic behaviour in the rate of transmission, added to the model by no longer having a constant $a$, but instead letting it be a function of time as
@@ -159,13 +162,13 @@
       \end{split}
     \end{align}
 
-    We see here that this addition of this terms allows someone in the S group to go immediately to the I group, which as intended. Further, this transition rate from $S\rightarrow I$ is not dependent on the population, or size of any population groups unlike any of the other behaviours modelled thus far. Whilst we will save the discussion on the many implications this has later, we note here a particular, significant flaw in this extension to the model. Whilst it is still population conservative if we look only at $N = S(t) + I(t) + R(t)$, it does present the possibility of $S(t)<0$, which is entirely un-realistic.
+    We see here that the addition of these terms allows someone in the S group to go immediately to the I group. Further, we note that the rate of this transmission from  $S\rightarrow I$ is not dependent on the population, or size of any population groups unlike any of the other transitions modelled thus far. Whilst we will save the discussion on the many implications this has later, we note here a particular, significant flaw in this extension to the model. Whilst it is still population conservative if we look only at $N = S(t) + I(t) + R(t)$, the $f$ terms present the possibility of $S(t)<0$, which is entirely un-realistic.
 
 
   \subsection{Monte-Carlo Algorithm}
-    We will now build a Monte-Carlo algorithm for simulating the dynamics of disease modelled by the different sets of equations we have looked at. These simulations aims to, on average match the behaviour predicted by the differential equations, but in a more realistic way by first and foremost allowing only discrete, transitions from from one group to another instead of continuous ones. And further, imposing certain restrictions to prevent unintended behaviours such as any of the groups becoming negative, which as mentioned earlier is a possibility in the system modelling the effects of vaccinations, in Eqn. \ref{eqn:transition rates, vaxx}.
+    We will now build a Monte-Carlo algorithm for simulating the dynamics of disease modelled by the different sets of equations we have looked at. These simulations aims to, on average match the behaviour predicted by the differential equations, but in a more realistic way by first and foremost allowing only discrete, transitions from one group to another instead of continuous ones. Further, Monte-Carlo algorithms allows us to  impose certain restrictions to prevent unintended, or un-realistic behaviour such as any of the groups becoming negative, which as mentioned earlier is a possibility in the system modelling the effects of vaccinations, in Eqn. \ref{eqn:transition rates, vaxx}.
 
-    In \textcite{project5} we are methodology of translating the sets of differential equations to a set of transition probabilities for the basic model
+    In \textcite{project5} we are presented with a methodology of translating the sets of differential equations to a set of transition probabilities, which for the basic model are shown to be the following
     \begin{align}
       \begin{split}
         P(S\rightarrow I) &= \frac{aSI}{N}\Delta t \\
@@ -175,7 +178,7 @@
       \end{split}
     \end{align}
 
-    and a step-size
+    with step-size
     \begin{equation}
       \Delta t = \text{min}\left\{ \frac{4}{aN}, \frac{1}{bN}, \frac{1}{cN} \right\}
       \label{enq:basic dt}
@@ -183,7 +186,7 @@
 
      where for each step we evaluate the transition probabilities against a random number $r\in[0,1]$. If the transition probability is greater than $r$, the transition is made, else, it isn't. This constitutes the Monte-Carlo part of the algorithm, and in order to produce expectation values we take the average of many cycles of systems initiated in the same way, and evolved following these rules. 
 
-     Shown below in Pseudo-code
+     Made clear by the pseudo-code below
 \begin{lstlisting}[mathescape=true, language=python, title=SIRS Monte-Carlo]
 for each $\textbf{MC-Cycle}$:
   for each $t_i$:
@@ -204,7 +207,7 @@ for each $\textbf{MC-Cycle}$:
       $S_{i+1}$ += 1
 \end{lstlisting}
   
-  Extending algorithm for the model extensions to the basic model is done quite easily by following the same logic outlined in \textcite{project5}. If we consider the system the addition of vital dynamics, we have three additional permitted transitions, one for each group. $S\rightarrow DEAD$, $I\rightarrow DEAD$ and $R \rightarrow DEAD$. The transition probabilities for each time-step is then given by
+  Extending the above algorithm to also model the extensions to the basic model is done quite easily by following the same logic outlined in \textcite{project5}. If we consider for example the addition of vital dynamics, we have three additional permitted transitions, one for each group. $S\rightarrow DEAD$, $I\rightarrow DEAD$ and $R \rightarrow DEAD$. The transition probabilities for each time-step is then given by
   \begin{align}
     \begin{split}
       P(S\rightarrow DEAD) &= dS \Delta t \\
@@ -218,7 +221,7 @@ for each $\textbf{MC-Cycle}$:
       \Delta t = \text{min}\left\{ \frac{4}{aN}, \frac{1}{bN}, \frac{1}{cN}, \frac{1}{dN}, \frac{1}{(d + d_I)N} \right\}
   \end{equation}
 
-  Where the last entry of the set, $\frac{1}{(d+d_I)N}$ can be omitted for a slight performance increase as it will always be greater than $\frac{1}{dN}$.
+  The last entry of the above set, $\frac{1}{(d+d_I)N}$ can be omitted for a slight performance increase as it will always be greater than $\frac{1}{dN}$.
 
   Out of the 4 variations of the SIRS model discussed in this project, this model in particular requires some extra attention, as the step size is a will vary differently in each Monte-Carlo cycle as the step size is dependent on N. This means, that when computing the expected path produced by multiple cycles of the Monte-Carlo algorithm, we interpolate between points to produce averages for some selection of times.
 
@@ -245,21 +248,21 @@ for each $\textbf{MC-Cycle}$:
 
 \begin{figure*}[h!tb]
   \centering
-  \subfloat{\includegraphics[height=0.75cm]{figs/prob_ab_legend.pdf}} \\
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_varb_1.png}}
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_varb_2.png}} \\
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_varb_3.png}}
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_varb_4.png}}
+  \subfloat{\includegraphics[height=0.8cm]{figs/prob_ab_legend.pdf}\label{fig: base params}} \\
+  \subfloat[][]{\includegraphics[width=8.9cm]{figs/prob_b_varb_1.png}}
+  \subfloat[][]{\includegraphics[width=8.9cm]{figs/prob_b_varb_2.png}} \\
+  \subfloat[][]{\includegraphics[width=8.9cm]{figs/prob_b_varb_3.png}}
+  \subfloat[][]{\includegraphics[width=8.9cm]{figs/prob_b_varb_4.png}}
   \caption{\label{fig:ab_plots}The basic SIRS model simulated by the Monte-Carlo simulation for 100 cycles, as well as the ODE solutions with initial state $S_0 = 300, I_0 = 100, R_0 = 0$, constants $a=4, c=0.5$ and $b=1,2,3,4$.}
 \end{figure*}
 
 \begin{figure*}[h!tb]
   \centering
-  \subfloat{\includegraphics[height=0.75cm]{figs/prob_b_std_legend.pdf}} \\
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_std_1.pdf}}
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_std_2.pdf}} \\
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_std_3.pdf}}
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_std_4.pdf}}
+  \subfloat{\includegraphics[height=0.8cm]{figs/prob_b_std_legend.pdf}} \\
+  \subfloat[][]{\includegraphics[width=8.1cm]{figs/prob_b_std_1.pdf}}
+  \subfloat[][]{\includegraphics[width=8.1cm]{figs/prob_b_std_2.pdf}} \\
+  \subfloat[][]{\includegraphics[width=8.1cm]{figs/prob_b_std_3.pdf}}
+  \subfloat[][]{\includegraphics[width=8.1cm]{figs/prob_b_std_4.pdf}}
   \caption{\label{fig:standard deviations b}The standard deviations for each $b$ in the Monte Carlo solutions shown in Fig.~\ref{fig:ab_plots}, consisting of 100 cycles each.}
 \end{figure*}
 
@@ -278,7 +281,7 @@ for each $\textbf{MC-Cycle}$:
   \\
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_0.png}}   
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_1.png}}\\
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_2.png}}   
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_2.png}\label{fig: resonance}}   
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_3.png}}   
   \caption{\label{fig:prob d}The SIRS model with seasonal variation for initial state $S_0=300, I_0=100, R_0=0$ and constants $a=4, b=1, c=0.5$, and 100 MC cycles.}
 \end{figure*}
@@ -292,18 +295,26 @@ for each $\textbf{MC-Cycle}$:
     We start by looking at the results produced by both the RK4 solution to Eqn.~\ref{eqn:transition rates, basic} as well as the Monte-Carlo results for this system, for 100 cycles. The results are presented in a quite compact form in Fig.~\ref{fig:ab_plots}, where all 4 sub-plots share a common legend. In this, and subsequent plots the colours blue, red and green indicate the S, I and R groups respectively and individual MC cycles are plotted with a transparency of 5\%, such that common paths will display a greater hue than less common ones. Overlaid on top of these individual MC cycles are the ODE result, as well as the Mean Monte-Carlo result. For the sake of readability the Mean and ODE results have not been colour coded with individual colours for each group, but their belonging should be quite clear from the individual cycles on which they overlay.
 
 
-    In these plots, the system was initiated in in the state $S_0 = 300, I_0=100$ and $R_0=0$ and the parameters $a=4, c=0.5$ are held constant throughout all 4 sets of data. We see that for the MC simulations, only 3 out of the 4 cases converges towards the predicted set of steady states, indicated by axis ticks on the right x-axes. In the case of $b=3$, we observe that neither the S or R groups converge towards their respective steady states. To investigate this further, we then refer to Fig.~\ref{fig:standard deviations b}, where we note how the standard deviation of the MC results seem to rise towards a peak from the beginning, until $t\approx10$, before it drops. To make sense as to why there is such a great uncertainty in this area, we refer to $b=1$ and $b=2$. We observe that the standard deviation in all 3 groups are quite consistent for $b=1$, then looking at the standard deviation for $b=2$  we see that standard deviation for the I group is similar to $b=1$, but the $R$, and particularly S group has a significantly higher standard deviation. We observe here, what I believe to be the main cause of uncertainty, and deviance from the ODE solution for the Monte-Algorithm. That is, whenever one (or more) of the groups tends towards either the upper or lower population limits, the uncertainty of the others seem to rise locally, and this error is then propagated forwards in time, even though the standard deviation in the MC simulations goes down again. We will investigate this hypothesis more thoroughly later in the model including seasonal variation, but for now we note that the uncertainty, and deviation from the ODE in the MC solutions isn't necessarily tied to the number of MC cycles, but the way in which the system evolves, and that we need to take into account the paths of each set of MC simulations when assessing any errors on a per-simulation basis rather than a per-system or per-number of iterations basis as is often the case in numerical methods\footnote{At least in my own, limited experience.}
+    In these plots, the system was initiated in in the state $S_0 = 300, I_0=100$ and $R_0=0$ and the parameters $a=4, c=0.5$ are held constant throughout all 4 sets of data. The ODE solutions was solved with RK4 and $10^4$ integration points, which due to the quick convergence of the RK4 method should suffice as our benchmark for the MC simulations. We see that for the MC simulations, only 3 out of the 4 cases converges towards the predicted set of steady states, indicated by axis ticks on the right x-axes. In the case of $b=3$, we observe that neither the S or R groups converge towards their respective steady states. To investigate this further, we then refer to Fig.~\ref{fig:standard deviations b}, where we note how the standard deviation of the MC results seem to rise towards a peak from the beginning, until $t\approx10$, before it drops. To make sense as to why there is such a great uncertainty in this area, we refer to $b=1$ and $b=2$. We observe that the standard deviation in all 3 groups are quite consistent for $b=1$, then looking at the standard deviation for $b=2$  we see that standard deviation for the I group is similar to $b=1$, but the $R$, and particularly S group has a significantly higher standard deviation. We observe here, what I believe to be the main cause of uncertainty, and deviance away from the ODE solution for the Monte-Carlo algorithm. That is, whenever one (or more) of the groups tends towards either the upper or lower population limits, the uncertainty of the others seem to rise locally, and this deviance is then propagated forwards in time, even though the standard deviation in the MC simulations goes down again. We can therefore conclude that the standard deviation at any isolated moments of time is a rather poor measure of error, or uncertainty for this MC method, but must instead look at how the standard deviation evolves with time.
 
-    ADD CONVERGENCE CHECK FOR B=3
-
+    When looking at the behaviour of further extensions to this basic model, we will use the parameters in \ref{fig: base params} as our base, and look at how the extensions to the model will affect this particular set of parameters. All of the following MC-simulations are also kept at 100 cycles, as the qualitative differences between the two models aren't as easy to spot for a larger number of cycles.
+    
   \subsection{SIRS: Vital Dynamics}
     If we now turn to Fig.~\ref{fig:prob c} we see the plots for the vital dynamics system.
     For this model, we observe that the MC mean path follows mostly the ODE solution, deviating the most in Fig.~\ref{fig:c d=1 ,dI=1, e=1}, which out of the four data sets ends up hoovering the most around the lower-limit of the permitted group sizes.
 
-    In a qualitative sense, we observe that the system is particularly sensitive to an increase in the birth rate, which very quickly dominates over the death rate. What's also interesting, is that in a growing population, a highly deadly disease may be short-lived in this in this model.
+    As mentioned in the theory section, this extension in causes each cycle to evolve with different steps for each cycle, as we see in Fig.~\ref{fig: vitdyn steps}. In order to compute the Mean MC results in Fig.~\ref{fig:prob c}, i therefore computed the mean path by interpolating between the MC solutions at points matching the RK4 solution of the system.
+
+    \begin{figure}[h!]
+      \includegraphics[width=\columnwidth]{figs/num_steps_c.png}
+      \caption{\label{fig: vitdyn steps}Number of steps in 100 individual MC-cycles in the SIRS model with vital dynamics.}
+    \end{figure}
+
+    In a qualitative sense, we observe that the system is particularly sensitive to an increase in the birth rate, which very quickly dominates over the death rate. What's also interesting, is that in a growing population, a highly deadly disease may be very short-lived in this in this model when compared to a less deadly disease for the same $d, e$.
 
   \subsection{SIRS: Seasonal Variation}
     In Fig.~\ref{fig:prob d}, we see results that are somewhat similar to what we saw in the basic SIRS model, but instead of converging towards a constant steady state, the system instead tends towards a periodic steady state. We see also that the frequency $\omega$ plays into the amplitude of the variation within the groups in their steady state just as much, if not more than $A$. We also observe that there seems to be a natural frequency, in which we get a peak variation within groups once the steady state has been reached and we effectively observe a resonance\footnote{There should be a .gif showing this quite clearly in the README.md file in the main directory for this project.}. 
+    In Fig.~\ref{fig: resonance}, whilst somewhat absurd, this figure in particual does reaffirm my belief that the boundaries are the signifficant source of deviance between the MC and ODE methods.
 
 
   \subsection{SIRS: Vaccinations}

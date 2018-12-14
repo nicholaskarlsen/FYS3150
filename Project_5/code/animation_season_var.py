@@ -16,7 +16,7 @@ inst = SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=10000, tN=204, Amplitude=1,
 inst.solve(inst.sirs_svar)
 t, S, I, R = inst.get()
 
-fig, (ax1, ax2) = plt.subplots(1,2)
+fig, (ax1, ax2) = plt.subplots(2,1)
 
 ax1.set_ylim(0, 400)
 ax1.set_xlim(t[0], t[-1])

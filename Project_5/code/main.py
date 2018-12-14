@@ -11,7 +11,6 @@ import scipy.interpolate
 from julia import Main as jcall  # Imports the main namespace of julia
 
 import SIRS_ODE
-import SIRS_MC
 
 # Colours used in plots
 S_colour = "blue"
@@ -83,7 +82,7 @@ def convergence_check():
     """
     Check how well the algorithm conserves population for different step sizes
     """
-    for N in [10000, 1000, 100, 10]:
+    for N in [100000, 10000, 1000, 100, 10]:
         inst = SIRS_ODE.SIRS(S0=300, I0=100, R0=0, a=4, b=1, c=0.5, N=N, tN=10)
         inst.solve(inst.sirs_basic)
         t, S, I, R = inst.get()
@@ -123,9 +122,6 @@ def part_a_b():
 
     list_of_bi = np.array([1, 2, 3, 4])
 
-    variance = np.zeros(len(list_of_bi))  # Store variance of result
-    # Alternatively look at difference between mean and  s*, i*, ... ?
-
     for b_i in list_of_bi:
         print b_i
         s, i, r = steadyState(a=4, b=b_i, c=0.5)  # Analytic steady state
@@ -135,40 +131,9 @@ def part_a_b():
 
         # ~~~ ODE SOLUTIONS ~~~ #
         inst = SIRS_ODE.SIRS(S0=S0, I0=I0, R0=R0, a=a,
-                             b=b_i, c=c, N=1000, tN=stop)
+                             b=b_i, c=c, N=10000, tN=stop)
         inst.solve(inst.sirs_basic)
         t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
-
-        # Main Figure
-        #fig, ax = plt.subplots(figsize=figdim)
-
-        #ax.plot(t_ODE, S_ODE, color=S_colour)
-        #ax.plot(t_ODE, I_ODE, color=I_colour)
-        #ax.plot(t_ODE, R_ODE, color=R_colour)
-
-        def plot_ab_settings():
-            "Calls that are common to generating both figs"
-            ax.text(x=1, y=350, s="b=%i" % b_i)
-            ax.set_ylim(-50, S0 + I0 + R0 + 50)
-            ax.set_xlim(0, stop)
-            ax.set_xlabel("Time")
-            ax.set_ylabel("No. People")
-            # ax.legend(loc="upper right")
-            # Right y-axis s* i* r* ticks
-            ax_ticks = ax.twinx()
-            ax_ticks.figure.canvas.draw()
-            y1, y2 = ax.get_ylim()
-            ax_ticks.set_ylim(y1, y2)
-            ax_ticks.set_yticks([s, i, r])
-            ax_ticks.set_yticklabels(["$s^*$", "$i^*$", "$r^*$"])
-            # Save
-            plt.tight_layout()
-
-        # plot_ab_settings()  # Apply settings to ODE fig
-        #plt.savefig("../figs/prob_a_varb_%i.pdf" % b_i)
-        # Save as .png as well because pdf reader didnt like vector plots for large no. trials
-        #plt.savefig("../figs/prob_a_varb_%i.png" % b_i)
-        # plt.close()
 
         # ~~~ MCMC SOLUTION ~~~ #
         N_samples = 100
@@ -178,9 +143,6 @@ def part_a_b():
         fn_I_curr = fn_I + "%i.npy" % b_i
         fn_R_curr = fn_R + "%i.npy" % b_i
         fn_t_curr = fn_t + "%i.npy" % b_i
-
-        # Initialize figure
-        fig, ax = plt.subplots(figsize=figdim)
         # If one of the files dont exist, all of them probably dont
         if os.path.isfile(fn_S_curr) is False:
             # If they dont exist, compute & save
@@ -196,6 +158,9 @@ def part_a_b():
             S_MC = np.load(fn_S_curr)
             I_MC = np.load(fn_I_curr)
             R_MC = np.load(fn_R_curr)
+
+        # Initialize figure
+        fig, ax = plt.subplots(figsize=figdim)
 
         # First plot all trials
 
@@ -216,7 +181,24 @@ def part_a_b():
         ax.plot(t_MC, np.mean(R_MC, axis=1), label="R",
                 color=Mean_colour, linestyle="--")
 
-        plot_ab_settings()  # Apply same settings to MCMC fig
+        # Tweak the plot
+        ax.text(x=1, y=350, s="b=%i" % b_i)
+        ax.set_ylim(-50, S0 + I0 + R0 + 50)
+        ax.set_xlim(0, stop)
+        ax.set_xlabel("Time")
+        ax.set_ylabel("No. People")
+        # ax.legend(loc="upper right")
+
+        # Right y-axis s* i* r* ticks
+        ax_ticks = ax.twinx()
+        ax_ticks.figure.canvas.draw()
+        y1, y2 = ax.get_ylim()
+        ax_ticks.set_ylim(y1, y2)
+        ax_ticks.set_yticks([s, i, r])
+        ax_ticks.set_yticklabels(["$s^*$", "$i^*$", "$r^*$"])
+        plt.tight_layout()
+
+        # Save
         plt.savefig("../figs/prob_b_varb_%i.pdf" % b_i)
         # NOTE : .pdf figs cause MAJOR stutter when viewing report. likely due to num. of pts.
         plt.savefig("../figs/prob_b_varb_%i.png" % b_i, dpi=600)
@@ -317,11 +299,10 @@ def part_c():
             I_mean[:len(t_ODE_valid)] += interpolated_I(t_ODE_valid)
             R_mean[:len(t_ODE_valid)] += interpolated_R(t_ODE_valid)
 
-            if i == 1:
-                # Sufficient to look at length of data sets for only one of the cycles
+            if i == 2:
+                # Sufficient to look at length of data sets for only one of the sets
                 num_steps[j] = len(t)
 
-            # TODO : Add interpolation at points t_ODE using scipy.interpolate.inerp1d()
         S_mean /= float(trials)
         I_mean /= float(trials)
         R_mean /= float(trials)
@@ -346,7 +327,7 @@ def part_c():
         plt.savefig("../figs/prob_c_fig_%i.png" % i)
         plt.close()
 
-    # Plot number of data points for cycles in one of the runs
+    # Plot number of data points for cycles in one of the cycles
     plt.figure(figsize=[5, 5])
     plt.hist(num_steps, bins=40)
     plt.xlabel("Number of steps in trial")
@@ -441,17 +422,21 @@ def part_e():
 
         command = "SIRS_vax(S0=%i, I0=%i, R0=%i, a=%.2f, b=%.2f, c=%.2f, f=%.2f, stop_time=%i, trials=%i)"\
             % (S0, I0, R0, a, b, c, f[i], stop[i], trials)
+
         t_MC, S_MC, I_MC, R_MC = jcall.eval(command)
+
+        # Firt plot individual MC-cycles
         for j in range(trials):
             plt.plot(t_MC, S_MC[j], color=S_colour, alpha=SIR_alpha)
             plt.plot(t_MC, I_MC[j], color=I_colour, alpha=SIR_alpha)
             plt.plot(t_MC, R_MC[j], color=R_colour, alpha=SIR_alpha)
+
         # Plot ODE solution on top
         inst = SIRS_ODE.SIRS(
-            S0=S0, I0=I0, R0=R0, N=int(1e5), tN=stop[i], a=a, b=b, c=c, f=f[i]
-        )
+            S0=S0, I0=I0, R0=R0, N=int(1e5), tN=stop[i], a=a, b=b, c=c, f=f[i])
         inst.solve(inst.sirs_vax)
         t_ODE, S_ODE, I_ODE, R_ODE = inst.get()
+
         plt.plot(t_ODE, S_ODE, color=ODE_colour)
         plt.plot(t_ODE, I_ODE, color=ODE_colour)
         plt.plot(t_ODE, R_ODE, color=ODE_colour)
@@ -471,20 +456,16 @@ def part_e():
         plt.savefig("../figs/prob_e_fig_%i.png" % i)
         plt.close()
 
-        # NOTE: System poorly modeled by ODE because the "f" term is not
-        # Population conservative. Will continue to "transfer" from
-        # I -> S even if I >= 0
-
     return
 
 
 def main():
     # convergence_check()
     common_legends()
-    # part_a_b()
+    part_a_b()
     part_c()
-    # part_d()
-    # part_e()
+    part_d()
+    part_e()
     return
 
 
