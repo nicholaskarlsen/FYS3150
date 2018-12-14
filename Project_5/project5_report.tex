@@ -245,7 +245,7 @@ for each $\textbf{MC-Cycle}$:
 
 \begin{figure*}[h!tb]
   \centering
-  \subfloat[][]{\includegraphics[height=0.75cm]{figs/prob_ab_legend.pdf}} \\
+  \subfloat{\includegraphics[height=0.75cm]{figs/prob_ab_legend.pdf}} \\
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_varb_1.png}}
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_varb_2.png}} \\
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_varb_3.png}}
@@ -255,7 +255,7 @@ for each $\textbf{MC-Cycle}$:
 
 \begin{figure*}[h!tb]
   \centering
-  \subfloat[][]{\includegraphics[height=0.75cm]{figs/prob_b_std_legend.pdf}} \\
+  \subfloat{\includegraphics[height=0.75cm]{figs/prob_b_std_legend.pdf}} \\
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_std_1.pdf}}
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_std_2.pdf}} \\
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_b_std_3.pdf}}
@@ -264,7 +264,7 @@ for each $\textbf{MC-Cycle}$:
 \end{figure*}
 
 \begin{figure*}[h!tb]
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_ab_legend.pdf}}
+  \subfloat{\includegraphics[width=8cm]{figs/prob_ab_legend.pdf}}
   \\
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_c_fig_0.png}}   
   \subfloat[][]{\includegraphics[width=8cm]{figs/prob_c_fig_1.png}}\\
@@ -276,22 +276,13 @@ for each $\textbf{MC-Cycle}$:
 \begin{figure*}[h!tb]
   \subfloat{\includegraphics[width=8cm]{figs/prob_ab_legend.pdf}}
   \\
-  \subfloat{\includegraphics[width=8cm]{figs/prob_d_fig_0.png}}   
-  \subfloat{\includegraphics[width=8cm]{figs/prob_d_fig_1.png}}\\
-  \subfloat{\includegraphics[width=8cm]{figs/prob_d_fig_2.png}}   
-  \subfloat{\includegraphics[width=8cm]{figs/prob_d_fig_3.png}}   
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_0.png}}   
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_1.png}}\\
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_2.png}}   
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_d_fig_3.png}}   
   \caption{\label{fig:prob d}The SIRS model with seasonal variation for initial state $S_0=300, I_0=100, R_0=0$ and constants $a=4, b=1, c=0.5$, and 100 MC cycles.}
 \end{figure*}
 
-\begin{figure*}[h!tb]
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_ab_legend.pdf}}
-  \\
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_e_fig_0.png}}   
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_e_fig_1.png}}\\
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_e_fig_2.png}}   
-  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_e_fig_3.png}\label{fig:c mc improvement}}   
-  \caption{\label{fig:prob e}The SIRS model with vaccinations for initial state $S_0=300, I_0=100, R_0=0$ and constants $a_0=4, b=1, c=0.5$, and 100 MC cycles}
-\end{figure*}
 
 \section{Results and Discussions}
   \subsection{Implementation}
@@ -305,7 +296,6 @@ for each $\textbf{MC-Cycle}$:
 
     ADD CONVERGENCE CHECK FOR B=3
 
-
   \subsection{SIRS: Vital Dynamics}
     If we now turn to Fig.~\ref{fig:prob c} we see the plots for the vital dynamics system.
     For this model, we observe that the MC mean path follows mostly the ODE solution, deviating the most in Fig.~\ref{fig:c d=1 ,dI=1, e=1}, which out of the four data sets ends up hoovering the most around the lower-limit of the permitted group sizes.
@@ -315,10 +305,15 @@ for each $\textbf{MC-Cycle}$:
   \subsection{SIRS: Seasonal Variation}
     In Fig.~\ref{fig:prob d}, we see results that are somewhat similar to what we saw in the basic SIRS model, but instead of converging towards a constant steady state, the system instead tends towards a periodic steady state. We see also that the frequency $\omega$ plays into the amplitude of the variation within the groups in their steady state just as much, if not more than $A$. We also observe that there seems to be a natural frequency, in which we get a peak variation within groups once the steady state has been reached and we effectively observe a resonance\footnote{There should be a .gif showing this quite clearly in the README.md file in the main directory for this project.}. 
 
+
   \subsection{SIRS: Vaccinations}
-    Finally, we turn to Fig.~\ref{fig:prob e}. Here we again see mostly good agreement between the MC and ODE results, except in Fig.~\ref{fig:c mc improvement}, which exemplifies how MC simulations may improve upon the systems of differential equations which they aim to emulate the behaviour of by imposing restrictions on the transitions to better reflect reality. 
-    
+    Finally, we turn to Fig.~\ref{fig:prob e}. Here we again see for lower vaccination rates good agreement between the MC and ODE results, except in Fig.~\ref{fig:c mc improvement}, which exemplifies how MC simulations may improve upon the systems of differential equations which they aim to emulate the behaviour of by imposing further conditions on the whether to accept a transition based on reality.
+
+    Qualitatively speaking, we observe how the rate of vaccinations lowers the the steady states of both S and I groups, making putting a larger portion of the  population in the R group. We see that when the infected and susceptible group goes to zero only when the  rate of vaccination approaches the population, $N=400$, implying that a vaccination can only be truly effective if large portions of the population partake.\footnote{Showing just how damaging the mindset of anti-vaccine conspirators can potentially be to society}
+
 \section{Conclusions}
+
+  We have seen that the MC models mostly agrees with the set of differential equations on which they are based, 
 
   We note also, a problem in the algorithm. That is; in what order do we evaluate the probabilities?
   Whether to consider $P(S\rightarrow I)$ or P$(R\rightarrow S)$ first is completely arbitrary, but may lead to a certain bias in smaller populations or when a group is at its lower limit due to the restriction that groups may not go below zero, and that multiple transitions can lead to the deduction of a group for each step. For this, it would perhaps be interesting to investigate how the model might be improved by randomly selecting the order in which the transitions are evaluated.
@@ -336,8 +331,17 @@ for each $\textbf{MC-Cycle}$:
    Whilst the implementation of this compound model is entirely trivial with a proper understanding of its individual constituents, the analysis of it is likely a much more involved, and out of the scope of this project.
 
 
-
 \bibliography{../bibliography.bib}
+
+\begin{figure*}[h!]
+  \subfloat{\includegraphics[width=8cm]{figs/prob_ab_legend.pdf}}
+  \\
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_e_fig_0.png}}   
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_e_fig_1.png}}\\
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_e_fig_2.png}}   
+  \subfloat[][]{\includegraphics[width=8cm]{figs/prob_e_fig_3.png}\label{fig:c mc improvement}}   
+  \caption{\label{fig:prob e}The SIRS model with vaccinations for initial state $S_0=300, I_0=100, R_0=0$ and constants $a_0=4, b=1, c=0.5$, and 100 MC cycles}
+\end{figure*}
 
 
 \end{document}  
